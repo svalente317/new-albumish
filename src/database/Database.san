@@ -1,0 +1,156 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.database;
+import sanka.io.File;
+import sanka.json.JsonParser;
+
+class Database {
+    File directory;
+    String filename;
+    Artist[] artist_list;
+    Album[] album_list;
+    Song[] song_list;
+    boolean is_changed;
+
+    /**
+     * Create a new empty Database instance.
+     */
+    Database() {
+        // There is no artist #0, album #0, or song #0.
+        this.artist_list = new Artist[](1);
+        this.album_list = new Album[](1);
+        this.song_list = new Song[](1);
+    }
+
+    /**
+     * Read a song database from a JSON file.
+     */
+    boolean load(File directory, String filename) {
+        this.directory = directory;
+        this.filename = filename;
+        var file = new File(directory, filename);
+        System.println("load " + file.getPath());
+        var root = JsonParser.parseFile(file.getPath());
+        if root == null {
+            System.println(file.toString() + ": parseFile failed");
+            return false;
+        }
+        var songArray = root.getAsArray();
+        if songArray == null {
+            System.println(file.toString() + ": empty database");
+            return false;
+        }
+        for var element : songArray {
+            var song = new Song();
+            song.fromJson(element);
+            if song.filename == null {
+                continue;
+            }
+            var obj = new SongInfo();
+            obj.fromJson(element);
+            add_song(song, obj);
+        }
+        this.is_changed = false;
+        return true;
+    }
+
+    void add_song(Song song, SongInfo obj) {
+        song.id = this.song_list.length;
+        song.artistid = get_artistid(obj.artist);
+        var artistid = get_artistid(obj.album_artist);
+        if (artistid == 0) {
+            artistid = song.artistid;
+        }
+        song.albumid = get_albumid(obj.album, artistid, song.year);
+        this.song_list.add(song);
+        add_song_to_album(song);
+        this.is_changed = true;
+    }
+
+    /**
+     * Get the artist's ID or add the artist to the database.
+     */
+    int get_artistid(String name) {
+        if name == null {
+            return 0;
+        }
+        var num_artists = this.artist_list.length;
+        for var idx = 1; idx < num_artists; idx++ {
+            if this.artist_list[idx].name == name {
+                return idx;
+            }
+        }
+        var artist = new Artist();
+        artist.id = num_artists;
+        artist.name = name;
+        this.artist_list.add(artist);
+        return artist.id;
+    }
+
+    /**
+     * Get the album's ID or add the album to the database. If the album is a "Greatest Hits"
+     * collection, then the release date of the album is the date of its newest song.
+     */
+    private int get_albumid(String name, int artistid, int year) {
+        if name == null {
+            name = "";
+        }
+        var num_albums = this.album_list.length;
+        for var idx = 1; idx < num_albums; idx++ {
+            var album = this.album_list[idx];
+            if album.artistid == artistid && album.name == name {
+                if year > album.year {
+                    album.year = year;
+                }
+                return idx;
+            }
+        }
+        var album = new Album();
+        album.id = num_albums;
+        album.name = name;
+        album.artistid = artistid;
+        album.year = year;
+        this.album_list.add(album);
+        return album.id;
+    }
+
+    /**
+     * Insertion sort song into album's list of songs.
+     */
+    private void add_song_to_album(Song song) {
+        var album = this.album_list[song.albumid];
+        if album.song_list == null {
+            album.song_list = {song.id};
+            return;
+        }
+        var idx = 0;
+        for idx = 0; idx < album.song_list.length; idx++ {
+            var other = this.song_list[album.song_list[idx]];
+            if other.track_number > song.track_number {
+                break;
+            }
+        }
+        album.song_list.insert(idx, song.id);
+    }
+
+    /**
+     * Overwrite the database file with the current contents of the database.
+     */
+    void save() {
+        // TODO
+    }
+
+    void delete_album(int albumid) {
+        var album = this.album_list[albumid];
+        for var songid : album.song_list {
+            this.song_list[songid] = new Song();
+        }
+        this.album_list[albumid] = new Album();
+        this.is_changed = true;
+    }
+}

@@ -1,0 +1,50 @@
+package gtk;
+
+class Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+c__stmt "void __widget_callback(GtkWidget *w, void *user_data) { Callback__callback((struct Callback *) user_data, w); }";
+
+static Widget window(Application app) {
+    c__stmt "return gtk_application_window_new(app)";
+}
+
+void connect(String signal, Callback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__widget_callback), callback)";
+}
+
+void showAll() {
+    c__stmt "gtk_widget_show_all(this)";
+}
+
+void destroy() {
+    c__stmt "gtk_widget_destroy(this)";
+}
+
+void setTitle(String title) {
+    c__stmt "return gtk_window_set_title(GTK_WINDOW(this), title)";
+}
+
+static Widget grid() {
+    c__stmt "return gtk_grid_new()";
+}
+
+void attach(Widget widget, int x, int y, int width, int height) {
+    c__stmt "gtk_grid_attach(GTK_GRID(this), widget, x, y, width, height)";
+}
+
+void add(Widget widget) {
+    c__stmt "gtk_container_add(GTK_CONTAINER(this), widget)";
+}
+
+void setBorderWidth(int width) {
+    c__stmt "gtk_container_set_border_width(GTK_CONTAINER(this), width)";
+}
+
+static Widget button(String label) {
+    c__stmt "return gtk_button_new_with_label(label)";
+}
+
+}

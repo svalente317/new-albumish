@@ -1,0 +1,6 @@
+package albumish.database;
+
+serializable class Artist {
+    int id;
+    String name;
+}

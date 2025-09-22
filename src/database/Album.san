@@ -1,0 +1,9 @@
+package albumish.database;
+
+serializable class Album {
+    int id;
+    String name;
+    int artistid;
+    int year;
+    int[] song_list;
+}

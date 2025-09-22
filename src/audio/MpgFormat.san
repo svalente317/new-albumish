@@ -1,0 +1,7 @@
+package audio;
+
+class MpgFormat {
+    long rate;
+    int channels;
+    int encoding;
+}

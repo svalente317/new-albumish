@@ -1,0 +1,106 @@
+package audio;
+
+class Mpg123 {
+
+c__include "mpg123.h";
+c__repr    "mpg123_handle*";
+
+/**
+ * Perform necessary one-time setup tasks for the mpg123 library's internal state.
+ */
+static void init() {
+    c__stmt "mpg123_init()";
+}
+
+Mpg123() {
+    var err = 0;
+    c__stmt "mpg123_handle *t = mpg123_new(NULL, &err)";
+    if err != 0 {
+        System.println("mpg123_new failed error " + err);
+    }
+    c__stmt "return t";
+}
+
+/**
+ * Open mp3 file.
+ */
+int open(String filename) {
+    c__stmt "return mpg123_open(this, filename)";
+}
+
+/**
+ * Get the mp3 file's rate, channels, and encoding.
+ */
+MpgFormat getFormat() {
+    var f = new MpgFormat();
+    c__stmt "mpg123_getformat(this, &f->rate, &f->channels, &f->encoding)";
+    return f;
+}
+
+/**
+ * Set the allowed output audio formats. This does not change the format on the fly.
+ * It configures an internal table of supported formats. When libmpg123 encounters a
+ * new frame or a change in the stream's properties, it consults this table to
+ * determine the most suitable output format.
+ *
+ * @rate      sample rate specified in hertz
+ * @channels  bitwise OR of MONO (1) and STEREO (2)
+ * @encodings bitwise OR of SIGNED_16, FLOAT_32, etc.
+ */
+int setFormat(long rate, int channels, int encoding) {
+    c__stmt "return mpg123_format(this, rate, channels, encoding)";
+}
+
+/**
+ * Clear all default format settings before using setFormat to set your custom list.
+ */
+int formatNone() {
+    c__stmt "return mpg123_format_none(this)";
+}
+
+/**
+ * Read data and decode the raw PCM samples.
+ *
+ * @return bytes read
+ */
+int read(byte[] buffer) {
+    var err = 0;
+    c__stmt "size_t read";
+    c__stmt "err = mpg123_read(this, buffer->data, buffer->length, &read)";
+    if err != 0 {
+        return 0;
+    }
+    c__stmt "return (int) read";
+}
+
+/**
+ * Return the string description of this object's last error.
+ */
+String strerror() {
+    c__stmt "return mpg123_strerror(this)";
+}
+
+/**
+ * Close mp3 file.
+ */
+void close() {
+    c__stmt "mpg123_close(this)";
+}
+
+/**
+ * Destroy this mpg123 reader.
+ */
+void delete() {
+    c__stmt "mpg123_delete(this)";
+}
+
+static void exit() {
+    c__stmt "mpg123_exit()";
+}
+
+static int getSigned16Encoding() {
+    // TODO need sanka support
+    c__stmt "return MPG123_ENC_SIGNED_16";
+}
+
+}

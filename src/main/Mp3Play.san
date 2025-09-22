@@ -1,0 +1,53 @@
+package main;
+import audio.Mpg123;
+import audio.PulseAudio;
+
+class Mp3Play {
+
+static void main(String[] argv) {
+    var filename = argv[1];
+    Mpg123.init();
+    var mpg = new Mpg123();
+    var err = mpg.open(filename);
+    if err != 0 {
+        System.println("open: " + err);
+        return;
+    }
+    // Get this file's default rate and channels.
+    var fmt = mpg.getFormat();
+    var encoding = Mpg123.getSigned16Encoding();
+    System.println("rate=" + fmt.rate + " cha=" + fmt.channels + " enc=" + fmt.encoding +
+                   " dest-enc=" + encoding);
+
+    // Tell mpg123 to encode samples in signed 16-bit little endian format,
+    // because that's what PulseAudio expects.
+    err = mpg.formatNone();
+    if err != 0 {
+        System.println("formatNone: " + err);
+        return;
+    }
+    err = mpg.setFormat(fmt.rate, fmt.channels, encoding);
+    if err != 0 {
+        System.println("formatNone: " + err);
+        return;
+    }
+
+    var pulse = new PulseAudio("mp3play", "playback", fmt.rate, fmt.channels);
+
+    var buffer = new byte[](8192);
+    while true {
+        var size = mpg.read(buffer);
+        if size <= 0 {
+            break;
+        }
+        pulse.write(buffer, size);
+    }
+    System.println("final err: " + mpg.strerror());
+
+    pulse.free();
+    mpg.close();
+    mpg.delete();
+    Mpg123.exit();
+}
+
+}

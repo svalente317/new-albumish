@@ -1,0 +1,9 @@
+package gtk;
+
+interface AppCallback {
+    void callback(Application app);
+}
+
+interface Callback {
+    void callback(Widget widget);
+}

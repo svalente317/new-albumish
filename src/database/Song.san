@@ -1,0 +1,20 @@
+package albumish.database;
+
+serializable class Song {
+    int id;
+    String filename;
+    int mtime;
+    String title;
+    int artistid;
+    int albumid;
+    int track_number;
+    int year;
+    int duration;
+    String bitrate;
+    String bpm;
+    String id3;
+    String encoder;
+    String encoderVersion;
+    int add_time;
+    String tags;
+}

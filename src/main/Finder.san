@@ -1,0 +1,23 @@
+package main;
+import sanka.io.File;
+import albumish.database.Database;
+import albumish.filter.Filter;
+import albumish.filter.FilterWorker;
+
+class Finder {
+
+static void main(String[] argv) {
+    var database = new Database();
+    var home = System.getenv("HOME");
+    var directory = new File(home, ".albumish");
+    database.load(directory, "database.json");
+
+    var worker = new FilterWorker(database);
+    var filter = new Filter(){text: argv[1]};
+    var album_list = worker.add_filter(filter);
+    for var id : album_list {
+        System.println(database.album_list[id].name);
+    }
+}
+
+}

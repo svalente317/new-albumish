@@ -1,0 +1,171 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.filter;
+import sanka.util.StringUtils;
+import albumish.database.Artist;
+import albumish.database.Album;
+import albumish.database.Database;
+import albumish.database.Song;
+
+class FilterWorker {
+
+    private Database database;
+    private Filter[] filter_list;
+
+    FilterWorker(Database database) {
+        this.database = database;
+        this.filter_list = new Filter[];
+    }
+
+    /**
+     * Add the given filter and return the displayed albums.
+     */
+    int[] add_filter(Filter filter) {
+        var found = false;
+        for var idx = 0; idx < this.filter_list.length; idx++ {
+            if this.filter_list[idx].fid == filter.fid {
+                this.filter_list[idx] = filter;
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            this.filter_list.add(filter);
+        }
+        return generate_album_list();
+    }
+
+    /**
+     * Remove the given filter and return the displayed albums.
+     */
+    int[] remove_filter(int fid) {
+        for var idx = 0; idx < this.filter_list.length; idx++ {
+            if this.filter_list[idx].fid == fid {
+                this.filter_list.delete(idx, 1);
+                break;
+            }
+        }
+        return generate_album_list();
+    }
+
+    /**
+     * For each album in the database, if the album contains at least one song that matches all
+     * filters, then add the album to the given list.
+     */
+    int[] generate_album_list() {
+        var album_list = new int[];
+        var song_list = new int[];
+        for var idx = 1; idx < this.database.album_list.length; idx++ {
+            var album = this.database.album_list[idx];
+            if generate_song_list(album, song_list, false) {
+                album_list.add(album.id);
+            }
+        }
+        return album_list;
+    }
+
+    /**
+     * For each song on the album, if the song matches all filters, then add it to the given list.
+     *
+     * @param find_all If true, then find all songs that match all filters. Otherwise, stop after
+     *            the first song.
+     */
+    private boolean generate_song_list(Album album, int[] song_list, boolean find_all) {
+        if album.song_list == null {
+            return false;
+        }
+        var new_filter_list = new Filter[];
+        for var filter : this.filter_list {
+            if !album_match(album, filter) {
+                // Check the individual songs against this filter.
+                new_filter_list.add(filter);
+            }
+        }
+        for var songid : album.song_list {
+            var song = this.database.song_list[songid];
+            if is_song_displayed(song, new_filter_list) {
+                if !find_all {
+                    return true;
+                }
+                song_list.add(song.id);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the album matches the filter.
+     */
+    private boolean album_match(Album album, Filter filter) {
+        if string_match(album.name, filter.text) {
+            return true;
+        }
+        if album.artistid > 0 {
+            var artist = this.database.artist_list[album.artistid];
+            if string_match(artist.name, filter.text) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the song matches all filters.
+     */
+    private boolean is_song_displayed(Song song, Filter[] new_filter_list) {
+        for var filter : new_filter_list {
+            if !song_match(song, filter) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return true if the song matches the filter.
+     */
+    private boolean song_match(Song song, Filter filter) {
+        if string_match(song.title, filter.text) {
+            return true;
+        }
+        if string_match(song.tags, filter.text) {
+            return true;
+        }
+        if song.year > 0 && song.year == System.parseInt(filter.text) {
+            return true;
+        }
+        if song.artistid > 0 {
+            var artist = this.database.artist_list[song.artistid];
+            if string_match(artist.name, filter.text) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean string_match(String song_text, String filter_text) {
+        if song_text == null || filter_text == null {
+            return false;
+        }
+        song_text = StringUtils.toLowerCase(song_text);
+        filter_text = StringUtils.toLowerCase(filter_text);
+        return song_text.find(filter_text) >= 0;
+    }
+
+    /**
+     * For each song on the album, if the song matches all filters, then add it to the given list.
+     */
+    int[] generate_song_list(int albumid) {
+        var album = this.database.album_list[albumid];
+        var song_list = new int[];
+        if album.song_list != null {
+            generate_song_list(album, song_list, true);
+        }
+        return song_list;
+    }
+}
