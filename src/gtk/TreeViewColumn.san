@@ -1,0 +1,16 @@
+package gtk;
+
+class TreeViewColumn {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkTreeViewColumn*";
+
+TreeViewColumn(String columnName, CellRenderer renderer, boolean expand, String attrName,
+               int attrValue) {
+    c__stmt "GtkTreeViewColumn *column = gtk_tree_view_column_new()";
+    c__stmt "gtk_tree_view_column_set_title(column, columnName)";
+    c__stmt "gtk_tree_view_column_pack_start(column, renderer, expand)";
+    c__stmt "gtk_tree_view_column_set_attributes(column, renderer, attrName, attrValue, NULL)";
+    c__stmt "return column";
+}
+}

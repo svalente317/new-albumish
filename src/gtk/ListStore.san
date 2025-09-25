@@ -1,0 +1,111 @@
+package gtk;
+import sanka.json.JsonElement;
+
+class ListStore {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkListStore*";
+
+const TYPE_BOOLEAN = 0;
+const TYPE_INT = 1;
+const TYPE_STRING = 2;
+
+ListStore(int[] types) {
+    var length = types.length;
+    c__stmt "GType gtypes[] = {G_TYPE_BOOLEAN, G_TYPE_INT, G_TYPE_STRING}";
+    c__stmt "GType xtypes[length]";
+    for var i = 0; i < length; i++ {
+        var sankaType = types[i];
+        c__stmt "xtypes[i] = gtypes[sankaType]";
+    }
+    c__stmt "return gtk_list_store_newv(length, xtypes)";
+}
+
+boolean getIterFirst(TreeIter iter) {
+    c__stmt "return gtk_tree_model_get_iter_first(GTK_TREE_MODEL(this), iter)";
+}
+
+boolean iterNext(TreeIter iter) {
+    c__stmt "return gtk_tree_model_iter_next(GTK_TREE_MODEL(this), iter)";
+}
+
+void append(TreeIter iter) {
+    c__stmt "gtk_list_store_append(this, iter)";
+}
+
+void set(TreeIter iter, JsonElement[] values) {
+    var count = 0;
+    for var value : values {
+        if value != null {
+            count = count + 1;
+        }
+    }
+    var columns = new int[](count);
+    c__stmt "GValue gvalues[count]";
+    c__stmt "GValue valueInit = G_VALUE_INIT";
+    count = 0;
+    for var i = 0; i < values.length; i++ {
+        var value = values[i];
+        if value == null {
+            continue;
+        }
+        columns[count] = i;
+        c__stmt "gvalues[count] = valueInit";
+        switch value.type {
+        case JsonElement.BOOLEAN_TYPE:
+            var bv = value.getAsBoolean();
+            c__stmt "g_value_init(gvalues+count, G_TYPE_BOOLEAN)";
+            c__stmt "g_value_set_boolean(gvalues+count, bv)";
+            count = count + 1;
+            break;
+        case JsonElement.INT_TYPE:
+            var iv = value.getAsInt();
+            c__stmt "g_value_init(gvalues+count, G_TYPE_INT)";
+            c__stmt "g_value_set_int(gvalues+count, iv)";
+            count = count + 1;
+            break;
+        case JsonElement.STRING_TYPE:
+            var sv = value.getAsString();
+            if sv != null {
+                c__stmt "g_value_init(gvalues+count, G_TYPE_STRING)";
+                c__stmt "g_value_set_static_string(gvalues+count, sv)";
+                count = count + 1;
+            }
+            break;
+        }
+    }
+    c__stmt "gtk_list_store_set_valuesv(this, iter, (int *) columns->data, gvalues, count)";
+}
+
+void getValue(TreeIter iter, int column, JsonElement value) {
+    var type = -1;
+    c__stmt "GValue gvalue = G_VALUE_INIT";
+    c__stmt "gtk_tree_model_get_value(GTK_TREE_MODEL(this), iter, column, &gvalue)";
+    c__stmt "GType gtype = G_VALUE_TYPE(&gvalue)";
+    c__stmt "if (gtype == G_TYPE_BOOLEAN) type = 0";
+    c__stmt "if (gtype == G_TYPE_INT) type = 1";
+    c__stmt "if (gtype == G_TYPE_STRING) type = 2";
+    switch type {
+    case 0:
+        var bv = false;
+        c__stmt "bv = g_value_get_boolean(&gvalue)";
+        value.makeBoolean(bv);
+        return;
+    case 1:
+        var iv = 0;
+        c__stmt "iv = g_value_get_int(&gvalue)";
+        value.makeInt(iv);
+        return;
+    case 2:
+        var sv = "";
+        c__stmt "sv = g_value_get_string(&gvalue)";
+        value.makeString(sv);
+        return;
+    }
+}
+
+boolean remove(TreeIter iter) {
+    c__stmt "gtk_list_store_remove(this, iter)";
+}
+
+}

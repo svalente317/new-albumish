@@ -62,7 +62,7 @@ class FilterWorker {
         var song_list = new int[];
         for var idx = 1; idx < this.database.album_list.length; idx++ {
             var album = this.database.album_list[idx];
-            if generate_song_list(album, song_list, false) {
+            if process_album(album, song_list, false) {
                 album_list.add(album.id);
             }
         }
@@ -75,7 +75,7 @@ class FilterWorker {
      * @param find_all If true, then find all songs that match all filters. Otherwise, stop after
      *            the first song.
      */
-    private boolean generate_song_list(Album album, int[] song_list, boolean find_all) {
+    private boolean process_album(Album album, int[] song_list, boolean find_all) {
         if album.song_list == null {
             return false;
         }
@@ -164,7 +164,7 @@ class FilterWorker {
         var album = this.database.album_list[albumid];
         var song_list = new int[];
         if album.song_list != null {
-            generate_song_list(album, song_list, true);
+            process_album(album, song_list, true);
         }
         return song_list;
     }

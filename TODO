@@ -1,0 +1,10 @@
+- mpg123 signed16 encoding
+- play mp3
+- sublime text coloring
+- scroll bars and frames
+- break up Widget class
+- interface for Albumish in CoverPanel
+- CheckDatabase
+- AlbumSorter
+- Database save
+- ListStore and doubles

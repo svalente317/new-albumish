@@ -1,0 +1,62 @@
+package albumish;
+import sanka.io.File;
+import gtk.Application;
+import gtk.Widget;
+import albumish.database.Database;
+import albumish.filter.FilterWorker;
+
+class Albumish {
+
+Database database;
+FilterWorker filterWorker;
+CoverPanel coverPanel;
+SongPanel albumSongPanel;
+
+static void main(String[] argv) {
+    new Albumish().run(argv);
+}
+
+void run(String[] argv)
+{
+    var app = new Application(null, 0);
+    app.connect("activate", this);
+    app.run(argv);
+    app.unref();
+}
+
+void callback(Application app) {
+    var home = System.getenv("HOME");
+    var directory = new File(new File(home), ".albumish");
+    this.database = new Database();
+    this.database.load(directory, "database.json");
+
+    this.filterWorker = new FilterWorker(this.database);
+    var albumList = this.filterWorker.generate_album_list();
+    albumList.setLength(20);
+
+    var window = Widget.window(app);
+    window.setTitle("Albumish");
+    window.setBorderWidth(10);
+
+    var grid = Widget.grid();
+    window.add(grid);
+
+    this.coverPanel = new CoverPanel(this.database);
+    this.coverPanel.reset(albumList);
+    grid.attach(this.coverPanel.widget(), 0, 0, 1, 1);
+
+    this.albumSongPanel = new SongPanel(this.database, false);
+    grid.attach(this.albumSongPanel.widget(), 1, 0, 1, 1);
+
+    this.coverPanel.albumish = this;
+    window.showAll();
+}
+
+void selectAlbum(int albumid) {
+    if (albumid >= 0) {
+        this.albumSongPanel.updateDatabase();
+        var songList = this.filterWorker.generate_song_list(albumid);
+        this.albumSongPanel.reset(songList, -1);
+    }
+}
+}

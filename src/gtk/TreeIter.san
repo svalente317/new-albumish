@@ -1,0 +1,12 @@
+package gtk;
+
+class TreeIter {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkTreeIter*";
+
+TreeIter() {
+    c__stmt "return GC_MALLOC(sizeof(GtkTreeIter))";
+}
+
+}

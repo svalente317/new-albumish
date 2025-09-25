@@ -1,9 +1,13 @@
 package gtk;
 
-interface AppCallback {
+interface ApplicationCallback {
     void callback(Application app);
 }
 
-interface Callback {
+interface WidgetCallback {
     void callback(Widget widget);
+}
+
+interface TreeSelectionCallback {
+    void callback(TreeSelection selection);
 }

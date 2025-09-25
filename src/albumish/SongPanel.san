@@ -1,0 +1,119 @@
+package albumish;
+import sanka.json.JsonElement;
+import gtk.CellRenderer;
+import gtk.ListStore;
+import gtk.Widget;
+import albumish.database.Database;
+
+class SongPanel {
+
+private Database database;
+private Widget treeView;
+private ListStore listStore;
+private boolean showBitrate;
+private boolean showBpm;
+private int playlistid;
+
+SongPanel(Database database, boolean with_checks) {
+    this.playlistid = -1;
+    // TODO use with checks
+    // TODO SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI
+
+    this.database = database;
+    this.treeView = Widget.treeView();
+    var types = new int[]{ListStore.TYPE_STRING};
+
+    var renderer = CellRenderer.text();
+    var column = new TreeViewColumn("", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    column = new TreeViewColumn("Title", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    column = new TreeViewColumn("Time", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    column = new TreeViewColumn("Artist", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    column = new TreeViewColumn("Album", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    column = new TreeViewColumn("Year", renderer, true, "text", types.length);
+    this.treeView.appendColumn(column);
+    types.add(ListStore.TYPE_STRING);
+    if (this.showBitrate) {
+        column = new TreeViewColumn("bitrate", renderer, true, "text", types.length);
+        this.treeView.appendColumn(column);
+    }
+    types.add(ListStore.TYPE_STRING);
+    if (this.showBpm) {
+        column = new TreeViewColumn("BPM", renderer, true, "text", types.length);
+        this.treeView.appendColumn(column);
+    }
+    types.add(ListStore.TYPE_STRING);
+    this.listStore = new ListStore(types);
+    this.treeView.setModel(this.listStore);
+
+    // TODO this.table.setHeaderVisible(true);
+    // TODO this.table.setLinesVisible(true);
+    // TODO pcolumn.pack();
+    // TODO this.table.addSelectionListener(this);
+}
+
+Widget widget() {
+    return this.treeView;
+}
+
+void reset(int[] songs, int selected_idx) {
+    var row = {new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
+               new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
+               new JsonElement()};
+    var numSongs = (songs == null ? 0 : songs.length);
+    var iter = new TreeIter();
+    var valid = this.listStore.getIterFirst(iter);
+    for var idx = 0; idx < numSongs; idx++ {
+        if !valid {
+            this.listStore.append(iter);
+        }
+        var song = this.database.song_list[songs[idx]];
+        row[0].makeInt(song.id);
+        row[1].makeString(song.track_number > 0 ? "" + song.track_number : null);
+        row[2].makeString(song.title);
+        var duration = "";
+        if song.duration > 0 {
+            var min = song.duration / 60;
+            var sec = song.duration % 60;
+            duration = "" + min + ":" + (sec < 10 ? "0" : "") + sec;
+        }
+        row[3].makeString(duration);
+        row[4].makeString(song.artistid > 0 ? this.database.artist_list[song.artistid].name : null);
+        row[5].makeString(song.albumid > 0 ? this.database.album_list[song.albumid].name : null);
+        row[6].makeString(song.year > 0 ? "" + song.year : null);
+        row[7].makeString(song.bitrate);
+        row[8].makeString(song.bitrate);
+        this.listStore.set(iter, row);
+        valid = this.listStore.iterNext(iter);
+    }
+    while valid {
+        valid = this.listStore.remove(iter);
+    }
+
+    // TODO for (TableColumn column : this.table.getColumns()) {
+    //    column.pack();
+
+    // TODO for (TableColumn column : this.table.getColumns()) {
+    // int width = column.getWidth();
+    //    column.setWidth(width+5);
+
+    // TODO this.table.deselectAll();
+    // if (selected_idx >= 0 && selected_idx < num_songs) {
+    //     this.table.select(selected_idx);
+    // }
+    // this.table.setRedraw(true);
+    // this.table.redraw();
+}
+
+void updateDatabase() {
+}
+}

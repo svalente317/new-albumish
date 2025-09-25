@@ -1,0 +1,15 @@
+package gtk;
+
+class CellRenderer {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkCellRenderer*";
+
+static CellRenderer text() {
+    c__stmt "return gtk_cell_renderer_text_new()";
+}
+
+static CellRenderer toggle() {
+    c__stmt "return gtk_cell_renderer_toggle_new()";
+}
+}

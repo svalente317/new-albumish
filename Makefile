@@ -1,4 +1,9 @@
-all: hello
+all: albumish
+
+ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san src/gtk/*.san
+
+albumish: $(ALBUMISH_FILES)
+	sanka --top bin --pkg-config gtk+-3.0 $(ALBUMISH_FILES) --main albumish.Albumish --exe $@
 
 HELLO_FILES = src/main/Hello.san src/gtk/*.san
 
@@ -13,4 +18,4 @@ mp3play: $(MP3_FILES)
 	sanka --top bin $(MP3_PKGCONFIG) $(MP3_FILES) --main main.Mp3Play --exe $@
 
 clean:
-	rm -rf hello mp3play finder bin
+	rm -rf albumish hello mp3play finder bin

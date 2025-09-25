@@ -34,7 +34,6 @@ class Database {
         this.directory = directory;
         this.filename = filename;
         var file = new File(directory, filename);
-        System.println("load " + file.getPath());
         var root = JsonParser.parseFile(file.getPath());
         if root == null {
             System.println(file.toString() + ": parseFile failed");

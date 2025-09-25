@@ -1,0 +1,26 @@
+package gtk;
+
+class TreeSelection {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkTreeSelection*";
+
+c__stmt "void __tree_selection_callback(GtkTreeSelection *x, void *user_data) { TreeSelectionCallback__callback((struct TreeSelectionCallback *) user_data, x); }";
+
+TreeSelection() {
+    c__stmt "return GC_MALLOC(sizeof(GtkTreeSelection))";
+}
+
+void connect(String signal, TreeSelectionCallback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__tree_selection_callback), callback)";
+}
+
+int countSelectedRows() {
+    c__stmt "return gtk_tree_selection_count_selected_rows(this)";
+}
+
+boolean getSelected(TreeIter iter) {
+    c__stmt "return gtk_tree_selection_get_selected(this, NULL, iter)";
+}
+
+}
