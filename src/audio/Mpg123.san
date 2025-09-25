@@ -1,9 +1,10 @@
 package audio;
 
 class Mpg123 {
+    c__include "mpg123.h";
+    c__repr    "mpg123_handle*";
 
-c__include "mpg123.h";
-c__repr    "mpg123_handle*";
+const SIGNED_16_ENCODING = 0;
 
 /**
  * Perform necessary one-time setup tasks for the mpg123 library's internal state.
@@ -48,7 +49,9 @@ MpgFormat getFormat() {
  * @encodings bitwise OR of SIGNED_16, FLOAT_32, etc.
  */
 int setFormat(long rate, int channels, int encoding) {
-    c__stmt "return mpg123_format(this, rate, channels, encoding)";
+    var menc = 0;
+    c__stmt "if (encoding == 0) menc = MPG123_ENC_SIGNED_16";
+    c__stmt "return mpg123_format(this, rate, channels, menc)";
 }
 
 /**
@@ -97,10 +100,4 @@ void delete() {
 static void exit() {
     c__stmt "mpg123_exit()";
 }
-
-static int getSigned16Encoding() {
-    // TODO need sanka support
-    c__stmt "return MPG123_ENC_SIGNED_16";
-}
-
 }

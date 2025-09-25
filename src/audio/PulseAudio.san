@@ -5,15 +5,16 @@ class PulseAudio {
     c__include "pulse/error.h";
     c__repr "   pa_simple*";
 
+const SIGNED_16_LE_FORMAT = 0;
+
 /**
  * Open a stream to the default PulseAudio server for audio playback.
- *
- * Currently, this hardcodes a signed 16-bit little endian format.
- * Should this be configurable?
  */
-PulseAudio(String appName, String streamName, long rate, int channels) {
+PulseAudio(String appName, String streamName, long rate, int channels, int format) {
+    var pformat = 0;
+    c__stmt "if (format == 0) pformat = PA_SAMPLE_S16LE";
     c__stmt "pa_sample_spec ss";
-    c__stmt "ss.format = PA_SAMPLE_S16LE";
+    c__stmt "ss.format = pformat";
     c__stmt "ss.rate = rate";
     c__stmt "ss.channels = channels";
     var err = 0;
