@@ -5,17 +5,15 @@ import gtk.ListStore;
 import gtk.TreeSelection;
 import gtk.TreeViewColumn;
 import gtk.Widget;
-import albumish.database.Database;
 
 class CoverPanel {
 
-private Database database;
+private Albumish player;
 private Widget treeView;
 private ListStore listStore;
-Albumish albumish;
 
-CoverPanel(Database database) {
-    this.database = database;
+CoverPanel(Albumish player) {
+    this.player = player;
     this.treeView = Widget.treeView();
     var renderer = CellRenderer.text();
     var column = new TreeViewColumn("Album", renderer, true, "text", 0);
@@ -36,7 +34,7 @@ void reset(int[] albumList) {
     var row = {new JsonElement(), new JsonElement()};
     var iter = new TreeIter();
     for var albumid : albumList {
-        var album = this.database.album_list[albumid];
+        var album = this.player.database.album_list[albumid];
         this.listStore.append(iter);
         row[0].makeString(album.name);
         row[1].makeInt(albumid);
@@ -45,9 +43,6 @@ void reset(int[] albumList) {
 }
 
 void callback(TreeSelection selection) {
-    if this.albumish == null {
-        return;
-    }
     var iter = new TreeIter();
     if !selection.getSelected(iter) {
         System.println("none");
@@ -56,7 +51,7 @@ void callback(TreeSelection selection) {
     var value = new JsonElement();
     this.listStore.getValue(iter, 1, value);
     var albumid = value.getAsInt();
-    this.albumish.selectAlbum(albumid);
+    this.player.selectAlbum(albumid);
 }
 
 }

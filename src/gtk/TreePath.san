@@ -1,0 +1,25 @@
+package gtk;
+
+class TreePath {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkTreePath*";
+
+int[] getIndices() {
+    var depth = 0;
+    c__stmt "gint *gresults = gtk_tree_path_get_indices_with_depth(this, &depth)";
+    var results = new int[](depth);
+    for var i = 0; i < depth; i++ {
+        var result = 0;
+        c__stmt "result = gresults[i]";
+        results[i] = result;
+    }
+    return results;
+}
+
+int getFirstIndex() {
+    c__stmt "gint depth";
+    c__stmt "gint *gresults = gtk_tree_path_get_indices_with_depth(this, &depth)";
+    c__stmt "return depth > 0 ? gresults[0] : -1";
+}
+}

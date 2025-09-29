@@ -108,4 +108,7 @@ boolean remove(TreeIter iter) {
     c__stmt "gtk_list_store_remove(this, iter)";
 }
 
+boolean getIter(TreeIter iter, TreePath path) {
+    c__stmt "return gtk_tree_model_get_iter(GTK_TREE_MODEL(this), iter, path)";
+}
 }

@@ -1,9 +1,6 @@
-- play mp3
-- sublime text coloring
-- scroll bars and frames
+- use Channel in PlayerThread
+- apostrophes in SongPanel
 - break up Widget class
-- interface for Albumish in CoverPanel
 - CheckDatabase
 - AlbumSorter
-- Database save
 - ListStore and doubles

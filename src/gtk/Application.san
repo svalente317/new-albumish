@@ -5,14 +5,12 @@ class Application {
 c__include "gtk/gtk.h";
 c__repr    "GtkApplication*";
 
-c__stmt "void __app_callback(GtkApplication *app, void *user_data) { ApplicationCallback__callback((struct ApplicationCallback *) user_data, app); }";
-
 Application(String appName, int flags) {
     c__stmt "return gtk_application_new(appName, flags)";
 }
 
 void connect(String signal, ApplicationCallback callback) {
-    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__app_callback), callback)";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__application_callback), callback)";
 }
 
 void run(String[] argv) {
@@ -22,4 +20,7 @@ void run(String[] argv) {
 void unref() {
     c__stmt "g_object_unref(this)";
 }
+
+c__stmt "void __application_callback(GtkApplication *app, void *user_data)";
+c__stmt "{ ApplicationCallback__callback((struct ApplicationCallback *) user_data, app); }";
 }

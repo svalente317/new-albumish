@@ -4,10 +4,10 @@ interface ApplicationCallback {
     void callback(Application app);
 }
 
-interface WidgetCallback {
-    void callback(Widget widget);
-}
-
 interface TreeSelectionCallback {
     void callback(TreeSelection selection);
+}
+
+interface RowActivatedCallback {
+    void rowActivated(Widget treeView, TreePath path, TreeViewColumn column);
 }

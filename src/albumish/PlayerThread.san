@@ -1,0 +1,157 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish;
+import sanka.lang.Channel;
+import sanka.lang.Thread;
+import audio.Mpg123;
+import audio.PulseAudio;
+import albumish.database.Song;
+
+class PlayerThread {
+    private Albumish player;
+    private Channel channel; // TODO use something else
+    private int playing_listid;
+    private int playing_song_pid;
+    private int playing_songid;
+    private int next_listid;
+    private int next_song_pid;
+    private boolean interrupted;
+    private float audio_position;
+    private boolean is_paused;
+    private float target_position;
+    private Thread thread;
+
+    PlayerThread(Albumish player) {
+        Mpg123.init();
+        this.player = player;
+        this.channel = new Channel(10);
+        this.playing_listid = -1;
+        this.next_listid = -1;
+        this.thread = new Thread(this);
+    }
+
+    void run() {
+        System.println("thread run");
+        while true {
+            var songid = 0;
+            if this.next_listid >= 0 {
+                var playlist = this.player.playlists[this.next_listid];
+                if playlist != null {
+                    if this.next_song_pid == 0 {
+                        this.next_song_pid = playlist.get_next_pid(this.playing_song_pid, +1);
+                    }
+                    songid = playlist.get_songid_of_pid(this.next_song_pid);
+                }
+            }
+            if songid <= 0 {
+                this.playing_listid = -1;
+                this.next_listid = -1;
+                update_jukebox(null, 0);
+                System.println("thread wait");
+                this.channel.pop();
+                continue;
+            }
+            var finished_songid = this.playing_songid;
+            var song = this.player.database.song_list[songid];
+            this.playing_listid = this.next_listid;
+            this.playing_song_pid = this.next_song_pid;
+            this.playing_songid = songid;
+            this.next_song_pid = 0;
+            update_jukebox(song, finished_songid);
+            this.interrupted = false;
+            this.audio_position = 0;
+            play_file(song.filename);
+        }
+    }
+
+    private void play_file(String filename) {
+        var mpg = new Mpg123();
+        var err = mpg.open(System.getenv("HOME") + "/" + filename);
+        if err != 0 {
+            System.println("open: " + err);
+            return;
+        }
+        // Get this file's default rate and channels.
+        var fmt = mpg.getFormat();
+        System.println("rate=" + fmt.rate + " cha=" + fmt.channels + " enc=" + fmt.encoding);
+
+        // Tell mpg123 to encode samples in signed 16-bit format.
+        err = mpg.formatNone();
+        if err != 0 {
+            System.println("formatNone: " + err);
+            return;
+        }
+        err = mpg.setFormat(fmt.rate, fmt.channels, Mpg123.SIGNED_16_ENCODING);
+        if err != 0 {
+            System.println("formatNone: " + err);
+            return;
+        }
+
+        // The number of bytes in a 16-bit sample is 2 bytes (16 bits) * the channels.
+        var sampleSize = 2 * fmt.channels;
+        // fmt.rate is the number of samples per second, typically 44,100.
+        var bytesPerSecond = fmt.rate * sampleSize;
+        // Read a quarter-second at a time.
+        var bufferSize = (int)(bytesPerSecond / 4);
+
+        // Technically, we should select SIGNED_16_LE_FORMAT or SIGNED_16_BE_FORMAT,
+        // depending on the host's endian-ness. But it's fair to assume LE.
+        var pulse = new PulseAudio("mp3play", "playback",
+            fmt.rate, fmt.channels, PulseAudio.SIGNED_16_LE_FORMAT);
+
+        var buffer = new byte[](bufferSize);
+        while !this.interrupted {
+            var size = mpg.read(buffer);
+            if size <= 0 {
+                break;
+            }
+            pulse.write(buffer, size);
+        }
+        System.println("final err: " + mpg.strerror());
+
+        pulse.free();
+        mpg.close();
+        mpg.delete();
+    }
+
+    /**
+     * This is called by the audio thread when it starts playing a new song, and when it reaches the
+     * end of the playlist.
+     */
+    private void update_jukebox(Song song, int finished_songid) {
+        // TODO this.player.update_top_panel(song);
+        // TODO update_cover = song.albumid != finished.albumid &&
+        // fjb.get_selected_albumid() == finished.albumid;
+        // this.player.jump_to_playing_song(update_cover);
+    }
+
+    /**
+     * This is called by the GUI thread to start playing a specific song.
+     */
+    void play_song_pid(int listid, int song_pid) {
+        this.next_listid = listid;
+        this.next_song_pid = song_pid;
+        this.interrupted = true;
+        this.channel.push("ok");
+    }
+
+    /**
+     * This is called by the GUI thread to start playing the previous or next song in the playlist.
+     */
+    void play_next_song(int delta) {
+        if this.playing_listid < 0 {
+            return;
+        }
+        var playlist = this.player.playlists[this.playing_listid];
+        if playlist == null {
+            return;
+        }
+        var pid = playlist.get_next_pid(this.playing_song_pid, delta);
+        play_song_pid(this.playing_listid, pid);
+    }
+}

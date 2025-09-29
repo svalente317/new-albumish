@@ -5,14 +5,8 @@ class Widget {
 c__include "gtk/gtk.h";
 c__repr    "GtkWidget*";
 
-c__stmt "void __widget_callback(GtkWidget *w, void *user_data) { WidgetCallback__callback((struct WidgetCallback *) user_data, w); }";
-
 static Widget window(Application app) {
     c__stmt "return gtk_application_window_new(app)";
-}
-
-void connect(String signal, WidgetCallback callback) {
-    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__widget_callback), callback)";
 }
 
 void showAll() {
@@ -25,6 +19,14 @@ void destroy() {
 
 void setTitle(String title) {
     c__stmt "return gtk_window_set_title(GTK_WINDOW(this), title)";
+}
+
+void setHExpand(boolean value) {
+    c__stmt "gtk_widget_set_hexpand(this, value)";
+}
+
+void setVExpand(boolean value) {
+    c__stmt "gtk_widget_set_vexpand(this, value)";
 }
 
 static Widget grid() {
@@ -75,4 +77,34 @@ void appendColumn(TreeViewColumn column) {
     c__stmt "gtk_tree_view_append_column(GTK_TREE_VIEW(this), column)";
 }
 
+void connectRowActivated(RowActivatedCallback callback) {
+    var signal = "row-activated";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__row_activated_callback), callback)";
+}
+
+static Widget scrolledWindow() { // TODO adjustments
+    c__stmt "return gtk_scrolled_window_new(NULL, NULL)";
+}
+
+const POLICY_ALWAYS = 0;
+const POLICY_AUTOMATIC = 1;
+const POLICY_NEVER = 2;
+const POLICY_EXTERNAL = 3;
+
+void setPolicy(int hpolicy, int vpolicy) {
+    c__stmt "gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(this), hpolicy, vpolicy)";
+}
+
+const SHADOW_NONE = 0;
+const SHADOW_IN = 1;
+const SHADOW_OUT = 2;
+const SHADOW_ETCHED_IN = 3;
+const SHADOW_ETCHED_OUT = 4;
+
+void setShadowType(int type) {
+    c__stmt "gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(this), type)";
+}
+
+c__stmt "void __row_activated_callback(GtkTreeView* self, GtkTreePath* path, GtkTreeViewColumn* column, gpointer user_data)";
+c__stmt"{ RowActivatedCallback__rowActivated((struct RowActivatedCallback *) user_data, self, path, column); }";
 }

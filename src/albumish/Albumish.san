@@ -3,12 +3,17 @@ import sanka.io.File;
 import gtk.Application;
 import gtk.Widget;
 import albumish.database.Database;
+import albumish.database.Playlist;
 import albumish.filter.FilterWorker;
 
 class Albumish {
 
+const AUTO_PLAYLIST = 0;
+
 Database database;
 FilterWorker filterWorker;
+Playlist[] playlists;
+PlayerThread playerThread;
 CoverPanel coverPanel;
 SongPanel albumSongPanel;
 
@@ -32,7 +37,9 @@ void callback(Application app) {
 
     this.filterWorker = new FilterWorker(this.database);
     var albumList = this.filterWorker.generate_album_list();
-    albumList.setLength(20);
+
+    this.playlists = {new Playlist()};
+    this.playerThread = new PlayerThread(this);
 
     var window = Widget.window(app);
     window.setTitle("Albumish");
@@ -41,22 +48,61 @@ void callback(Application app) {
     var grid = Widget.grid();
     window.add(grid);
 
-    this.coverPanel = new CoverPanel(this.database);
+    var widget = null;
+    var scrolledWindow = null;
+
+    this.coverPanel = new CoverPanel(this);
     this.coverPanel.reset(albumList);
-    grid.attach(this.coverPanel.widget(), 0, 0, 1, 1);
+    widget = this.coverPanel.widget();
+    widget.setHExpand(true);
+    widget.setVExpand(true);
+    scrolledWindow = Widget.scrolledWindow();
+    scrolledWindow.setPolicy(Widget.POLICY_AUTOMATIC, Widget.POLICY_AUTOMATIC);
+    scrolledWindow.setShadowType(Widget.SHADOW_OUT);
+    scrolledWindow.add(widget);
+    grid.attach(scrolledWindow, 0, 0, 1, 1);
 
-    this.albumSongPanel = new SongPanel(this.database, false);
-    grid.attach(this.albumSongPanel.widget(), 1, 0, 1, 1);
+    this.albumSongPanel = new SongPanel(this, false);
+    widget = this.albumSongPanel.widget();
+    widget.setHExpand(true);
+    widget.setVExpand(true);
+    scrolledWindow = Widget.scrolledWindow();
+    scrolledWindow.setPolicy(Widget.POLICY_AUTOMATIC, Widget.POLICY_AUTOMATIC);
+    scrolledWindow.setShadowType(Widget.SHADOW_OUT);
+    scrolledWindow.add(widget);
+    grid.attach(scrolledWindow, 1, 0, 1, 1);
 
-    this.coverPanel.albumish = this;
     window.showAll();
 }
 
+/**
+ * Called by cover_panel. Update song_panel and album_song_panel.
+ */
 void selectAlbum(int albumid) {
     if (albumid >= 0) {
         this.albumSongPanel.updateDatabase();
         var songList = this.filterWorker.generate_song_list(albumid);
         this.albumSongPanel.reset(songList, -1);
+    }
+}
+
+/**
+ * Called by song_panel. Update playlist panels.
+ */
+int setAutoPlaylist(int[] songList) {
+    this.playlists[AUTO_PLAYLIST].reset(songList);
+    return AUTO_PLAYLIST;
+}
+
+/**
+ * Called by playlist_song_panel.
+ */
+void playSong(int listid, int idx) {
+    var playlist = this.playlists[listid];
+    if playlist != null {
+        var pid = playlist.get_nth_pid(idx);
+        var songid = playlist.get_songid_of_pid(pid);
+        this.playerThread.play_song_pid(listid, pid);
     }
 }
 }

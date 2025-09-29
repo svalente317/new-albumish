@@ -1,9 +1,14 @@
 all: albumish
 
-ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san src/gtk/*.san
+ALBUMISH_FILES = src/audio/*.san src/albumish/*.san src/database/*.san src/filter/*.san src/gtk/*.san
+
+PKG_CONFIG = --pkg-config gtk+-3.0 --pkg-config libmpg123 --pkg-config libpulse-simple
 
 albumish: $(ALBUMISH_FILES)
-	sanka --top bin --pkg-config gtk+-3.0 $(ALBUMISH_FILES) --main albumish.Albumish --exe $@
+	sanka --top bin $(PKG_CONFIG) $(ALBUMISH_FILES) --main albumish.Albumish --exe $@
+
+bin/audio.sanka.tar: src/audio/*.san
+	sanka src/audio/*.san --create-library $@
 
 HELLO_FILES = src/main/Hello.san src/gtk/*.san
 
