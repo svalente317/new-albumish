@@ -2,6 +2,7 @@ package albumish;
 import sanka.io.File;
 import gtk.Application;
 import gtk.Widget;
+import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.filter.FilterWorker;
@@ -11,6 +12,7 @@ class Albumish {
 const AUTO_PLAYLIST = 0;
 
 Database database;
+CheckDatabase checkDatabase;
 FilterWorker filterWorker;
 Playlist[] playlists;
 PlayerThread playerThread;
@@ -34,6 +36,7 @@ void callback(Application app) {
     var directory = new File(new File(home), ".albumish");
     this.database = new Database();
     this.database.load(directory, "database.json");
+    this.checkDatabase = new CheckDatabase(this.database, directory, "checked_songs.list");
 
     this.filterWorker = new FilterWorker(this.database);
     var albumList = this.filterWorker.generate_album_list();
@@ -62,7 +65,7 @@ void callback(Application app) {
     scrolledWindow.add(widget);
     grid.attach(scrolledWindow, 0, 0, 1, 1);
 
-    this.albumSongPanel = new SongPanel(this, false);
+    this.albumSongPanel = new SongPanel(this, true);
     widget = this.albumSongPanel.widget();
     widget.setHExpand(true);
     widget.setVExpand(true);

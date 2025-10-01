@@ -17,13 +17,23 @@ private int playlistid;
 
 SongPanel(Albumish player, boolean with_checks) {
     this.playlistid = -1;
-    // TODO use with checks
-    // TODO SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI
-
     this.player = player;
     this.treeView = Widget.treeView();
-    var types = new int[]{ListStore.TYPE_INT};
 
+    // listStore column 0 is the song's checkmark state.
+    var types = new int[];
+    var checkRenderer = null;
+    if with_checks {
+        checkRenderer = CellRenderer.toggle();
+        var column = new TreeViewColumn("", checkRenderer, true, "active", types.length);
+        this.treeView.appendColumn(column);
+    }
+    types.add(ListStore.TYPE_BOOLEAN);
+
+    // listStore column 1 is the song's datbase ID.
+    types.add(ListStore.TYPE_INT);
+
+    // listStore columns 2 through 9 are visible -- track, title, time, artist, etc.
     var renderer = CellRenderer.text();
     var column = new TreeViewColumn("", renderer, true, "text", types.length);
     this.treeView.appendColumn(column);
@@ -56,11 +66,9 @@ SongPanel(Albumish player, boolean with_checks) {
     this.listStore = new ListStore(types);
     this.treeView.setModel(this.listStore);
     this.treeView.connectRowActivated(this);
-
-    // TODO this.table.setHeaderVisible(true);
-    // TODO this.table.setLinesVisible(true);
-    // TODO pcolumn.pack();
-    // TODO this.table.addSelectionListener(this);
+    if checkRenderer != null {
+        checkRenderer.connect("toggled", this);
+    }
 }
 
 Widget widget() {
@@ -69,9 +77,10 @@ Widget widget() {
 
 void reset(int[] songs, int selected_idx) {
     var database = this.player.database;
+    var checkDatabase = this.player.checkDatabase;
     var row = {new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
                new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
-               new JsonElement()};
+               new JsonElement(), new JsonElement()};
     var numSongs = (songs == null ? 0 : songs.length);
     var iter = new TreeIter();
     var valid = this.listStore.getIterFirst(iter);
@@ -80,41 +89,32 @@ void reset(int[] songs, int selected_idx) {
             this.listStore.append(iter);
         }
         var song = database.song_list[songs[idx]];
-        row[0].makeInt(song.id);
-        row[1].makeString(song.track_number > 0 ? "" + song.track_number : null);
-        row[2].makeString(song.title);
+        row[0].makeBoolean(checkDatabase.get(song.id));
+        row[1].makeInt(song.id);
+        row[2].makeString(song.track_number > 0 ? "" + song.track_number : null);
+        row[3].makeString(song.title);
         var duration = "";
         if song.duration > 0 {
             var min = song.duration / 60;
             var sec = song.duration % 60;
             duration = "" + min + ":" + (sec < 10 ? "0" : "") + sec;
         }
-        row[3].makeString(duration);
-        row[4].makeString(song.artistid > 0 ? database.artist_list[song.artistid].name : null);
-        row[5].makeString(song.albumid > 0 ? database.album_list[song.albumid].name : null);
-        row[6].makeString(song.year > 0 ? "" + song.year : null);
-        row[7].makeString(song.bitrate);
+        row[4].makeString(duration);
+        row[5].makeString(song.artistid > 0 ? database.artist_list[song.artistid].name : null);
+        row[6].makeString(song.albumid > 0 ? database.album_list[song.albumid].name : null);
+        row[7].makeString(song.year > 0 ? "" + song.year : null);
         row[8].makeString(song.bitrate);
+        row[9].makeString(song.bitrate);
         this.listStore.set(iter, row);
         valid = this.listStore.iterNext(iter);
     }
     while valid {
         valid = this.listStore.remove(iter);
     }
-
-    // TODO for (TableColumn column : this.table.getColumns()) {
-    //    column.pack();
-
-    // TODO for (TableColumn column : this.table.getColumns()) {
-    // int width = column.getWidth();
-    //    column.setWidth(width+5);
-
     // TODO this.table.deselectAll();
     // if (selected_idx >= 0 && selected_idx < num_songs) {
     //     this.table.select(selected_idx);
     // }
-    // this.table.setRedraw(true);
-    // this.table.redraw();
 }
 
 void updateDatabase() {
@@ -140,11 +140,22 @@ void rowActivated(Widget treeView, TreePath path, TreeViewColumn column) {
             songListActiveRow = songList.length;
         }
         // TODO if is_checked || currentRow == activeRow
-        this.listStore.getValue(iter, 0, value);
+        this.listStore.getValue(iter, 1, value);
         songList.add(value.getAsInt());
         currentRow = currentRow + 1;
     }
     var listid = this.player.setAutoPlaylist(songList);
     this.player.playSong(listid, songListActiveRow);
+}
+
+void pathCallback(String path) {
+    var iter = new TreeIter();
+    if this.listStore.getIterFromString(iter, path) {
+        var value = new JsonElement();
+        this.listStore.getValue(iter, 0, value);
+        var checked = value.getAsBoolean();
+        value.makeBoolean(!checked);
+        this.listStore.set(iter, {value});
+    }
 }
 }

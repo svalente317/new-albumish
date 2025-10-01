@@ -12,4 +12,11 @@ static CellRenderer text() {
 static CellRenderer toggle() {
     c__stmt "return gtk_cell_renderer_toggle_new()";
 }
+
+void connect(String signal, PathCallback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(__path_callback), callback)";
+}
+
+c__stmt "void __path_callback(GtkCellRendererToggle *renderer, gchar *path, gpointer user_data)";
+c__stmt "{ PathCallback__pathCallback(user_data, path); }";
 }

@@ -111,4 +111,8 @@ boolean remove(TreeIter iter) {
 boolean getIter(TreeIter iter, TreePath path) {
     c__stmt "return gtk_tree_model_get_iter(GTK_TREE_MODEL(this), iter, path)";
 }
+
+boolean getIterFromString(TreeIter iter, String path) {
+    c__stmt "return gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(this), iter, path)";
+}
 }

@@ -1,0 +1,80 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.database;
+import sanka.io.File;
+import sanka.io.FileReader;
+import sanka.io.LineReader;
+
+class CheckDatabase {
+
+    private Database database;
+    private File file;
+    private boolean default_value;
+    private map[int]boolean songids;
+    private boolean is_changed;
+
+    /**
+     * Read the list of files to display with check marks. Rather than integrating this data into
+     * either the database or the playlists, we choose to store it in a third location.
+     */
+    CheckDatabase(Database database, File directory, String filename) {
+        this.database = database;
+        this.file = new File(directory, filename);
+        this.default_value = true;
+        this.songids = new map[int]boolean;
+
+        var fileReader = new FileReader();
+        var err = fileReader.open(this.file.getPath());
+        if err != 0 {
+            System.println(this.file.getPath() + ": " + err);
+            return;
+        }
+        var reader = new LineReader(fileReader);
+        var line = reader.readline();
+        this.default_value = (System.parseInt(line) != 0);
+        var known_files = new map[String]int;
+        for var song : database.song_list {
+            if song != null && song.filename != null {
+                known_files[song.filename] = song.id;
+            }
+        }
+        while true {
+            line = reader.readline();
+            if line == null {
+                break;
+            }
+            var songid = known_files[line];
+            if songid > 0 {
+                this.songids[songid] = true;
+            }
+        }
+        reader.close();
+        this.is_changed = false;
+    }
+
+    /**
+     * Write the list of checked files.
+     */
+    void save() {
+        // TODO
+    }
+
+    boolean get(int songid) {
+        var found = this.songids.contains(songid);
+        return (this.default_value ? !found : found);
+    }
+
+    void set(int songid, boolean value) {
+        if this.default_value == value {
+            this.songids.remove(songid);
+        } else {
+            this.songids[songid] = true;
+        }
+        this.is_changed = true;
+    }
+}

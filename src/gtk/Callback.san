@@ -11,3 +11,7 @@ interface TreeSelectionCallback {
 interface RowActivatedCallback {
     void rowActivated(Widget treeView, TreePath path, TreeViewColumn column);
 }
+
+interface PathCallback {
+    void pathCallback(String path);
+}
