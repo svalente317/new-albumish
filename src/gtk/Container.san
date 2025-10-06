@@ -1,0 +1,16 @@
+package gtk;
+
+abstract class Container extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+void add(Widget widget) {
+    c__stmt "gtk_container_add(GTK_CONTAINER(this), widget)";
+}
+
+void setBorderWidth(int width) {
+    c__stmt "gtk_container_set_border_width(GTK_CONTAINER(this), width)";
+}
+
+}

@@ -2,19 +2,23 @@ package albumish;
 import sanka.json.JsonElement;
 import gtk.CellRenderer;
 import gtk.ListStore;
+import gtk.TreeView;
 import gtk.TreeSelection;
 import gtk.TreeViewColumn;
 import gtk.Widget;
+import albumish.filter.AlbumSorter;
 
 class CoverPanel {
 
 private Albumish player;
-private Widget treeView;
+private AlbumSorter sorter;
+private TreeView treeView;
 private ListStore listStore;
 
 CoverPanel(Albumish player) {
     this.player = player;
-    this.treeView = Widget.treeView();
+    this.sorter = new AlbumSorter(player.database);
+    this.treeView = new TreeView();
     var renderer = CellRenderer.text();
     var column = new TreeViewColumn("Album", renderer, true, "text", 0);
     this.treeView.appendColumn(column);
@@ -31,21 +35,39 @@ Widget widget() {
 }
 
 void reset(int[] albumList) {
+    this.sorter.sort(albumList);
     var row = {new JsonElement(), new JsonElement()};
     var iter = new TreeIter();
+    var valid = this.listStore.getIterFirst(iter);
     for var albumid : albumList {
+        if !valid {
+            this.listStore.append(iter);
+        }
         var album = this.player.database.album_list[albumid];
-        this.listStore.append(iter);
         row[0].makeString(album.name);
         row[1].makeInt(albumid);
         this.listStore.set(iter, row);
+        valid = this.listStore.iterNext(iter);
     }
+}
+
+void sort(int sortType) {
+    // TODO var albumid = get_selected_albumid();
+    this.sorter.set_sort_type(sortType);
+    var albumList = new int[];
+    var iter = new TreeIter();
+    var value = new JsonElement();
+    for var ok = this.listStore.getIterFirst(iter); ok; ok = this.listStore.iterNext(iter) {
+        this.listStore.getValue(iter, 1, value);
+        albumList.add(value.getAsInt());
+    }
+    reset(albumList);
+    // TODO select albumid
 }
 
 void callback(TreeSelection selection) {
     var iter = new TreeIter();
     if !selection.getSelected(iter) {
-        System.println("none");
         return;
     }
     var value = new JsonElement();
@@ -53,5 +75,4 @@ void callback(TreeSelection selection) {
     var albumid = value.getAsInt();
     this.player.selectAlbum(albumid);
 }
-
 }

@@ -1,0 +1,30 @@
+package gtk;
+
+class ScrolledWindow extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+const POLICY_ALWAYS = 0;
+const POLICY_AUTOMATIC = 1;
+const POLICY_NEVER = 2;
+const POLICY_EXTERNAL = 3;
+
+const SHADOW_NONE = 0;
+const SHADOW_IN = 1;
+const SHADOW_OUT = 2;
+const SHADOW_ETCHED_IN = 3;
+const SHADOW_ETCHED_OUT = 4;
+
+ScrolledWindow() { // TODO adjustments
+    c__stmt "return gtk_scrolled_window_new(NULL, NULL)";
+}
+
+void setPolicy(int hpolicy, int vpolicy) {
+    c__stmt "gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(this), hpolicy, vpolicy)";
+}
+
+void setShadowType(int type) {
+    c__stmt "gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(this), type)";
+}
+}

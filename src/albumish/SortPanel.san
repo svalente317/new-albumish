@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish;
+import gtk.ComboBoxText;
+import gtk.Frame;
+import gtk.Widget;
+import albumish.filter.AlbumSorter;
+
+class SortPanel {
+
+    private int[] TYPE_LIST;
+    private Albumish player;
+    private Frame frame;
+
+    SortPanel(Albumish player) {
+        // The order that the sort types appear in this list.
+        // This is basically redundant with the definition of SortType.
+        var typeList = {
+            AlbumSorter.YEAR_NEWEST,
+            AlbumSorter.YEAR_OLDEST,
+            AlbumSorter.ALBUM,
+            AlbumSorter.ARTIST
+        };
+        // The sort type descriptions, in the same order.
+        var textList = {
+            "  Year - New First  ",
+            "  Year - Old First  ",
+            "  Album  ",
+            "  Artist  "
+        };
+
+        this.player = player;
+        this.frame = new Frame("Sort Order");
+        var sortBox = new ComboBoxText();
+        for var idx = 0; idx < typeList.length; idx++ {
+            sortBox.append("" + typeList[idx], textList[idx]);
+        }
+        sortBox.setActiveID("0");
+        sortBox.connect("changed", this);
+        this.frame.add(sortBox);
+    }
+
+    Widget widget() {
+        return this.frame;
+    }
+
+    void callback(ComboBoxText sortBox) {
+        var sortType = System.parseInt(sortBox.getActiveID());
+        this.player.sortAlbums(sortType);
+    }
+}

@@ -1,7 +1,16 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
 package albumish;
 import sanka.io.File;
 import gtk.Application;
-import gtk.Widget;
+import gtk.Grid;
+import gtk.ScrolledWindow;
+import gtk.Window;
 import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
@@ -17,6 +26,7 @@ FilterWorker filterWorker;
 Playlist[] playlists;
 PlayerThread playerThread;
 CoverPanel coverPanel;
+SongPanel playlistSongPanel;
 SongPanel albumSongPanel;
 
 static void main(String[] argv) {
@@ -32,49 +42,76 @@ void run(String[] argv)
 }
 
 void callback(Application app) {
-    var home = System.getenv("HOME");
-    var directory = new File(new File(home), ".albumish");
+    var home = new File(System.getenv("HOME"));
+    var directory = new File(home, ".albumish");
     this.database = new Database();
     this.database.load(directory, "database.json");
     this.checkDatabase = new CheckDatabase(this.database, directory, "checked_songs.list");
-
-    this.filterWorker = new FilterWorker(this.database);
-    var albumList = this.filterWorker.generate_album_list();
-
+    // this.config = new Configuration(directory, "config.json");
+    // this.playlists = new PlaylistCollection(this.database, directory);
     this.playlists = {new Playlist()};
+    // this.num_random_playlists = this.playlists.get_max_with_prefix(RANDOM_PLAYLIST_PREFIX);
+    // directory = new File(home, "Pictures/covers");
+    // this.gallery = new Gallery(this, directory, COVER_SIZES);
+    this.filterWorker = new FilterWorker(this.database); // , this.check_database);
     this.playerThread = new PlayerThread(this);
 
-    var window = Widget.window(app);
+    var window = new Window(app);
     window.setTitle("Albumish");
+    // window.setImage(get_icon("CD.png"));
     window.setBorderWidth(10);
-
-    var grid = Widget.grid();
+    var grid = new Grid();
     window.add(grid);
+
+    // makeMenuBar(this.main_window);
+    // var topPanel = new TopPanel(this, this.main_window);
 
     var widget = null;
     var scrolledWindow = null;
 
     this.coverPanel = new CoverPanel(this);
-    this.coverPanel.reset(albumList);
     widget = this.coverPanel.widget();
     widget.setHExpand(true);
     widget.setVExpand(true);
-    scrolledWindow = Widget.scrolledWindow();
-    scrolledWindow.setPolicy(Widget.POLICY_AUTOMATIC, Widget.POLICY_AUTOMATIC);
-    scrolledWindow.setShadowType(Widget.SHADOW_OUT);
+    scrolledWindow = new ScrolledWindow();
+    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
     scrolledWindow.add(widget);
-    grid.attach(scrolledWindow, 0, 0, 1, 1);
+    grid.attach(scrolledWindow, 0, 0, 3, 1);
+
+    var sortPanel = new SortPanel(this);
+    widget = sortPanel.widget();
+    widget.setHExpand(false);
+    widget.setVExpand(false);
+    grid.attach(widget, 0, 1, 1, 1);
+
+    this.playlistSongPanel = new SongPanel(this, false);
+    widget = this.playlistSongPanel.widget();
+    widget.setHExpand(true);
+    widget.setVExpand(true);
+    scrolledWindow = new ScrolledWindow();
+    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
+    scrolledWindow.add(widget);
+    grid.attach(scrolledWindow, 1, 1, 1, 2);
 
     this.albumSongPanel = new SongPanel(this, true);
     widget = this.albumSongPanel.widget();
     widget.setHExpand(true);
     widget.setVExpand(true);
-    scrolledWindow = Widget.scrolledWindow();
-    scrolledWindow.setPolicy(Widget.POLICY_AUTOMATIC, Widget.POLICY_AUTOMATIC);
-    scrolledWindow.setShadowType(Widget.SHADOW_OUT);
+    scrolledWindow = new ScrolledWindow();
+    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
     scrolledWindow.add(widget);
-    grid.attach(scrolledWindow, 1, 0, 1, 1);
+    grid.attach(scrolledWindow, 2, 1, 1, 2);
 
+    // this.playlist_panel = new PlaylistPanel(this, this.playlists);
+    // data = new GridData(SWT.FILL, SWT.FILL, false, true);
+    // data.heightHint = bounds.height / 5;
+    // this.playlist_panel.getControl().setLayoutData(data);
+
+    var albumList = this.filterWorker.generate_album_list();
+    this.coverPanel.reset(albumList);
     window.showAll();
 }
 
@@ -90,10 +127,19 @@ void selectAlbum(int albumid) {
 }
 
 /**
+ * Called by sort_panel. Update cover_panel.
+ */
+void sortAlbums(int sortType) {
+    this.coverPanel.sort(sortType);
+}
+
+/**
  * Called by song_panel. Update playlist panels.
  */
 int setAutoPlaylist(int[] songList) {
     this.playlists[AUTO_PLAYLIST].reset(songList);
+    // TODO this.playlistPanel.set...
+    this.playlistSongPanel.reset(songList, 0);
     return AUTO_PLAYLIST;
 }
 

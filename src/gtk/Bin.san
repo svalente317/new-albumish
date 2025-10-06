@@ -1,0 +1,8 @@
+package gtk;
+
+abstract class Bin extends Container {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+}

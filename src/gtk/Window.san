@@ -1,0 +1,15 @@
+package gtk;
+
+class Window extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Window(Application app) {
+    c__stmt "return gtk_application_window_new(app)";
+}
+
+void setTitle(String title) {
+    c__stmt "return gtk_window_set_title(GTK_WINDOW(this), title)";
+}
+}

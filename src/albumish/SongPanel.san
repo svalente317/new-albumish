@@ -1,15 +1,23 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
 package albumish;
 import sanka.json.JsonElement;
 import gtk.CellRenderer;
 import gtk.ListStore;
 import gtk.TreePath;
+import gtk.TreeView;
 import gtk.TreeViewColumn;
 import gtk.Widget;
 
 class SongPanel {
 
 private Albumish player;
-private Widget treeView;
+private TreeView treeView;
 private ListStore listStore;
 private boolean showBitrate;
 private boolean showBpm;
@@ -18,7 +26,7 @@ private int playlistid;
 SongPanel(Albumish player, boolean with_checks) {
     this.playlistid = -1;
     this.player = player;
-    this.treeView = Widget.treeView();
+    this.treeView = new TreeView();
 
     // listStore column 0 is the song's checkmark state.
     var types = new int[];
@@ -53,7 +61,7 @@ SongPanel(Albumish player, boolean with_checks) {
     column = new TreeViewColumn("Year", renderer, true, "text", types.length);
     this.treeView.appendColumn(column);
     types.add(ListStore.TYPE_STRING);
-    if (this.showBitrate) {
+    if this.showBitrate {
         column = new TreeViewColumn("bitrate", renderer, true, "text", types.length);
         this.treeView.appendColumn(column);
     }
@@ -121,7 +129,7 @@ void updateDatabase() {
     // TODO
 }
 
-void rowActivated(Widget treeView, TreePath path, TreeViewColumn column) {
+void rowActivated(TreeView treeView, TreePath path, TreeViewColumn column) {
     var activeRow = path.getFirstIndex();
     if activeRow < 0 {
         return;

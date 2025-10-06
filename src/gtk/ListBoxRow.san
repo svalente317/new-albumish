@@ -1,0 +1,11 @@
+package gtk;
+
+class ListBoxRow extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+ListBoxRow() {
+    c__stmt "return gtk_list_box_row_new()";
+}
+}

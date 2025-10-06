@@ -1,0 +1,15 @@
+package gtk;
+
+class Grid extends Container {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Grid() {
+    c__stmt "return gtk_grid_new()";
+}
+
+void attach(Widget widget, int x, int y, int width, int height) {
+    c__stmt "gtk_grid_attach(GTK_GRID(this), widget, x, y, width, height)";
+}
+}

@@ -1,6 +1,13 @@
+- Do not include unchecked songs in autoplaylist
+- highlight row in playlist when it starts playing
+- CoverPanel - keep highlighted row through sort
 - use Channel in PlayerThread
-- apostrophes in SongPanel
-- break up Widget class
-- CheckDatabase
-- AlbumSorter
+- Add TopPanel with forward and backwards buttons
+- should SongPanel.reset() function have selected_idx arg?
+- SongPanel update check database
+- JsonParser unicode to utf-8
+- Database save
+- CheckDatabase save
+- read playlist files from playlist directory
 - ListStore and doubles
+- sanka: add superclass to #includes so Bin does not need to import Container

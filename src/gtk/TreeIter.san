@@ -8,5 +8,4 @@ c__repr    "GtkTreeIter*";
 TreeIter() {
     c__stmt "return GC_MALLOC(sizeof(GtkTreeIter))";
 }
-
 }

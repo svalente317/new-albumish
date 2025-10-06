@@ -24,3 +24,7 @@ void unref() {
 c__stmt "void __application_callback(GtkApplication *app, void *user_data)";
 c__stmt "{ ApplicationCallback__callback((struct ApplicationCallback *) user_data, app); }";
 }
+
+interface ApplicationCallback {
+    void callback(Application app);
+}

@@ -1,0 +1,11 @@
+package gtk;
+
+class ListBox extends Container {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+ListBox() {
+    c__stmt "return gtk_list_box_new()";
+}
+}

@@ -22,5 +22,8 @@ int countSelectedRows() {
 boolean getSelected(TreeIter iter) {
     c__stmt "return gtk_tree_selection_get_selected(this, NULL, iter)";
 }
+}
 
+interface TreeSelectionCallback {
+    void callback(TreeSelection selection);
 }

@@ -1,0 +1,11 @@
+package gtk;
+
+class Button extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Button(String label) {
+    c__stmt "return gtk_button_new_with_label(label)";
+}
+}

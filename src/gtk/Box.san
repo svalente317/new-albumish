@@ -1,0 +1,11 @@
+package gtk;
+
+class Box extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Box(int orientation, int border) {
+    c__stmt "return gtk_box_new(orientation, border)";
+}
+}

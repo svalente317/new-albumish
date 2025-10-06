@@ -1,0 +1,34 @@
+package gtk;
+
+class ComboBoxText extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+ComboBoxText() {
+    c__stmt "return gtk_combo_box_text_new()";
+}
+
+void append(String id, String text) {
+    c__stmt "gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(this), id, text)";
+}
+
+boolean setActiveID(String id) {
+    c__stmt "return gtk_combo_box_set_active_id(GTK_COMBO_BOX(this), id)";
+}
+
+String getActiveID() {
+    c__stmt "return gtk_combo_box_get_active_id(GTK_COMBO_BOX(this))";
+}
+
+void connect(String signal, ComboBoxCallback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_combo_box_callback), callback)";
+}
+
+c__stmt "void _combo_box_callback(GtkWidget* self, gpointer user_data)";
+c__stmt"{ ComboBoxCallback__callback((struct ComboBoxCallback *) user_data, self); }";
+}
+
+interface ComboBoxCallback {
+    void callback(ComboBoxText widget);
+}

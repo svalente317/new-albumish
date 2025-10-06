@@ -1,0 +1,11 @@
+package gtk;
+
+class Frame extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Frame(String label) {
+    c__stmt "return gtk_frame_new(label)";
+}
+}
