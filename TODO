@@ -1,9 +1,7 @@
-- Do not include unchecked songs in autoplaylist
-- highlight row in playlist when it starts playing
 - CoverPanel - keep highlighted row through sort
-- use Channel in PlayerThread
 - Add TopPanel with forward and backwards buttons
-- should SongPanel.reset() function have selected_idx arg?
+- use Channel in PlayerThread
+- highlight row in playlist when it starts playing
 - SongPanel update check database
 - JsonParser unicode to utf-8
 - Database save

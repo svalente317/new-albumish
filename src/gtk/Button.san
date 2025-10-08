@@ -5,7 +5,19 @@ class Button extends Bin {
 c__include "gtk/gtk.h";
 c__repr    "GtkWidget*";
 
+const SIZE_INVALID = 0;
+const SIZE_MENU = 1;
+const SIZE_SMALL_TOOLBAR = 2;
+const SIZE_LARGE_TOOLBAR = 3;
+const SIZE_BUTTON = 4;
+const SIZE_DND = 5;
+const SIZE_DIALOG = 6;
+
 Button(String label) {
     c__stmt "return gtk_button_new_with_label(label)";
+}
+
+static Button newFromIconName(String name, int size) {
+    c__stmt "return gtk_button_new_from_icon_name(name, size)";
 }
 }

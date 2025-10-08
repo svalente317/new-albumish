@@ -13,11 +13,12 @@ void destroy() {
     c__stmt "gtk_widget_destroy(this)";
 }
 
-void setHExpand(boolean value) {
-    c__stmt "gtk_widget_set_hexpand(this, value)";
+void setExpand(boolean h, boolean v) {
+    c__stmt "gtk_widget_set_hexpand(this, h)";
+    c__stmt "gtk_widget_set_vexpand(this, v)";
 }
 
-void setVExpand(boolean value) {
-    c__stmt "gtk_widget_set_vexpand(this, value)";
+void setSizeRequest(int x, int y) {
+    c__stmt "gtk_widget_set_size_request(this, x, y)";
 }
 }

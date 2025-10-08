@@ -83,7 +83,7 @@ Widget widget() {
     return this.treeView;
 }
 
-void reset(int[] songs, int selected_idx) {
+void reset(int[] songs) {
     var database = this.player.database;
     var checkDatabase = this.player.checkDatabase;
     var row = {new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
@@ -119,10 +119,7 @@ void reset(int[] songs, int selected_idx) {
     while valid {
         valid = this.listStore.remove(iter);
     }
-    // TODO this.table.deselectAll();
-    // if (selected_idx >= 0 && selected_idx < num_songs) {
-    //     this.table.select(selected_idx);
-    // }
+    this.treeView.getSelection().unselectAll();
 }
 
 void updateDatabase() {
@@ -144,12 +141,17 @@ void rowActivated(TreeView treeView, TreePath path, TreeViewColumn column) {
     var iter = new TreeIter();
     var value = new JsonElement();
     for var ok = this.listStore.getIterFirst(iter); ok; ok = this.listStore.iterNext(iter) {
+        var isChecked = true;
         if currentRow == activeRow {
             songListActiveRow = songList.length;
+        } else {
+            this.listStore.getValue(iter, 0, value);
+            isChecked = value.getAsBoolean();
         }
-        // TODO if is_checked || currentRow == activeRow
-        this.listStore.getValue(iter, 1, value);
-        songList.add(value.getAsInt());
+        if isChecked {
+            this.listStore.getValue(iter, 1, value);
+            songList.add(value.getAsInt());
+        }
         currentRow = currentRow + 1;
     }
     var listid = this.player.setAutoPlaylist(songList);

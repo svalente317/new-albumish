@@ -1,0 +1,238 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish;
+import gtk.Button;
+import gtk.Box;
+import gtk.Frame;
+import gtk.Label;
+import gtk.Widget;
+
+class TopPanel {
+    /*
+    private enum Cmd {
+        PREV_BUTTON,
+        PLAY_BUTTON,
+        NEXT_BUTTON,
+        FILTER_ENTRY,
+        ADD_FILTER_BUTTON,
+        DELETE_FILTER_BUTTON,
+        TIME_SCALE
+    }
+    */
+    private Albumish player;
+    private boolean is_play_button;
+    private Box panel;
+    private Button play_button;
+    private Label title_label;
+    private Label artist_label;
+    // private MySlider time_scale;
+    private Label time_label;
+    private Label duration_label;
+    // private Text filter_entry;
+    // private Label filter_label;
+
+    TopPanel(Albumish player) {
+        this.player = player;
+
+        this.panel = new Box(Box.HORIZONTAL, 0);
+        this.panel.setExpand(true, false);
+
+        var top_left = new Frame(null);
+        top_left.setExpand(false, true);
+        var hbox = new Box(Box.HORIZONTAL, 0);
+        hbox.setBorderWidth(10);
+        hbox.setSpacing(10);
+        var button = Button.newFromIconName("media-skip-backward", Button.SIZE_BUTTON);
+        button.setSizeRequest(50, 50);
+        hbox.add(button);
+        this.play_button = Button.newFromIconName("media-playback-start", Button.SIZE_BUTTON);
+        this.play_button.setSizeRequest(50, 50);
+        hbox.add(this.play_button);
+        button = Button.newFromIconName("media-skip-forward", Button.SIZE_BUTTON);
+        button.setSizeRequest(50, 50);
+        hbox.add(button);
+        top_left.add(hbox);
+        this.panel.add(top_left);
+
+        var middle = new Frame(null);
+        middle.setExpand(true, true);
+        var vbox = new Box(Box.VERTICAL, 0);
+        vbox.setBorderWidth(10);
+        this.title_label = new Label("title");
+        vbox.add(this.title_label);
+        this.artist_label = new Label("artist");
+        vbox.add(this.artist_label);
+        this.time_label = new Label("---:---");
+        vbox.add(this.time_label);
+        // this.time_label.setAlignment(SWT.RIGHT);
+        // this.time_scale = new MySlider(label_vbox);
+        this.duration_label = new Label("---:---");
+        vbox.add(this.duration_label);
+        middle.add(vbox);
+        this.panel.add(middle);
+
+        var top_right = new Frame(null);
+        top_right.setExpand(false, true);
+        this.panel.add(top_right);
+        /*
+        Composite filter_table = new Composite(this, SWT.BORDER);
+        data = new GridData(SWT.END, SWT.FILL, false, true);
+        filter_table.setLayoutData(data);
+        layout = new GridLayout(2, false);
+        layout.marginTop = 8;
+        filter_table.setLayout(layout);
+        this.filter_entry = new Text(filter_table, SWT.BORDER | SWT.SINGLE);
+        this.filter_entry.setData(Cmd.FILTER_ENTRY);
+        this.filter_entry.addSelectionListener(this);
+        data = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        data.widthHint = 170;
+        this.filter_entry.setLayoutData(daukebox.get_icon("gtk_media_play_ltr.png");ta);
+        button = new Button(filter_table, SWT.PUSH);
+        button.setImage(jukebox.get_icon("gtk_add.png"));
+        button.setData(Cmd.ADD_FILTER_BUTTON);
+        button.addSelectionListener(this);
+        data = new GridData(SWT.FILL, SWT.FILL, false, false);
+        button.setLayoutData(data);
+        this.filter_label = new Label(filter_table, 0);
+        data = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        this.filter_label.setLayoutData(data);
+        button = new Button(filter_table, SWT.PUSH);
+        button.setImage(jukebox.get_icon("gtk_cancel.png"));
+        button.setData(Cmd.DELETE_FILTER_BUTTON);
+        button.addSelectionListener(this);
+        data = new GridData(SWT.FILL, SWT.FILL, false, false);
+        button.setLayoutData(data);
+        */
+        this.is_play_button = true;
+        // display_duration(0);
+    }
+
+    Widget widget() {
+        return this.panel;
+    }
+
+    /*
+    public void grab_focus() {
+        this.filter_entry.setFocus();
+    }
+
+    public void display(String song_name, String artist_name, String album_name, int duration) {
+        if (song_name == null) {
+            this.title_label.setText("");
+        } else {
+            this.title_label.setText(song_name);
+        }
+        if (artist_name == null) {
+            if (album_name == null) {
+                this.artist_label.setText("");
+            } else {
+                this.artist_label.setText(album_name);
+            }
+        } else {
+            if (album_name == null) {
+                this.artist_label.setText(artist_name);
+            } else {
+                this.artist_label.setText(artist_name + " - " + album_name);
+            }
+        }
+        display_duration(duration);
+        if (duration > 0) {
+            display_pause_button();
+        } else {
+            display_play_button();
+        }
+    }
+
+    private void display_duration(int duration) {
+        this.time_scale.setSelection(0);
+        if (duration <= 0) {
+            this.time_scale.setEnabled(false);
+            this.time_label.setText("---:---");
+            this.duration_label.setText("---:---");
+        } else {
+            this.time_scale.setEnabled(true);
+            this.time_scale.setMaximum((int) TimeUnit.SECONDS.toMillis(duration));
+            this.time_label.setText("0:00");
+            int seconds = duration % 60;
+            String text = "" + duration / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
+            this.duration_label.setText(text);
+        }
+    }
+
+    public void display_play_button() {
+        if (!this.is_play_button) {
+            this.play_button.setImage(this.play_icon);
+            this.is_play_button = true;
+        }
+    }
+
+    public void display_pause_button() {
+        if (this.is_play_button) {
+            this.play_button.setImage(this.pause_icon);
+            this.is_play_button = false;
+        }
+    }
+
+    public void display_time(int position) {
+        this.time_scale.setSelection(position);
+        int current_time = (int) TimeUnit.MILLISECONDS.toSeconds(position);
+        int seconds = current_time % 60;
+        String text = "" + current_time / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
+        this.time_label.setText(text);
+    }
+
+    @Override
+    public void widgetSelected(SelectionEvent event) {
+        if (event.widget.getData() == null) {
+            return;
+        }
+        switch ((Cmd) event.widget.getData()) {
+        case PREV_BUTTON:
+            this.jukebox.do_previous();
+            break;
+        case PLAY_BUTTON:
+            if (this.is_play_button) {
+                this.jukebox.do_play();
+            } else {
+                this.jukebox.do_pause();
+            }
+            break;
+        case NEXT_BUTTON:
+            this.jukebox.do_next();
+            break;
+        case FILTER_ENTRY:
+        case ADD_FILTER_BUTTON:
+            String text = this.filter_entry.getText();
+            if (text == null || text.isEmpty()) {
+                return;
+            }
+            this.jukebox.set_filter(text);
+            this.filter_label.setText(text);
+            this.filter_entry.setText("");
+            break;
+        case DELETE_FILTER_BUTTON:
+            this.jukebox.set_filter(null);
+            this.filter_label.setText("");
+            grab_focus();
+            break;
+        case TIME_SCALE:
+            this.jukebox.do_audio_jump((float) event.detail);
+            break;
+        default:
+            break;
+        }
+    }
+
+    @Override
+    public void widgetDefaultSelected(SelectionEvent event) {
+        if (event.widget.getData() == Cmd.FILTER_ENTRY) {
+            widgetSelected(event);
+        }
+    }
+    */
+}

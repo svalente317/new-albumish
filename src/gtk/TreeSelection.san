@@ -22,6 +22,10 @@ int countSelectedRows() {
 boolean getSelected(TreeIter iter) {
     c__stmt "return gtk_tree_selection_get_selected(this, NULL, iter)";
 }
+
+void unselectAll() {
+    c__stmt "gtk_tree_selection_unselect_all(this)";
+}
 }
 
 interface TreeSelectionCallback {
