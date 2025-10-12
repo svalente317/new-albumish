@@ -1,0 +1,22 @@
+package gtk;
+
+class Context {
+
+c__include "gtk/gtk.h";
+c__repr    "GMainContext*";
+
+static Context defaultContext() {
+    c__stmt "return g_main_context_default()";
+}
+
+void invoke(ContextCallback callback) {
+    c__stmt "g_main_context_invoke(this, G_CALLBACK(_context_callback), callback)";
+}
+
+c__stmt "gboolean _context_callback(gpointer user_data)";
+c__stmt "{ ContextCallback__callback(user_data); return 0; }";
+}
+
+interface ContextCallback {
+    void callback();
+}

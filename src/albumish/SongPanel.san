@@ -21,7 +21,7 @@ private TreeView treeView;
 private ListStore listStore;
 private boolean showBitrate;
 private boolean showBpm;
-private int playlistid;
+int playlistid;
 
 SongPanel(Albumish player, boolean with_checks) {
     this.playlistid = -1;
@@ -83,7 +83,8 @@ Widget widget() {
     return this.treeView;
 }
 
-void reset(int[] songs) {
+void reset(int playlistid, int[] songs) {
+    this.playlistid = playlistid;
     var database = this.player.database;
     var checkDatabase = this.player.checkDatabase;
     var row = {new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
@@ -132,30 +133,32 @@ void rowActivated(TreeView treeView, TreePath path, TreeViewColumn column) {
         return;
     }
     if this.playlistid >= 0 {
-        this.player.playSong(this.playlistid, activeRow);
+        var iter = new TreeIter();
+        if this.listStore.getIter(iter, path) {
+            var value = new JsonElement();
+            this.listStore.getValue(iter, 1, value);
+            this.player.playSong(this.playlistid, value.getAsInt());
+        }
         return;
     }
     var songList = new int[];
     var currentRow = 0;
-    var songListActiveRow = 0;
+    var songid = 0;
     var iter = new TreeIter();
     var value = new JsonElement();
     for var ok = this.listStore.getIterFirst(iter); ok; ok = this.listStore.iterNext(iter) {
-        var isChecked = true;
-        if currentRow == activeRow {
-            songListActiveRow = songList.length;
-        } else {
-            this.listStore.getValue(iter, 0, value);
-            isChecked = value.getAsBoolean();
-        }
-        if isChecked {
+        this.listStore.getValue(iter, 0, value);
+        if value.getAsBoolean() || currentRow == activeRow {
             this.listStore.getValue(iter, 1, value);
             songList.add(value.getAsInt());
+            if currentRow == activeRow {
+                songid = value.getAsInt();
+            }
         }
         currentRow = currentRow + 1;
     }
     var listid = this.player.setAutoPlaylist(songList);
-    this.player.playSong(listid, songListActiveRow);
+    this.player.playSong(listid, songid);
 }
 
 void pathCallback(String path) {
@@ -167,5 +170,16 @@ void pathCallback(String path) {
         value.makeBoolean(!checked);
         this.listStore.set(iter, {value});
     }
+}
+
+int getSelectedId() {
+    var iter = new TreeIter();
+    if !this.treeView.getSelection().getSelected(iter) {
+        System.println("zero");
+        return 0;
+    }
+    var value = new JsonElement();
+    this.listStore.getValue(iter, 1, value);
+    return value.getAsInt();
 }
 }

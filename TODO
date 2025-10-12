@@ -1,6 +1,8 @@
+- TopPanel - buttons should be square
+- TopPanel - vbox with times and slider
+- TopPanel - search panel
+- TopPanel - slider
 - CoverPanel - keep highlighted row through sort
-- Add TopPanel with forward and backwards buttons
-- use Channel in PlayerThread
 - highlight row in playlist when it starts playing
 - SongPanel update check database
 - JsonParser unicode to utf-8

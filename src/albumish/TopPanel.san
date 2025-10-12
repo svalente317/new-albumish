@@ -13,21 +13,11 @@ import gtk.Label;
 import gtk.Widget;
 
 class TopPanel {
-    /*
-    private enum Cmd {
-        PREV_BUTTON,
-        PLAY_BUTTON,
-        NEXT_BUTTON,
-        FILTER_ENTRY,
-        ADD_FILTER_BUTTON,
-        DELETE_FILTER_BUTTON,
-        TIME_SCALE
-    }
-    */
     private Albumish player;
-    private boolean is_play_button;
     private Box panel;
+    private Button prev_button;
     private Button play_button;
+    private Button next_button;
     private Label title_label;
     private Label artist_label;
     // private MySlider time_scale;
@@ -47,15 +37,18 @@ class TopPanel {
         var hbox = new Box(Box.HORIZONTAL, 0);
         hbox.setBorderWidth(10);
         hbox.setSpacing(10);
-        var button = Button.newFromIconName("media-skip-backward", Button.SIZE_BUTTON);
-        button.setSizeRequest(50, 50);
-        hbox.add(button);
+        this.prev_button = Button.newFromIconName("media-skip-backward", Button.SIZE_BUTTON);
+        this.prev_button.setSizeRequest(50, 50);
+        this.prev_button.connect("clicked", this);
+        hbox.add(this.prev_button);
         this.play_button = Button.newFromIconName("media-playback-start", Button.SIZE_BUTTON);
         this.play_button.setSizeRequest(50, 50);
+        this.play_button.connect("clicked", this);
         hbox.add(this.play_button);
-        button = Button.newFromIconName("media-skip-forward", Button.SIZE_BUTTON);
-        button.setSizeRequest(50, 50);
-        hbox.add(button);
+        this.next_button = Button.newFromIconName("media-skip-forward", Button.SIZE_BUTTON);
+        this.next_button.setSizeRequest(50, 50);
+        this.next_button.connect("clicked", this);
+        hbox.add(this.next_button);
         top_left.add(hbox);
         this.panel.add(top_left);
 
@@ -63,9 +56,9 @@ class TopPanel {
         middle.setExpand(true, true);
         var vbox = new Box(Box.VERTICAL, 0);
         vbox.setBorderWidth(10);
-        this.title_label = new Label("title");
+        this.title_label = new Label("");
         vbox.add(this.title_label);
-        this.artist_label = new Label("artist");
+        this.artist_label = new Label("");
         vbox.add(this.artist_label);
         this.time_label = new Label("---:---");
         vbox.add(this.time_label);
@@ -108,7 +101,6 @@ class TopPanel {
         data = new GridData(SWT.FILL, SWT.FILL, false, false);
         button.setLayoutData(data);
         */
-        this.is_play_button = true;
         // display_duration(0);
     }
 
@@ -116,68 +108,40 @@ class TopPanel {
         return this.panel;
     }
 
-    /*
-    public void grab_focus() {
-        this.filter_entry.setFocus();
-    }
-
-    public void display(String song_name, String artist_name, String album_name, int duration) {
-        if (song_name == null) {
-            this.title_label.setText("");
-        } else {
-            this.title_label.setText(song_name);
+    void display(String song_name, String artist_name, String album_name, int duration) {
+        this.title_label.setText(song_name);
+        if artist_name == null {
+            artist_name = album_name;
         }
-        if (artist_name == null) {
-            if (album_name == null) {
-                this.artist_label.setText("");
-            } else {
-                this.artist_label.setText(album_name);
-            }
-        } else {
-            if (album_name == null) {
-                this.artist_label.setText(artist_name);
-            } else {
-                this.artist_label.setText(artist_name + " - " + album_name);
-            }
-        }
+        this.artist_label.setText(artist_name);
         display_duration(duration);
-        if (duration > 0) {
-            display_pause_button();
-        } else {
-            display_play_button();
-        }
     }
 
     private void display_duration(int duration) {
-        this.time_scale.setSelection(0);
-        if (duration <= 0) {
-            this.time_scale.setEnabled(false);
+        // this.time_scale.setSelection(0);
+        if duration <= 0 {
+            // this.time_scale.setEnabled(false);
             this.time_label.setText("---:---");
             this.duration_label.setText("---:---");
         } else {
-            this.time_scale.setEnabled(true);
-            this.time_scale.setMaximum((int) TimeUnit.SECONDS.toMillis(duration));
+            // this.time_scale.setEnabled(true);
+            // this.time_scale.setMaximum((int) TimeUnit.SECONDS.toMillis(duration));
             this.time_label.setText("0:00");
-            int seconds = duration % 60;
-            String text = "" + duration / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
+            var seconds = duration % 60;
+            var text = "" + duration / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
             this.duration_label.setText(text);
         }
     }
 
-    public void display_play_button() {
-        if (!this.is_play_button) {
-            this.play_button.setImage(this.play_icon);
-            this.is_play_button = true;
-        }
+    void displayPlayButton() {
+        // TODO this.play_button.setImage(this.play_icon);
     }
 
-    public void display_pause_button() {
-        if (this.is_play_button) {
-            this.play_button.setImage(this.pause_icon);
-            this.is_play_button = false;
-        }
+    void displayPauseButton() {
+        // TODO this.play_button.setImage(this.pause_icon);
     }
 
+    /*
     public void display_time(int position) {
         this.time_scale.setSelection(position);
         int current_time = (int) TimeUnit.MILLISECONDS.toSeconds(position);
@@ -192,19 +156,6 @@ class TopPanel {
             return;
         }
         switch ((Cmd) event.widget.getData()) {
-        case PREV_BUTTON:
-            this.jukebox.do_previous();
-            break;
-        case PLAY_BUTTON:
-            if (this.is_play_button) {
-                this.jukebox.do_play();
-            } else {
-                this.jukebox.do_pause();
-            }
-            break;
-        case NEXT_BUTTON:
-            this.jukebox.do_next();
-            break;
         case FILTER_ENTRY:
         case ADD_FILTER_BUTTON:
             String text = this.filter_entry.getText();
@@ -235,4 +186,19 @@ class TopPanel {
         }
     }
     */
+
+    void callback(Button button) {
+        if button == this.prev_button {
+            this.player.doPrevious();
+            return;
+        }
+        if button == this.play_button {
+            this.player.playOrPause();
+            return;
+        }
+        if button == this.next_button {
+            this.player.doNext();
+            return;
+        }
+    }
 }

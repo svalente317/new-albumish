@@ -20,4 +20,15 @@ Button(String label) {
 static Button newFromIconName(String name, int size) {
     c__stmt "return gtk_button_new_from_icon_name(name, size)";
 }
+
+void connect(String signal, ButtonCallback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_button_callback), callback)";
+}
+
+c__stmt "void _button_callback(GtkWidget* self, gpointer user_data)";
+c__stmt"{ ButtonCallback__callback((struct ButtonCallback *) user_data, self); }";
+}
+
+interface ButtonCallback {
+    void callback(Button widget);
 }

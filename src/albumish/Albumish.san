@@ -14,6 +14,7 @@ import gtk.Window;
 import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
+import albumish.database.Song;
 import albumish.filter.FilterWorker;
 
 class Albumish {
@@ -25,6 +26,7 @@ CheckDatabase checkDatabase;
 FilterWorker filterWorker;
 Playlist[] playlists;
 PlayerThread playerThread;
+TopPanel topPanel;
 CoverPanel coverPanel;
 SongPanel playlistSongPanel;
 SongPanel albumSongPanel;
@@ -64,8 +66,8 @@ void callback(Application app) {
     window.add(grid);
 
     // makeMenuBar(this.main_window);
-    var topPanel = new TopPanel(this);
-    grid.attach(topPanel.widget(), 0, 0, 3, 1);
+    this.topPanel = new TopPanel(this);
+    grid.attach(this.topPanel.widget(), 0, 0, 3, 1);
     var widget = null;
     var scrolledWindow = null;
 
@@ -108,6 +110,7 @@ void callback(Application app) {
 
     var albumList = this.filterWorker.generate_album_list();
     this.coverPanel.reset(albumList);
+    window.setSizeRequest(1000, 500);
     window.showAll();
 }
 
@@ -118,7 +121,7 @@ void selectAlbum(int albumid) {
     if (albumid >= 0) {
         this.albumSongPanel.updateDatabase();
         var songList = this.filterWorker.generate_song_list(albumid);
-        this.albumSongPanel.reset(songList);
+        this.albumSongPanel.reset(-1, songList);
     }
 }
 
@@ -133,21 +136,76 @@ void sortAlbums(int sortType) {
  * Called by song_panel. Update playlist panels.
  */
 int setAutoPlaylist(int[] songList) {
-    this.playlists[AUTO_PLAYLIST].reset(songList);
+    var playlistid = AUTO_PLAYLIST;
+    this.playlists[playlistid].reset(songList);
     // TODO this.playlistPanel.set...
-    this.playlistSongPanel.reset(songList);
-    return AUTO_PLAYLIST;
+    this.playlistSongPanel.reset(playlistid, songList);
+    return playlistid;
+}
+
+/**
+ * Called by top_panel.
+ */
+void doPrevious() {
+    // If you press Previous in the first 3 seconds of a song, then go to the previous song.
+    // Otherwise, restart the current song.
+    var delta = this.playerThread.get_audio_position_in_ms() < 3000.0 ? -1 : 0;
+    this.playerThread.play_next_song(delta);
+}
+
+/**
+ * Called by top_panel.
+ */
+void doNext() {
+    this.playerThread.play_next_song(1);
+}
+
+/**
+ * Called by top_panel.
+ */
+void playOrPause() {
+    if this.playerThread.is_paused {
+        this.playerThread.pause(false);
+        this.topPanel.displayPauseButton();
+        return;
+    }
+    if this.playerThread.is_playing() {
+        this.playerThread.pause(true);
+        this.topPanel.displayPlayButton();
+        return;
+    }
+    var playlistid = this.playlistSongPanel.playlistid;
+    if playlistid >= 0 {
+        var songid = this.playlistSongPanel.getSelectedId();
+        if songid > 0 {
+            playSong(playlistid, songid);
+        }
+    }
 }
 
 /**
  * Called by playlistSongPanel and albumSongPanel.
  */
-void playSong(int listid, int idx) {
-    var playlist = this.playlists[listid];
-    if playlist != null {
-        var pid = playlist.get_nth_pid(idx);
-        var songid = playlist.get_songid_of_pid(pid);
-        this.playerThread.play_song_pid(listid, pid);
+void playSong(int playlistid, int songid) {
+    this.playerThread.play_songid(playlistid, songid);
+}
+
+/**
+ * Called by player_thread.
+ */
+void update_top_panel(Song song) {
+    if song == null {
+        this.topPanel.display(null, null, null, 0);
+        return;
     }
+    var artist_name = null;
+    if song.artistid > 0 {
+        artist_name = this.database.artist_list[song.artistid].name;
+    }
+    var album_name = null;
+    if song.albumid > 0 {
+        album_name = this.database.album_list[song.albumid].name;
+    }
+    this.topPanel.display(song.title, artist_name, album_name, song.duration);
 }
 }
