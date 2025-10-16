@@ -1,0 +1,11 @@
+package gdk;
+
+class RGBA {
+
+c__include "gtk/gtk.h";
+c__repr    "GdkRGBA*";
+
+RGBA() {
+    c__stmt "return GC_MALLOC(sizeof(GdkRGBA))";
+}
+}

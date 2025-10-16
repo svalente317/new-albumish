@@ -1,0 +1,29 @@
+package gdk;
+
+class CairoType {
+
+c__include "gtk/gtk.h";
+c__repr    "cairo_t*";
+
+void setSourceRGBA(RGBA color) {
+    c__stmt "gdk_cairo_set_source_rgba(this, color)";
+}
+
+void setLineWidth(int width) {
+    c__stmt "cairo_set_line_width(this, 1)";
+}
+
+void rectangle(int x, int y, int width, int height) {
+    c__stmt "GdkRectangle rect";
+    c__stmt "rect.x = x; rect.y = y; rect.width = width; rect.height = height";
+    c__stmt "gdk_cairo_rectangle(this, &rect)";
+}
+
+void stroke() {
+    c__stmt "cairo_stroke(this)";
+}
+
+void fill() {
+    c__stmt "cairo_fill(this)";
+}
+}

@@ -2,6 +2,7 @@ package albumish;
 import sanka.json.JsonElement;
 import gtk.CellRenderer;
 import gtk.ListStore;
+import gtk.TreeIter;
 import gtk.TreeView;
 import gtk.TreeSelection;
 import gtk.TreeViewColumn;

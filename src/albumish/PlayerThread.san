@@ -25,7 +25,7 @@ class PlayerThread {
     private Mpg123 mpg;
     private PulseAudio pulse;
     private int bufferSize;
-    private float audio_position;
+    private int audio_position;
     boolean is_paused;
 
     PlayerThread(Albumish player) {
@@ -56,7 +56,7 @@ class PlayerThread {
                 this.playlistid = command.playlistid;
                 this.songid = command.songid;
                 if this.songid <= 0 {
-                    update_display();
+                    update_display(true);
                     command = null;
                     continue;
                 }
@@ -114,7 +114,7 @@ class PlayerThread {
         this.pulse = pulse;
         this.bufferSize = bufferSize;
         this.audio_position = 0;
-        update_display();
+        update_display(true);
     }
 
     /**
@@ -134,6 +134,7 @@ class PlayerThread {
             }
             this.pulse.write(buffer, size);
             this.audio_position = this.audio_position + SAMPLE_MILLIS;
+            update_display(false);
         }
         return false;
     }
@@ -154,8 +155,23 @@ class PlayerThread {
      * This is called by the audio thread when it starts playing a new song, and
      * when it reaches the end of the playlist.
      */
-    private void update_display() {
-        Context.defaultContext().invoke(this);
+    private void update_display(boolean newSong) {
+        Context.defaultContext().invoke(new {
+            playerThread: this;
+            newSong: newSong;
+            void callback() {
+                this.playerThread.update_display_in_main_thread(this.newSong);
+            }
+        });
+    }
+
+    void update_display_in_main_thread(boolean newSong) {
+        if newSong {
+            var song = this.player.database.song_list[this.songid];
+            this.player.update_top_panel(song);
+        } else {
+            this.player.display_time(this.audio_position);
+        }
     }
 
     /**
@@ -203,13 +219,7 @@ class PlayerThread {
     /**
      * @return the length of the audio stream that has been played.
      */
-    float get_audio_position_in_ms() {
+    int get_audio_position_in_ms() {
         return this.audio_position;
-    }
-
-    void callback() {
-        System.println("songid=" + this.songid);
-        var song = this.player.database.song_list[this.songid];
-        this.player.update_top_panel(song);
     }
 }

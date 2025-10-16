@@ -1,26 +1,22 @@
-all: albumish
+all: albumish.exe
 
-ALBUMISH_FILES = src/audio/*.san src/albumish/*.san src/database/*.san src/filter/*.san src/gtk/*.san
+ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san
 
-PKG_CONFIG = --pkg-config gtk+-3.0 --pkg-config libmpg123 --pkg-config libpulse-simple
+GTK_FILES = src/gtk/*.san src/gdk/*.san
+GTK_CONFIG = --pkg-config gtk+-3.0
 
-albumish: $(ALBUMISH_FILES)
-	sanka --top bin $(PKG_CONFIG) $(ALBUMISH_FILES) --main albumish.Albumish --exe $@
+AUDIO_FILES = src/audio/*.san
+AUDIO_CONFIG = --pkg-config libmpg123 --pkg-config libpulse-simple
 
-bin/audio.sanka.tar: src/audio/*.san
-	sanka src/audio/*.san --create-library $@
+albumish.exe: $(B_FILES) bin/gtk.sanka.tar bin/audio.sanka.tar
+	sanka --top bin $(GTK_CONFIG) $(AUDIO_CONFIG) $(ALBUMISH_FILES) \
+	--lib bin/gtk.sanka.tar --lib bin/audio.sanka.tar --main albumish.Albumish --exe $@
 
-HELLO_FILES = src/main/Hello.san src/gtk/*.san
+bin/gtk.sanka.tar: $(GTK_FILES)
+	sanka --top bin $(GTK_CONFIG) $(GTK_FILES) --create-library $@
 
-hello: $(HELLO_FILES)
-	sanka --top bin --pkg-config gtk+-3.0 $(HELLO_FILES) --main main.Hello --exe $@
-
-MP3_FILES = src/main/Mp3Play.san src/audio/*.san
-
-MP3_PKGCONFIG = --pkg-config libmpg123 --pkg-config libpulse-simple
-
-mp3play: $(MP3_FILES)
-	sanka --top bin $(MP3_PKGCONFIG) $(MP3_FILES) --main main.Mp3Play --exe $@
+bin/audio.sanka.tar: $(AUDIO_FILES)
+	sanka --top bin $(AUDIO_CONFIG) $(AUDIO_FILES) --create-library $@
 
 clean:
-	rm -rf albumish hello mp3play finder bin
+	rm -rf albumish.exe bin

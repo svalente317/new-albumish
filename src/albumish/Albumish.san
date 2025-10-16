@@ -208,4 +208,8 @@ void update_top_panel(Song song) {
     }
     this.topPanel.display(song.title, artist_name, album_name, song.duration);
 }
+
+void display_time(int millis) {
+    this.topPanel.display_time(millis);
+}
 }

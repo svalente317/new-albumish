@@ -21,4 +21,20 @@ void setExpand(boolean h, boolean v) {
 void setSizeRequest(int x, int y) {
     c__stmt "gtk_widget_set_size_request(this, x, y)";
 }
+
+int getAllocatedWidth() {
+    c__stmt "return gtk_widget_get_allocated_width(this)";
+}
+
+int getAllocatedHeight() {
+    c__stmt "return gtk_widget_get_allocated_height(this)";
+}
+
+StyleContext getStyleContext() {
+    c__stmt "return gtk_widget_get_style_context(this)";
+}
+
+void queueDraw() {
+    c__stmt "gtk_widget_queue_draw(this)";
+}
 }

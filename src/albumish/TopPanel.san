@@ -20,7 +20,7 @@ class TopPanel {
     private Button next_button;
     private Label title_label;
     private Label artist_label;
-    // private MySlider time_scale;
+    private Slider time_scale;
     private Label time_label;
     private Label duration_label;
     // private Text filter_entry;
@@ -31,6 +31,7 @@ class TopPanel {
 
         this.panel = new Box(Box.HORIZONTAL, 0);
         this.panel.setExpand(true, false);
+        this.panel.setSpacing(4);
 
         var top_left = new Frame(null);
         top_left.setExpand(false, true);
@@ -56,16 +57,21 @@ class TopPanel {
         middle.setExpand(true, true);
         var vbox = new Box(Box.VERTICAL, 0);
         vbox.setBorderWidth(10);
+        vbox.setSpacing(2);
         this.title_label = new Label("");
         vbox.add(this.title_label);
         this.artist_label = new Label("");
         vbox.add(this.artist_label);
+        var bbox = new Box(Box.HORIZONTAL, 0);
+        bbox.setSpacing(4);
         this.time_label = new Label("---:---");
-        vbox.add(this.time_label);
+        bbox.add(this.time_label);
         // this.time_label.setAlignment(SWT.RIGHT);
-        // this.time_scale = new MySlider(label_vbox);
+        this.time_scale = new Slider();
+        bbox.add(this.time_scale.widget());
         this.duration_label = new Label("---:---");
-        vbox.add(this.duration_label);
+        bbox.add(this.duration_label);
+        vbox.add(bbox);
         middle.add(vbox);
         this.panel.add(middle);
 
@@ -118,19 +124,20 @@ class TopPanel {
     }
 
     private void display_duration(int duration) {
-        // this.time_scale.setSelection(0);
+        this.time_scale.setSelection(0);
         if duration <= 0 {
             // this.time_scale.setEnabled(false);
             this.time_label.setText("---:---");
             this.duration_label.setText("---:---");
         } else {
             // this.time_scale.setEnabled(true);
-            // this.time_scale.setMaximum((int) TimeUnit.SECONDS.toMillis(duration));
+            this.time_scale.setMaximum(duration * 1000);
             this.time_label.setText("0:00");
             var seconds = duration % 60;
             var text = "" + duration / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
             this.duration_label.setText(text);
         }
+        this.time_scale.widget().queueDraw();
     }
 
     void displayPlayButton() {
@@ -141,15 +148,16 @@ class TopPanel {
         // TODO this.play_button.setImage(this.pause_icon);
     }
 
-    /*
-    public void display_time(int position) {
-        this.time_scale.setSelection(position);
-        int current_time = (int) TimeUnit.MILLISECONDS.toSeconds(position);
-        int seconds = current_time % 60;
-        String text = "" + current_time / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
+    void display_time(int millis) {
+        this.time_scale.setSelection(millis);
+        var current_time = (int)(millis / 1000);
+        var seconds = current_time % 60;
+        var text = "" + current_time / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
         this.time_label.setText(text);
+        this.time_scale.widget().queueDraw();
     }
 
+    /*
     @Override
     public void widgetSelected(SelectionEvent event) {
         if (event.widget.getData() == null) {
