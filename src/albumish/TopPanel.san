@@ -8,7 +8,9 @@
 package albumish;
 import gtk.Button;
 import gtk.Box;
+import gtk.Entry;
 import gtk.Frame;
+import gtk.Grid;
 import gtk.Label;
 import gtk.Widget;
 
@@ -23,15 +25,17 @@ class TopPanel {
     private Slider time_scale;
     private Label time_label;
     private Label duration_label;
-    // private Text filter_entry;
-    // private Label filter_label;
+    private Entry filter_entry;
+    private Button add_filter_button;
+    private Label filter_label;
+    private Button clear_filter_button;
 
     TopPanel(Albumish player) {
         this.player = player;
 
         this.panel = new Box(Box.HORIZONTAL, 0);
         this.panel.setExpand(true, false);
-        this.panel.setSpacing(4);
+        this.panel.setSpacing(10);
 
         var top_left = new Frame(null);
         top_left.setExpand(false, true);
@@ -57,17 +61,16 @@ class TopPanel {
         middle.setExpand(true, true);
         var vbox = new Box(Box.VERTICAL, 0);
         vbox.setBorderWidth(10);
-        vbox.setSpacing(2);
+        vbox.setSpacing(5);
         this.title_label = new Label("");
         vbox.add(this.title_label);
         this.artist_label = new Label("");
         vbox.add(this.artist_label);
         var bbox = new Box(Box.HORIZONTAL, 0);
-        bbox.setSpacing(4);
+        bbox.setSpacing(5);
         this.time_label = new Label("---:---");
         bbox.add(this.time_label);
-        // this.time_label.setAlignment(SWT.RIGHT);
-        this.time_scale = new Slider();
+        this.time_scale = new Slider(this);
         bbox.add(this.time_scale.widget());
         this.duration_label = new Label("---:---");
         bbox.add(this.duration_label);
@@ -77,37 +80,24 @@ class TopPanel {
 
         var top_right = new Frame(null);
         top_right.setExpand(false, true);
+        var grid = new Grid();
+        grid.setBorderWidth(8);
+        grid.setColumnSpacing(5);
+        grid.setRowSpacing(5);
+        this.filter_entry = new Entry();
+        grid.attach(this.filter_entry, 0, 0, 1, 1);
+        // data.widthHint = 170;
+        this.add_filter_button = Button.newFromIconName("list-add", Button.SIZE_BUTTON);
+        this.add_filter_button.connect("clicked", this);
+        grid.attach(this.add_filter_button, 1, 0, 1, 1);
+        this.filter_label = new Label("");
+        this.filter_label.setExpand(true, false);
+        grid.attach(this.filter_label, 0, 1, 1, 1);
+        this.clear_filter_button = Button.newFromIconName("edit-clear", Button.SIZE_BUTTON);
+        this.clear_filter_button.connect("clicked", this);
+        grid.attach(this.clear_filter_button, 1, 1, 1, 1);
+        top_right.add(grid);
         this.panel.add(top_right);
-        /*
-        Composite filter_table = new Composite(this, SWT.BORDER);
-        data = new GridData(SWT.END, SWT.FILL, false, true);
-        filter_table.setLayoutData(data);
-        layout = new GridLayout(2, false);
-        layout.marginTop = 8;
-        filter_table.setLayout(layout);
-        this.filter_entry = new Text(filter_table, SWT.BORDER | SWT.SINGLE);
-        this.filter_entry.setData(Cmd.FILTER_ENTRY);
-        this.filter_entry.addSelectionListener(this);
-        data = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        data.widthHint = 170;
-        this.filter_entry.setLayoutData(daukebox.get_icon("gtk_media_play_ltr.png");ta);
-        button = new Button(filter_table, SWT.PUSH);
-        button.setImage(jukebox.get_icon("gtk_add.png"));
-        button.setData(Cmd.ADD_FILTER_BUTTON);
-        button.addSelectionListener(this);
-        data = new GridData(SWT.FILL, SWT.FILL, false, false);
-        button.setLayoutData(data);
-        this.filter_label = new Label(filter_table, 0);
-        data = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        this.filter_label.setLayoutData(data);
-        button = new Button(filter_table, SWT.PUSH);
-        button.setImage(jukebox.get_icon("gtk_cancel.png"));
-        button.setData(Cmd.DELETE_FILTER_BUTTON);
-        button.addSelectionListener(this);
-        data = new GridData(SWT.FILL, SWT.FILL, false, false);
-        button.setLayoutData(data);
-        */
-        // display_duration(0);
     }
 
     Widget widget() {
@@ -126,11 +116,10 @@ class TopPanel {
     private void display_duration(int duration) {
         this.time_scale.setSelection(0);
         if duration <= 0 {
-            // this.time_scale.setEnabled(false);
+            this.time_scale.setMaximum(0);
             this.time_label.setText("---:---");
             this.duration_label.setText("---:---");
         } else {
-            // this.time_scale.setEnabled(true);
             this.time_scale.setMaximum(duration * 1000);
             this.time_label.setText("0:00");
             var seconds = duration % 60;
@@ -154,46 +143,8 @@ class TopPanel {
         var seconds = current_time % 60;
         var text = "" + current_time / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
         this.time_label.setText(text);
-        this.time_scale.widget().queueDraw();
+        this.time_scale.redraw();
     }
-
-    /*
-    @Override
-    public void widgetSelected(SelectionEvent event) {
-        if (event.widget.getData() == null) {
-            return;
-        }
-        switch ((Cmd) event.widget.getData()) {
-        case FILTER_ENTRY:
-        case ADD_FILTER_BUTTON:
-            String text = this.filter_entry.getText();
-            if (text == null || text.isEmpty()) {
-                return;
-            }
-            this.jukebox.set_filter(text);
-            this.filter_label.setText(text);
-            this.filter_entry.setText("");
-            break;
-        case DELETE_FILTER_BUTTON:
-            this.jukebox.set_filter(null);
-            this.filter_label.setText("");
-            grab_focus();
-            break;
-        case TIME_SCALE:
-            this.jukebox.do_audio_jump((float) event.detail);
-            break;
-        default:
-            break;
-        }
-    }
-
-    @Override
-    public void widgetDefaultSelected(SelectionEvent event) {
-        if (event.widget.getData() == Cmd.FILTER_ENTRY) {
-            widgetSelected(event);
-        }
-    }
-    */
 
     void callback(Button button) {
         if button == this.prev_button {
@@ -208,5 +159,25 @@ class TopPanel {
             this.player.doNext();
             return;
         }
+        if button == this.add_filter_button {
+            var text = this.filter_entry.getText();
+            if text == null || text == "" {
+                return;
+            }
+            this.player.setFilter(text);
+            this.filter_label.setText(text);
+            this.filter_entry.setText("");
+            return;
+        }
+        if button == this.clear_filter_button {
+            this.player.setFilter(null);
+            this.filter_label.setText("");
+            // TODO grab_focus();
+            return;
+        }
+    }
+
+    void select(int value) {
+        this.player.playerThread.do_audio_jump(value);
     }
 }

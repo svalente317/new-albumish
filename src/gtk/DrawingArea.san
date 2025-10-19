@@ -10,14 +10,15 @@ DrawingArea() {
     c__stmt "return gtk_drawing_area_new()";
 }
 
-void connect(String signal, DrawingAreaCallback callback) {
+void connectDraw(DrawingAreaCallback callback) {
+    var signal = "draw";
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_drawing_area_callback), callback)";
 }
 
 c__stmt "void _drawing_area_callback(GtkWidget* self, cairo_t *ct, gpointer user_data)";
-c__stmt"{ DrawingAreaCallback__callback((struct DrawingAreaCallback *) user_data, self, ct); }";
+c__stmt"{ DrawingAreaCallback__draw((struct DrawingAreaCallback *) user_data, self, ct); }";
 }
 
 interface DrawingAreaCallback {
-    void callback(DrawingArea widget, CairoType cairo);
+    void draw(DrawingArea widget, CairoType cairo);
 }

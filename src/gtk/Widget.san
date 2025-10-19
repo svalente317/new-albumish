@@ -5,6 +5,12 @@ abstract class Widget {
 c__include "gtk/gtk.h";
 c__repr    "GtkWidget*";
 
+const MOTION_NOTIFY = 3;
+const BUTTON_PRESS = 4;
+const DOUBLE_BUTTON_PRESS = 5;
+const TRIPLE_BUTTON_PRESS = 6;
+const BUTTON_RELEASE = 7;
+
 void showAll() {
     c__stmt "gtk_widget_show_all(this)";
 }
@@ -37,4 +43,28 @@ StyleContext getStyleContext() {
 void queueDraw() {
     c__stmt "gtk_widget_queue_draw(this)";
 }
+
+void connectMouseButton(MouseCallback callback) {
+    c__stmt "gtk_widget_add_events(this, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK)";
+    var signal = "button-press-event";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_mouse_button_callback), callback)";
+    signal = "button-release-event";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_mouse_button_callback), callback)";
+}
+
+void connectMouseMotion(MouseCallback callback) {
+    c__stmt "gtk_widget_add_events(this, GDK_POINTER_MOTION_MASK)";
+    var signal = "motion-notify-event";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_mouse_motion_callback), callback)";
+}
+
+c__stmt "gboolean _mouse_button_callback(GtkWidget* self, GdkEventButton *me, gpointer user_data)";
+c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, me->button); }";
+
+c__stmt "gboolean _mouse_motion_callback(GtkWidget* self, GdkEventMotion *me, gpointer user_data)";
+c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, 0); }";
+}
+
+interface MouseCallback {
+    boolean callback(Widget widget, int eventType, double x, double y, int button);
 }

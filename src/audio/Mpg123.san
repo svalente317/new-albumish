@@ -77,6 +77,14 @@ int read(byte[] buffer) {
 }
 
 /**
+ * Seek forwards or backwards in the stream.
+ * The getFormat rate is the number of samples per second.
+ */
+long seek(long samples) {
+    c__stmt "return mpg123_seek(this, samples, SEEK_SET)";
+}
+
+/**
  * Return the string description of this object's last error.
  */
 String strerror() {

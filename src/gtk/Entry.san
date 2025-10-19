@@ -1,0 +1,20 @@
+package gtk;
+
+class Entry extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+Entry() {
+    c__stmt "return gtk_entry_new()";
+}
+
+String getText() {
+    c__stmt "return gtk_entry_get_text(GTK_ENTRY(this))";
+}
+
+void setText(String text) {
+    c__stmt "gtk_entry_set_text(GTK_ENTRY(this), text)";
+}
+
+}

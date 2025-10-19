@@ -24,7 +24,8 @@ class PlayerThread {
     private PlayerCommand command;
     private Mpg123 mpg;
     private PulseAudio pulse;
-    private int bufferSize;
+    private int channels;
+    private int samples_per_second;
     private int audio_position;
     boolean is_paused;
 
@@ -42,13 +43,24 @@ class PlayerThread {
                 command = (PlayerCommand) this.channel.pop();
             }
             if command.tag == PlayerCommand.PAUSE {
-                System.println("pause");
+                update_display(false);
                 this.is_paused = true;
                 command = null;
                 continue;
             }
+            if command.tag == PlayerCommand.JUMP {
+                if this.mpg != null {
+                    var seconds = (double) command.target_ms / 1000;
+                    if this.mpg.seek((long)(seconds * this.samples_per_second)) > 0 {
+                        this.audio_position = command.target_ms;
+                    }
+                }
+                if this.is_paused {
+                    update_display(false);
+                    continue;
+                }
+            }
             if this.is_paused {
-                System.println("unpause");
                 this.is_paused = false;
             }
             if command.tag == PlayerCommand.PLAY {
@@ -96,24 +108,17 @@ class PlayerThread {
             System.println("formatNone: " + err);
             return;
         }
-
-        // The number of bytes in a 16-bit sample is 2 bytes (16 bits) * the channels.
-        var sampleSize = 2 * fmt.channels;
-        // fmt.rate is the number of samples per second, typically 44,100.
-        var bytesPerSecond = fmt.rate * sampleSize;
-        // Read 250 milliseconds at a time.
-        var bufferSize = (int)(bytesPerSecond * SAMPLE_MILLIS / 1000);
+        // Setup for play_file().
+        this.mpg = mpg;
+        this.audio_position = 0;
+        this.channels = fmt.channels;
+        this.samples_per_second = (int) fmt.rate;
 
         // Technically, we should select SIGNED_16_LE_FORMAT or SIGNED_16_BE_FORMAT,
         // depending on the host's endian-ness. But it's fair to assume LE.
-        var pulse = new PulseAudio("mp3play", "playback",
+        this.pulse = new PulseAudio("mp3play", "playback",
             fmt.rate, fmt.channels, PulseAudio.SIGNED_16_LE_FORMAT);
 
-        // Setup for play_file().
-        this.mpg = mpg;
-        this.pulse = pulse;
-        this.bufferSize = bufferSize;
-        this.audio_position = 0;
         update_display(true);
     }
 
@@ -126,15 +131,20 @@ class PlayerThread {
         if this.mpg == null {
             return true;
         }
-        var buffer = new byte[](this.bufferSize);
+        // The number of bytes in a 16-bit sample is 2 bytes (16 bits) * the channels.
+        // There are typically 44,100 samples per second.
+        // Read 250 milliseconds at a time.
+        var bytes_per_second = (long) this.samples_per_second * this.channels * 2;
+        var buffer_size = (int)(bytes_per_second * SAMPLE_MILLIS / 1000);
+        var buffer = new byte[](buffer_size);
         while this.channel.getQueueSize() == 0 {
+            update_display(false);
             var size = this.mpg.read(buffer);
             if size <= 0 {
                 return true;
             }
             this.pulse.write(buffer, size);
             this.audio_position = this.audio_position + SAMPLE_MILLIS;
-            update_display(false);
         }
         return false;
     }
@@ -208,8 +218,8 @@ class PlayerThread {
     /**
      * Tell the player to jump forwards or backwards in the audio stream.
      */
-    void do_audio_jump(float value) {
-        // TODO this.target_position = value;
+    void do_audio_jump(int target_ms) {
+        this.channel.push(new PlayerCommand(){tag: PlayerCommand.JUMP, target_ms: target_ms});
     }
 
     boolean is_playing() {

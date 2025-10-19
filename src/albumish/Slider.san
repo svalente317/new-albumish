@@ -15,6 +15,7 @@ class Slider {
     const SLIDER_HEIGHT = 24;
     const SLIDER_WIDTH = 30;
 
+    private SliderListener listener;
     private DrawingArea area;
     private int selection;
     private int maximum;
@@ -23,19 +24,22 @@ class Slider {
     private boolean is_grabbed;
     private int grab_offset;
 
-    Slider() {
+    Slider(SliderListener listener) {
         // super(parent, SWT.DOUBLE_BUFFERED);
+        this.listener = listener;
         this.area = new DrawingArea();
         this.area.setSizeRequest(SLIDER_WIDTH+2, SLIDER_HEIGHT+2);
         this.area.setExpand(true, false);
-        this.area.connect("draw", this);
+        this.area.connectDraw(this);
+        this.area.connectMouseButton(this);
+        this.area.connectMouseMotion(this);
     }
 
     Widget widget() {
         return this.area;
     }
 
-    void callback(DrawingArea area, CairoType cairo) {
+    void draw(DrawingArea area, CairoType cairo) {
         var width = area.getAllocatedWidth()-2;
         var height = area.getAllocatedHeight()-2;
         if height < CHANNEL_HEIGHT {
@@ -70,68 +74,68 @@ class Slider {
         cairo.stroke();
     }
 
-    /*
-    @Override
-    public void mouseDown(MouseEvent event) {
-        if (this.maximum == 0) {
-            return;
+    boolean callback(Widget w, int eventType, double x, double y, int button) {
+        switch eventType {
+        case Widget.BUTTON_PRESS:
+            if this.maximum == 0 {
+                break;
+            }
+            if x < this.slider_x || x > this.slider_x + SLIDER_WIDTH {
+                break;
+            }
+            if y < this.slider_y || y > this.slider_y + SLIDER_HEIGHT {
+                break;
+            }
+            this.is_grabbed = true;
+            this.grab_offset = (int)(x - this.slider_x);
+            break;
+        case Widget.BUTTON_RELEASE:
+            if !this.is_grabbed {
+                break;
+            }
+            this.is_grabbed = false;
+            this.listener.select(this.selection);
+            break;
+        case Widget.MOTION_NOTIFY:
+            if !this.is_grabbed {
+                break;
+            }
+            var width = this.area.getAllocatedWidth()-2;
+            var channelWidth = width - SLIDER_WIDTH;
+            var ratio = (double) this.maximum / (double) channelWidth;
+            var new_selection = (int) (ratio * (x - this.grab_offset));
+            if new_selection < 0 {
+                new_selection = 0;
+            }
+            if new_selection > this.maximum {
+                new_selection = this.maximum;
+            }
+            if new_selection != this.selection {
+                this.selection = new_selection;
+                redraw();
+            }
+            break;
         }
-        if (event.x < this.slider_x || event.x > this.slider_x + SLIDER_WIDTH) {
-            return;
-        }
-        if (event.y < this.slider_y || event.y > this.slider_y + SLIDER_HEIGHT) {
-            return;
-        }
-        this.is_grabbed = true;
-        this.grab_offset = event.x - this.slider_x;
+        return false;
     }
-
-    @Override
-    public void mouseUp(MouseEvent mouseEvent) {
-        if (!this.is_grabbed) {
-            return;
-        }
-        this.is_grabbed = false;
-        Event event = new Event();
-        event.stateMask = mouseEvent.stateMask;
-        event.time = mouseEvent.time;
-        event.x = mouseEvent.x;
-        event.y = mouseEvent.y;
-        event.detail = this.selection;
-        notifyListeners(SWT.Selection, event);
-    }
-
-    @Override
-    public void mouseMove(MouseEvent event) {
-        if (!this.is_grabbed) {
-            return;
-        }
-        Point size = getSize();
-        int channel_width = size.x - SLIDER_WIDTH;
-        double ratio = (double) this.maximum / (double) channel_width;
-        int new_selection = (int) (ratio * (event.x - this.grab_offset));
-        if (new_selection < 0) {
-            new_selection = 0;
-        }
-        if (new_selection > this.maximum) {
-            new_selection = this.maximum;
-        }
-        if (new_selection != this.selection) {
-            this.selection = new_selection;
-            redraw();
-        }
-    }
-    */
 
     void setMaximum(int value) {
         this.maximum = value;
-        // TODO redraw();
+        redraw();
     }
 
     void setSelection(int value) {
         if !this.is_grabbed {
             this.selection = value;
-            // TODO redraw();
+            redraw();
         }
     }
+
+    void redraw() {
+        this.area.queueDraw();
+    }
+}
+
+interface SliderListener {
+    void select(int value);
 }

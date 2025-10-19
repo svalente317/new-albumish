@@ -15,6 +15,7 @@ import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.database.Song;
+import albumish.filter.Filter;
 import albumish.filter.FilterWorker;
 
 class Albumish {
@@ -63,6 +64,8 @@ void callback(Application app) {
     // window.setImage(get_icon("CD.png"));
     window.setBorderWidth(10);
     var grid = new Grid();
+    grid.setRowSpacing(10);
+    grid.setColumnSpacing(10);
     window.add(grid);
 
     // makeMenuBar(this.main_window);
@@ -110,7 +113,7 @@ void callback(Application app) {
 
     var albumList = this.filterWorker.generate_album_list();
     this.coverPanel.reset(albumList);
-    window.setSizeRequest(1000, 500);
+    window.setSizeRequest(1500, 500);
     window.showAll();
 }
 
@@ -212,4 +215,19 @@ void update_top_panel(Song song) {
 void display_time(int millis) {
     this.topPanel.display_time(millis);
 }
+
+/**
+ * Called by top_panel. Update cover_panel.
+ */
+void setFilter(String text) {
+    var albumList = null;
+    if text == null || text == "" {
+        albumList = this.filterWorker.remove_filter(0);
+    } else {
+        var filter = new Filter(){text: text};
+        albumList = this.filterWorker.add_filter(filter);
+    }
+    this.coverPanel.reset(albumList);
+}
+
 }

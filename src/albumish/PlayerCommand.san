@@ -4,8 +4,10 @@ class PlayerCommand {
     const PLAY = 0;
     const PAUSE = 1;
     const UNPAUSE = 2;
+    const JUMP = 3;
 
     int tag;
     int playlistid;
     int songid;
+    int target_ms;
 }

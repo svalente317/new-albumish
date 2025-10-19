@@ -12,4 +12,12 @@ Grid() {
 void attach(Widget widget, int x, int y, int width, int height) {
     c__stmt "gtk_grid_attach(GTK_GRID(this), widget, x, y, width, height)";
 }
+
+void setColumnSpacing(int spacing) {
+    c__stmt "gtk_grid_set_column_spacing(GTK_GRID(this), spacing)";
+}
+
+void setRowSpacing(int spacing) {
+    c__stmt "gtk_grid_set_row_spacing(GTK_GRID(this), spacing)";
+}
 }
