@@ -32,7 +32,7 @@ int open(String filename) {
 /**
  * Get the mp3 file's rate, channels, and encoding.
  */
-MpgFormat getFormat() {
+MpgFormat get_format() {
     var f = new MpgFormat();
     c__stmt "mpg123_getformat(this, &f->rate, &f->channels, &f->encoding)";
     return f;
@@ -48,16 +48,16 @@ MpgFormat getFormat() {
  * @channels  bitwise OR of MONO (1) and STEREO (2)
  * @encodings bitwise OR of SIGNED_16, FLOAT_32, etc.
  */
-int setFormat(long rate, int channels, int encoding) {
+int set_format(long rate, int channels, int encoding) {
     var menc = 0;
     c__stmt "if (encoding == 0) menc = MPG123_ENC_SIGNED_16";
     c__stmt "return mpg123_format(this, rate, channels, menc)";
 }
 
 /**
- * Clear all default format settings before using setFormat to set your custom list.
+ * Clear all default format settings before using set_format to set your custom list.
  */
-int formatNone() {
+int format_none() {
     c__stmt "return mpg123_format_none(this)";
 }
 
@@ -78,7 +78,7 @@ int read(byte[] buffer) {
 
 /**
  * Seek forwards or backwards in the stream.
- * The getFormat rate is the number of samples per second.
+ * The get_format rate is the number of samples per second.
  */
 long seek(long samples) {
     c__stmt "return mpg123_seek(this, samples, SEEK_SET)";

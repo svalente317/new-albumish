@@ -5,7 +5,7 @@ class TreePath {
 c__include "gtk/gtk.h";
 c__repr    "GtkTreePath*";
 
-int[] getIndices() {
+int[] get_indices() {
     var depth = 0;
     c__stmt "gint *gresults = gtk_tree_path_get_indices_with_depth(this, &depth)";
     var results = new int[](depth);
@@ -17,7 +17,7 @@ int[] getIndices() {
     return results;
 }
 
-int getFirstIndex() {
+int get_first_index() {
     c__stmt "gint depth";
     c__stmt "gint *gresults = gtk_tree_path_get_indices_with_depth(this, &depth)";
     c__stmt "return depth > 0 ? gresults[0] : -1";

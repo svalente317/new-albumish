@@ -21,11 +21,11 @@ ListStore(int[] types) {
     c__stmt "return gtk_list_store_newv(length, xtypes)";
 }
 
-boolean getIterFirst(TreeIter iter) {
+boolean get_iter_first(TreeIter iter) {
     c__stmt "return gtk_tree_model_get_iter_first(GTK_TREE_MODEL(this), iter)";
 }
 
-boolean iterNext(TreeIter iter) {
+boolean iter_next(TreeIter iter) {
     c__stmt "return gtk_tree_model_iter_next(GTK_TREE_MODEL(this), iter)";
 }
 
@@ -77,7 +77,7 @@ void set(TreeIter iter, JsonElement[] values) {
     c__stmt "gtk_list_store_set_valuesv(this, iter, (int *) columns->data, gvalues, count)";
 }
 
-void getValue(TreeIter iter, int column, JsonElement value) {
+void get_value(TreeIter iter, int column, JsonElement value) {
     var type = -1;
     c__stmt "GValue gvalue = G_VALUE_INIT";
     c__stmt "gtk_tree_model_get_value(GTK_TREE_MODEL(this), iter, column, &gvalue)";
@@ -108,11 +108,11 @@ boolean remove(TreeIter iter) {
     c__stmt "gtk_list_store_remove(this, iter)";
 }
 
-boolean getIter(TreeIter iter, TreePath path) {
+boolean get_iter(TreeIter iter, TreePath path) {
     c__stmt "return gtk_tree_model_get_iter(GTK_TREE_MODEL(this), iter, path)";
 }
 
-boolean getIterFromString(TreeIter iter, String path) {
+boolean get_iter_from_string(TreeIter iter, String path) {
     c__stmt "return gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(this), iter, path)";
 }
 }

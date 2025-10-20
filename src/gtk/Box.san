@@ -12,11 +12,11 @@ Box(int orientation, int border) {
     c__stmt "return gtk_box_new(orientation, border)";
 }
 
-void setSpacing(int spacing) {
+void set_spacing(int spacing) {
     c__stmt "gtk_box_set_spacing(GTK_BOX(this), spacing)";
 }
 
-void packStart(Widget w, boolean expand, boolean fill, int padding) {
+void pack_start(Widget w, boolean expand, boolean fill, int padding) {
     c__stmt "gtk_box_pack_start(GTK_BOX(this), w, expand, fill, padding)";
 }
 }

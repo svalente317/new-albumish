@@ -10,13 +10,13 @@ int getState() {
     c__stmt "return gtk_style_context_get_state(this)";
 }
 
-RGBA getColor(int state) {
+RGBA get_color(int state) {
     var color = new RGBA();
     c__stmt "gtk_style_context_get_color(this, state, color)";
     return color;
 }
 
-RGBA lookupColor(String key) {
+RGBA lookup_color(String key) {
     var color = new RGBA();
     var success = false;
     c__stmt "success = gtk_style_context_lookup_color(this, key, color)";

@@ -5,11 +5,11 @@ class CairoType {
 c__include "gtk/gtk.h";
 c__repr    "cairo_t*";
 
-void setSourceRGBA(RGBA color) {
+void set_source_rgba(RGBA color) {
     c__stmt "gdk_cairo_set_source_rgba(this, color)";
 }
 
-void setLineWidth(int width) {
+void set_line_width(int width) {
     c__stmt "cairo_set_line_width(this, 1)";
 }
 

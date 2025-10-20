@@ -18,9 +18,9 @@ void connect(String signal, PathCallback callback) {
 }
 
 c__stmt "void __path_callback(GtkCellRendererToggle *renderer, gchar *path, gpointer user_data)";
-c__stmt "{ PathCallback__pathCallback(user_data, path); }";
+c__stmt "{ PathCallback__path_callback(user_data, path); }";
 }
 
 interface PathCallback {
-    void pathCallback(String path);
+    void path_callback(String path);
 }

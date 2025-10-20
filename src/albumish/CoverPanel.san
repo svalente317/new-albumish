@@ -13,53 +13,53 @@ class CoverPanel {
 
 private Albumish player;
 private AlbumSorter sorter;
-private TreeView treeView;
-private ListStore listStore;
+private TreeView tree_view;
+private ListStore list_store;
 
 CoverPanel(Albumish player) {
     this.player = player;
     this.sorter = new AlbumSorter(player.database);
-    this.treeView = new TreeView();
+    this.tree_view = new TreeView();
     var renderer = CellRenderer.text();
     var column = new TreeViewColumn("Album", renderer, true, "text", 0);
-    this.treeView.appendColumn(column);
-    this.listStore = new ListStore({ListStore.TYPE_STRING, ListStore.TYPE_INT});
-    this.treeView.setModel(this.listStore);
+    this.tree_view.append_column(column);
+    this.list_store = new ListStore({ListStore.TYPE_STRING, ListStore.TYPE_INT});
+    this.tree_view.set_model(this.list_store);
     // g_object_unref(list_store);
 
-    var treeSelection = this.treeView.getSelection();
+    var treeSelection = this.tree_view.get_selection();
     treeSelection.connect("changed", this);
 }
 
 Widget widget() {
-    return this.treeView;
+    return this.tree_view;
 }
 
 void reset(int[] albumList) {
     this.sorter.sort(albumList);
     var row = {new JsonElement(), new JsonElement()};
     var iter = new TreeIter();
-    var valid = this.listStore.getIterFirst(iter);
+    var valid = this.list_store.get_iter_first(iter);
     for var albumid : albumList {
         if !valid {
-            this.listStore.append(iter);
+            this.list_store.append(iter);
         }
         var album = this.player.database.album_list[albumid];
         row[0].makeString(album.name);
         row[1].makeInt(albumid);
-        this.listStore.set(iter, row);
-        valid = this.listStore.iterNext(iter);
+        this.list_store.set(iter, row);
+        valid = this.list_store.iter_next(iter);
     }
 }
 
-void sort(int sortType) {
+void sort(int sort_type) {
     // TODO var albumid = get_selected_albumid();
-    this.sorter.set_sort_type(sortType);
+    this.sorter.set_sort_type(sort_type);
     var albumList = new int[];
     var iter = new TreeIter();
     var value = new JsonElement();
-    for var ok = this.listStore.getIterFirst(iter); ok; ok = this.listStore.iterNext(iter) {
-        this.listStore.getValue(iter, 1, value);
+    for var ok = this.list_store.get_iter_first(iter); ok; ok = this.list_store.iter_next(iter) {
+        this.list_store.get_value(iter, 1, value);
         albumList.add(value.getAsInt());
     }
     reset(albumList);
@@ -68,12 +68,12 @@ void sort(int sortType) {
 
 void callback(TreeSelection selection) {
     var iter = new TreeIter();
-    if !selection.getSelected(iter) {
+    if !selection.get_selected(iter) {
         return;
     }
     var value = new JsonElement();
-    this.listStore.getValue(iter, 1, value);
+    this.list_store.get_value(iter, 1, value);
     var albumid = value.getAsInt();
-    this.player.selectAlbum(albumid);
+    this.player.select_album(albumid);
 }
 }

@@ -9,7 +9,7 @@ Label(String label) {
     c__stmt "return gtk_label_new(label)";
 }
 
-void setText(String text) {
+void set_text(String text) {
     c__stmt "gtk_label_set_text(GTK_LABEL(this), text)";
 }
 }

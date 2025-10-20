@@ -36,21 +36,21 @@ class SortPanel {
 
         this.player = player;
         this.frame = new Frame("Sort Order");
-        var sortBox = new ComboBoxText();
+        var sort_box = new ComboBoxText();
         for var idx = 0; idx < typeList.length; idx++ {
-            sortBox.append("" + typeList[idx], textList[idx]);
+            sort_box.append("" + typeList[idx], textList[idx]);
         }
-        sortBox.setActiveID("0");
-        sortBox.connect("changed", this);
-        this.frame.add(sortBox);
+        sort_box.set_active_id("0");
+        sort_box.connect("changed", this);
+        this.frame.add(sort_box);
     }
 
     Widget widget() {
         return this.frame;
     }
 
-    void callback(ComboBoxText sortBox) {
-        var sortType = System.parseInt(sortBox.getActiveID());
-        this.player.sortAlbums(sortType);
+    void callback(ComboBoxText sort_box) {
+        var sort_type = System.parseInt(sort_box.get_active_id());
+        this.player.sort_albums(sort_type);
     }
 }

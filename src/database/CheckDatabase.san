@@ -28,13 +28,13 @@ class CheckDatabase {
         this.default_value = true;
         this.songids = new map[int]boolean;
 
-        var fileReader = new FileReader();
-        var err = fileReader.open(this.file.getPath());
+        var file_reader = new FileReader();
+        var err = file_reader.open(this.file.getPath());
         if err != 0 {
             System.println(this.file.getPath() + ": " + err);
             return;
         }
-        var reader = new LineReader(fileReader);
+        var reader = new LineReader(file_reader);
         var line = reader.readline();
         this.default_value = (System.parseInt(line) != 0);
         var known_files = new map[String]int;

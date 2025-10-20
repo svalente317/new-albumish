@@ -9,27 +9,27 @@ TreeView() {
     c__stmt "return gtk_tree_view_new()";
 }
 
-void setModel(ListStore model) {
+void set_model(ListStore model) {
     c__stmt "gtk_tree_view_set_model(GTK_TREE_VIEW(this), GTK_TREE_MODEL(model));";
 }
 
-TreeSelection getSelection() {
+TreeSelection get_selection() {
     c__stmt "return gtk_tree_view_get_selection(GTK_TREE_VIEW(this))";
 }
 
-void appendColumn(TreeViewColumn column) {
+void append_column(TreeViewColumn column) {
     c__stmt "gtk_tree_view_append_column(GTK_TREE_VIEW(this), column)";
 }
 
-void connectRowActivated(RowActivatedCallback callback) {
+void connect_row_activated(RowActivatedCallback callback) {
     var signal = "row-activated";
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_row_activated_callback), callback)";
 }
 
 c__stmt "void _row_activated_callback(GtkTreeView* self, GtkTreePath* path, GtkTreeViewColumn* column, gpointer user_data)";
-c__stmt"{ RowActivatedCallback__rowActivated((struct RowActivatedCallback *) user_data, self, path, column); }";
+c__stmt"{ RowActivatedCallback__row_activated((struct RowActivatedCallback *) user_data, self, path, column); }";
 }
 
 interface RowActivatedCallback {
-    void rowActivated(TreeView treeView, TreePath path, TreeViewColumn column);
+    void row_activated(TreeView treeView, TreePath path, TreeViewColumn column);
 }

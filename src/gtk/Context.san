@@ -5,12 +5,12 @@ class Context {
 c__include "gtk/gtk.h";
 c__repr    "GMainContext*";
 
-static Context defaultContext() {
+static Context default_context() {
     c__stmt "return g_main_context_default()";
 }
 
 void invoke(ContextCallback callback) {
-    c__stmt "g_main_context_invoke(this, G_CALLBACK(_context_callback), callback)";
+    c__stmt "g_main_context_invoke(this, G_SOURCE_FUNC(_context_callback), callback)";
 }
 
 c__stmt "gboolean _context_callback(gpointer user_data)";

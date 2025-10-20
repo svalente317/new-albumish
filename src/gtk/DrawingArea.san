@@ -10,7 +10,7 @@ DrawingArea() {
     c__stmt "return gtk_drawing_area_new()";
 }
 
-void connectDraw(DrawingAreaCallback callback) {
+void connect_draw(DrawingAreaCallback callback) {
     var signal = "draw";
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_drawing_area_callback), callback)";
 }

@@ -95,17 +95,17 @@ class PlayerThread {
             return;
         }
         // Get this file's default rate and channels.
-        var fmt = mpg.getFormat();
+        var fmt = mpg.get_format();
 
         // Tell mpg123 to encode samples in signed 16-bit format.
-        err = mpg.formatNone();
+        err = mpg.format_none();
         if err != 0 {
-            System.println("formatNone: " + err);
+            System.println("format_none: " + err);
             return;
         }
-        err = mpg.setFormat(fmt.rate, fmt.channels, Mpg123.SIGNED_16_ENCODING);
+        err = mpg.set_format(fmt.rate, fmt.channels, Mpg123.SIGNED_16_ENCODING);
         if err != 0 {
-            System.println("formatNone: " + err);
+            System.println("format_none: " + err);
             return;
         }
         // Setup for play_file().
@@ -166,11 +166,11 @@ class PlayerThread {
      * when it reaches the end of the playlist.
      */
     private void update_display(boolean newSong) {
-        Context.defaultContext().invoke(new {
-            playerThread: this;
+        Context.default_context().invoke(new {
+            player_thread: this;
             newSong: newSong;
             void callback() {
-                this.playerThread.update_display_in_main_thread(this.newSong);
+                this.player_thread.update_display_in_main_thread(this.newSong);
             }
         });
     }

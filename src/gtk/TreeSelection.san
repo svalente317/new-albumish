@@ -15,15 +15,15 @@ void connect(String signal, TreeSelectionCallback callback) {
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(__tree_selection_callback), callback)";
 }
 
-int countSelectedRows() {
+int count_selected_rows() {
     c__stmt "return gtk_tree_selection_count_selected_rows(this)";
 }
 
-boolean getSelected(TreeIter iter) {
+boolean get_selected(TreeIter iter) {
     c__stmt "return gtk_tree_selection_get_selected(this, NULL, iter)";
 }
 
-void unselectAll() {
+void unselect_all() {
     c__stmt "gtk_tree_selection_unselect_all(this)";
 }
 }

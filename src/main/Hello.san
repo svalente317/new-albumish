@@ -19,8 +19,8 @@ void run(String[] argv)
 void callback(Application app) {
     // create a new window, and set its title
     var window = Widget.window(app);
-    window.setTitle("Window");
-    window.setBorderWidth(10);
+    window.set_title("Window");
+    window.set_border_width(10);
 
     // Here we construct the container that is going pack our buttons
     var grid = Widget.grid();

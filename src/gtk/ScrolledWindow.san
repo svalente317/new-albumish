@@ -20,11 +20,11 @@ ScrolledWindow() { // TODO adjustments
     c__stmt "return gtk_scrolled_window_new(NULL, NULL)";
 }
 
-void setPolicy(int hpolicy, int vpolicy) {
+void set_policy(int hpolicy, int vpolicy) {
     c__stmt "gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(this), hpolicy, vpolicy)";
 }
 
-void setShadowType(int type) {
+void set_shadow_type(int type) {
     c__stmt "gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(this), type)";
 }
 }

@@ -13,11 +13,11 @@ void append(String id, String text) {
     c__stmt "gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(this), id, text)";
 }
 
-boolean setActiveID(String id) {
+boolean set_active_id(String id) {
     c__stmt "return gtk_combo_box_set_active_id(GTK_COMBO_BOX(this), id)";
 }
 
-String getActiveID() {
+String get_active_id() {
     c__stmt "return gtk_combo_box_get_active_id(GTK_COMBO_BOX(this))";
 }
 

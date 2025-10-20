@@ -28,11 +28,11 @@ class Slider {
         // super(parent, SWT.DOUBLE_BUFFERED);
         this.listener = listener;
         this.area = new DrawingArea();
-        this.area.setSizeRequest(SLIDER_WIDTH+2, SLIDER_HEIGHT+2);
-        this.area.setExpand(true, false);
-        this.area.connectDraw(this);
-        this.area.connectMouseButton(this);
-        this.area.connectMouseMotion(this);
+        this.area.set_size_request(SLIDER_WIDTH+2, SLIDER_HEIGHT+2);
+        this.area.set_expand(true, false);
+        this.area.connect_draw(this);
+        this.area.connect_mouse_button(this);
+        this.area.connect_mouse_motion(this);
     }
 
     Widget widget() {
@@ -40,16 +40,16 @@ class Slider {
     }
 
     void draw(DrawingArea area, CairoType cairo) {
-        var width = area.getAllocatedWidth()-2;
-        var height = area.getAllocatedHeight()-2;
+        var width = area.get_allocated_width()-2;
+        var height = area.get_allocated_height()-2;
         if height < CHANNEL_HEIGHT {
             return;
         }
-        var context = area.getStyleContext();
+        var context = area.get_style_context();
         var state = context.getState();
-        var color = context.getColor(state);
-        cairo.setSourceRGBA(color);
-        cairo.setLineWidth(1);
+        var color = context.get_color(state);
+        cairo.set_source_rgba(color);
+        cairo.set_line_width(1);
         var y = (height - CHANNEL_HEIGHT) / 2;
         cairo.rectangle(1, 1+y, width, CHANNEL_HEIGHT);
         cairo.stroke();
@@ -63,12 +63,12 @@ class Slider {
         y = (height - SLIDER_HEIGHT) / 2;
         this.slider_y = 1 + y;
 
-        var fillColor = context.lookupColor("theme_selected_bg_color");
+        var fillColor = context.lookup_color("theme_selected_bg_color");
         if fillColor != null {
-            cairo.setSourceRGBA(fillColor);
+            cairo.set_source_rgba(fillColor);
             cairo.rectangle(this.slider_x, this.slider_y, SLIDER_WIDTH, SLIDER_HEIGHT);
             cairo.fill();
-            cairo.setSourceRGBA(color);
+            cairo.set_source_rgba(color);
         }
         cairo.rectangle(this.slider_x, this.slider_y, SLIDER_WIDTH, SLIDER_HEIGHT);
         cairo.stroke();
@@ -100,7 +100,7 @@ class Slider {
             if !this.is_grabbed {
                 break;
             }
-            var width = this.area.getAllocatedWidth()-2;
+            var width = this.area.get_allocated_width()-2;
             var channelWidth = width - SLIDER_WIDTH;
             var ratio = (double) this.maximum / (double) channelWidth;
             var new_selection = (int) (ratio * (x - this.grab_offset));
@@ -119,12 +119,12 @@ class Slider {
         return false;
     }
 
-    void setMaximum(int value) {
+    void set_maximum(int value) {
         this.maximum = value;
         redraw();
     }
 
-    void setSelection(int value) {
+    void set_selection(int value) {
         if !this.is_grabbed {
             this.selection = value;
             redraw();
@@ -132,7 +132,7 @@ class Slider {
     }
 
     void redraw() {
-        this.area.queueDraw();
+        this.area.queue_draw();
     }
 }
 

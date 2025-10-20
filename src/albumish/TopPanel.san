@@ -34,40 +34,40 @@ class TopPanel {
         this.player = player;
 
         this.panel = new Box(Box.HORIZONTAL, 0);
-        this.panel.setExpand(true, false);
-        this.panel.setSpacing(10);
+        this.panel.set_expand(true, false);
+        this.panel.set_spacing(10);
 
         var top_left = new Frame(null);
-        top_left.setExpand(false, true);
+        top_left.set_expand(false, true);
         var hbox = new Box(Box.HORIZONTAL, 0);
-        hbox.setBorderWidth(10);
-        hbox.setSpacing(10);
-        this.prev_button = Button.newFromIconName("media-skip-backward", Button.SIZE_BUTTON);
-        this.prev_button.setSizeRequest(50, 50);
+        hbox.set_border_width(10);
+        hbox.set_spacing(10);
+        this.prev_button = Button.new_from_icon_name("media-skip-backward", Button.SIZE_BUTTON);
+        this.prev_button.set_size_request(50, 50);
         this.prev_button.connect("clicked", this);
         hbox.add(this.prev_button);
-        this.play_button = Button.newFromIconName("media-playback-start", Button.SIZE_BUTTON);
-        this.play_button.setSizeRequest(50, 50);
+        this.play_button = Button.new_from_icon_name("media-playback-start", Button.SIZE_BUTTON);
+        this.play_button.set_size_request(50, 50);
         this.play_button.connect("clicked", this);
         hbox.add(this.play_button);
-        this.next_button = Button.newFromIconName("media-skip-forward", Button.SIZE_BUTTON);
-        this.next_button.setSizeRequest(50, 50);
+        this.next_button = Button.new_from_icon_name("media-skip-forward", Button.SIZE_BUTTON);
+        this.next_button.set_size_request(50, 50);
         this.next_button.connect("clicked", this);
         hbox.add(this.next_button);
         top_left.add(hbox);
         this.panel.add(top_left);
 
         var middle = new Frame(null);
-        middle.setExpand(true, true);
+        middle.set_expand(true, true);
         var vbox = new Box(Box.VERTICAL, 0);
-        vbox.setBorderWidth(10);
-        vbox.setSpacing(5);
+        vbox.set_border_width(10);
+        vbox.set_spacing(5);
         this.title_label = new Label("");
         vbox.add(this.title_label);
         this.artist_label = new Label("");
         vbox.add(this.artist_label);
         var bbox = new Box(Box.HORIZONTAL, 0);
-        bbox.setSpacing(5);
+        bbox.set_spacing(5);
         this.time_label = new Label("---:---");
         bbox.add(this.time_label);
         this.time_scale = new Slider(this);
@@ -79,21 +79,21 @@ class TopPanel {
         this.panel.add(middle);
 
         var top_right = new Frame(null);
-        top_right.setExpand(false, true);
+        top_right.set_expand(false, true);
         var grid = new Grid();
-        grid.setBorderWidth(8);
-        grid.setColumnSpacing(5);
-        grid.setRowSpacing(5);
+        grid.set_border_width(8);
+        grid.set_column_spacing(5);
+        grid.set_row_spacing(5);
         this.filter_entry = new Entry();
         grid.attach(this.filter_entry, 0, 0, 1, 1);
         // data.widthHint = 170;
-        this.add_filter_button = Button.newFromIconName("list-add", Button.SIZE_BUTTON);
+        this.add_filter_button = Button.new_from_icon_name("list-add", Button.SIZE_BUTTON);
         this.add_filter_button.connect("clicked", this);
         grid.attach(this.add_filter_button, 1, 0, 1, 1);
         this.filter_label = new Label("");
-        this.filter_label.setExpand(true, false);
+        this.filter_label.set_expand(true, false);
         grid.attach(this.filter_label, 0, 1, 1, 1);
-        this.clear_filter_button = Button.newFromIconName("edit-clear", Button.SIZE_BUTTON);
+        this.clear_filter_button = Button.new_from_icon_name("edit-clear", Button.SIZE_BUTTON);
         this.clear_filter_button.connect("clicked", this);
         grid.attach(this.clear_filter_button, 1, 1, 1, 1);
         top_right.add(grid);
@@ -105,79 +105,79 @@ class TopPanel {
     }
 
     void display(String song_name, String artist_name, String album_name, int duration) {
-        this.title_label.setText(song_name);
+        this.title_label.set_text(song_name);
         if artist_name == null {
             artist_name = album_name;
         }
-        this.artist_label.setText(artist_name);
+        this.artist_label.set_text(artist_name);
         display_duration(duration);
     }
 
     private void display_duration(int duration) {
-        this.time_scale.setSelection(0);
+        this.time_scale.set_selection(0);
         if duration <= 0 {
-            this.time_scale.setMaximum(0);
-            this.time_label.setText("---:---");
-            this.duration_label.setText("---:---");
+            this.time_scale.set_maximum(0);
+            this.time_label.set_text("---:---");
+            this.duration_label.set_text("---:---");
         } else {
-            this.time_scale.setMaximum(duration * 1000);
-            this.time_label.setText("0:00");
+            this.time_scale.set_maximum(duration * 1000);
+            this.time_label.set_text("0:00");
             var seconds = duration % 60;
             var text = "" + duration / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
-            this.duration_label.setText(text);
+            this.duration_label.set_text(text);
         }
-        this.time_scale.widget().queueDraw();
+        this.time_scale.widget().queue_draw();
     }
 
-    void displayPlayButton() {
+    void display_play_button() {
         // TODO this.play_button.setImage(this.play_icon);
     }
 
-    void displayPauseButton() {
+    void display_pause_button() {
         // TODO this.play_button.setImage(this.pause_icon);
     }
 
     void display_time(int millis) {
-        this.time_scale.setSelection(millis);
+        this.time_scale.set_selection(millis);
         var current_time = (int)(millis / 1000);
         var seconds = current_time % 60;
         var text = "" + current_time / 60 + ":" + (seconds < 10 ? "0" : "") + seconds;
-        this.time_label.setText(text);
+        this.time_label.set_text(text);
         this.time_scale.redraw();
     }
 
     void callback(Button button) {
         if button == this.prev_button {
-            this.player.doPrevious();
+            this.player.do_previous();
             return;
         }
         if button == this.play_button {
-            this.player.playOrPause();
+            this.player.play_or_pause();
             return;
         }
         if button == this.next_button {
-            this.player.doNext();
+            this.player.do_next();
             return;
         }
         if button == this.add_filter_button {
-            var text = this.filter_entry.getText();
+            var text = this.filter_entry.get_text();
             if text == null || text == "" {
                 return;
             }
-            this.player.setFilter(text);
-            this.filter_label.setText(text);
-            this.filter_entry.setText("");
+            this.player.set_filter(text);
+            this.filter_label.set_text(text);
+            this.filter_entry.set_text("");
             return;
         }
         if button == this.clear_filter_button {
-            this.player.setFilter(null);
-            this.filter_label.setText("");
+            this.player.set_filter(null);
+            this.filter_label.set_text("");
             // TODO grab_focus();
             return;
         }
     }
 
     void select(int value) {
-        this.player.playerThread.do_audio_jump(value);
+        this.player.player_thread.do_audio_jump(value);
     }
 }

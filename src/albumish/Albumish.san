@@ -23,14 +23,14 @@ class Albumish {
 const AUTO_PLAYLIST = 0;
 
 Database database;
-CheckDatabase checkDatabase;
-FilterWorker filterWorker;
+CheckDatabase check_database;
+FilterWorker filter_worker;
 Playlist[] playlists;
-PlayerThread playerThread;
-TopPanel topPanel;
-CoverPanel coverPanel;
-SongPanel playlistSongPanel;
-SongPanel albumSongPanel;
+PlayerThread player_thread;
+TopPanel top_panel;
+CoverPanel cover_panel;
+SongPanel playlist_song_panel;
+SongPanel album_song_panel;
 
 static void main(String[] argv) {
     new Albumish().run(argv);
@@ -49,60 +49,60 @@ void callback(Application app) {
     var directory = new File(home, ".albumish");
     this.database = new Database();
     this.database.load(directory, "database.json");
-    this.checkDatabase = new CheckDatabase(this.database, directory, "checked_songs.list");
+    this.check_database = new CheckDatabase(this.database, directory, "checked_songs.list");
     // this.config = new Configuration(directory, "config.json");
     // this.playlists = new PlaylistCollection(this.database, directory);
     this.playlists = {new Playlist()};
     // this.num_random_playlists = this.playlists.get_max_with_prefix(RANDOM_PLAYLIST_PREFIX);
     // directory = new File(home, "Pictures/covers");
     // this.gallery = new Gallery(this, directory, COVER_SIZES);
-    this.filterWorker = new FilterWorker(this.database); // , this.check_database);
-    this.playerThread = new PlayerThread(this);
+    this.filter_worker = new FilterWorker(this.database); // , this.check_database);
+    this.player_thread = new PlayerThread(this);
 
     var window = new Window(app);
-    window.setTitle("Albumish");
+    window.set_title("Albumish");
     // window.setImage(get_icon("CD.png"));
-    window.setBorderWidth(10);
+    window.set_border_width(10);
     var grid = new Grid();
-    grid.setRowSpacing(10);
-    grid.setColumnSpacing(10);
+    grid.set_row_spacing(10);
+    grid.set_column_spacing(10);
     window.add(grid);
 
     // makeMenuBar(this.main_window);
-    this.topPanel = new TopPanel(this);
-    grid.attach(this.topPanel.widget(), 0, 0, 3, 1);
+    this.top_panel = new TopPanel(this);
+    grid.attach(this.top_panel.widget(), 0, 0, 3, 1);
     var widget = null;
     var scrolledWindow = null;
 
-    this.coverPanel = new CoverPanel(this);
-    widget = this.coverPanel.widget();
-    widget.setExpand(true, true);
+    this.cover_panel = new CoverPanel(this);
+    widget = this.cover_panel.widget();
+    widget.set_expand(true, true);
     scrolledWindow = new ScrolledWindow();
-    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
-    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
+    scrolledWindow.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.set_shadow_type(ScrolledWindow.SHADOW_OUT);
     scrolledWindow.add(widget);
     grid.attach(scrolledWindow, 0, 1, 3, 1);
 
     var sortPanel = new SortPanel(this);
     widget = sortPanel.widget();
-    widget.setExpand(false, false);
+    widget.set_expand(false, false);
     grid.attach(widget, 0, 2, 1, 1);
 
-    this.playlistSongPanel = new SongPanel(this, false);
-    widget = this.playlistSongPanel.widget();
-    widget.setExpand(true, true);
+    this.playlist_song_panel = new SongPanel(this, false);
+    widget = this.playlist_song_panel.widget();
+    widget.set_expand(true, true);
     scrolledWindow = new ScrolledWindow();
-    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
-    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
+    scrolledWindow.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.set_shadow_type(ScrolledWindow.SHADOW_OUT);
     scrolledWindow.add(widget);
     grid.attach(scrolledWindow, 1, 2, 1, 2);
 
-    this.albumSongPanel = new SongPanel(this, true);
-    widget = this.albumSongPanel.widget();
-    widget.setExpand(true, true);
+    this.album_song_panel = new SongPanel(this, true);
+    widget = this.album_song_panel.widget();
+    widget.set_expand(true, true);
     scrolledWindow = new ScrolledWindow();
-    scrolledWindow.setPolicy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
-    scrolledWindow.setShadowType(ScrolledWindow.SHADOW_OUT);
+    scrolledWindow.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.set_shadow_type(ScrolledWindow.SHADOW_OUT);
     scrolledWindow.add(widget);
     grid.attach(scrolledWindow, 2, 2, 1, 2);
 
@@ -111,86 +111,86 @@ void callback(Application app) {
     // data.heightHint = bounds.height / 5;
     // this.playlist_panel.getControl().setLayoutData(data);
 
-    var albumList = this.filterWorker.generate_album_list();
-    this.coverPanel.reset(albumList);
-    window.setSizeRequest(1500, 500);
+    var albumList = this.filter_worker.generate_album_list();
+    this.cover_panel.reset(albumList);
+    window.set_size_request(1500, 500);
     window.showAll();
 }
 
 /**
  * Called by cover_panel. Update song_panel and album_song_panel.
  */
-void selectAlbum(int albumid) {
+void select_album(int albumid) {
     if (albumid >= 0) {
-        this.albumSongPanel.updateDatabase();
-        var songList = this.filterWorker.generate_song_list(albumid);
-        this.albumSongPanel.reset(-1, songList);
+        this.album_song_panel.update_database();
+        var songList = this.filter_worker.generate_song_list(albumid);
+        this.album_song_panel.reset(-1, songList);
     }
 }
 
 /**
  * Called by sort_panel. Update cover_panel.
  */
-void sortAlbums(int sortType) {
-    this.coverPanel.sort(sortType);
+void sort_albums(int sort_type) {
+    this.cover_panel.sort(sort_type);
 }
 
 /**
  * Called by song_panel. Update playlist panels.
  */
-int setAutoPlaylist(int[] songList) {
+int set_autoplaylist(int[] songList) {
     var playlistid = AUTO_PLAYLIST;
     this.playlists[playlistid].reset(songList);
     // TODO this.playlistPanel.set...
-    this.playlistSongPanel.reset(playlistid, songList);
+    this.playlist_song_panel.reset(playlistid, songList);
     return playlistid;
 }
 
 /**
  * Called by top_panel.
  */
-void doPrevious() {
+void do_previous() {
     // If you press Previous in the first 3 seconds of a song, then go to the previous song.
     // Otherwise, restart the current song.
-    var delta = this.playerThread.get_audio_position_in_ms() < 3000.0 ? -1 : 0;
-    this.playerThread.play_next_song(delta);
+    var delta = this.player_thread.get_audio_position_in_ms() < 3000.0 ? -1 : 0;
+    this.player_thread.play_next_song(delta);
 }
 
 /**
  * Called by top_panel.
  */
-void doNext() {
-    this.playerThread.play_next_song(1);
+void do_next() {
+    this.player_thread.play_next_song(1);
 }
 
 /**
  * Called by top_panel.
  */
-void playOrPause() {
-    if this.playerThread.is_paused {
-        this.playerThread.pause(false);
-        this.topPanel.displayPauseButton();
+void play_or_pause() {
+    if this.player_thread.is_paused {
+        this.player_thread.pause(false);
+        this.top_panel.display_pause_button();
         return;
     }
-    if this.playerThread.is_playing() {
-        this.playerThread.pause(true);
-        this.topPanel.displayPlayButton();
+    if this.player_thread.is_playing() {
+        this.player_thread.pause(true);
+        this.top_panel.display_play_button();
         return;
     }
-    var playlistid = this.playlistSongPanel.playlistid;
+    var playlistid = this.playlist_song_panel.playlistid;
     if playlistid >= 0 {
-        var songid = this.playlistSongPanel.getSelectedId();
+        var songid = this.playlist_song_panel.get_selected_id();
         if songid > 0 {
-            playSong(playlistid, songid);
+            play_song(playlistid, songid);
         }
     }
 }
 
 /**
- * Called by playlistSongPanel and albumSongPanel.
+ * Called by playlist_song_panel and album_song_panel.
  */
-void playSong(int playlistid, int songid) {
-    this.playerThread.play_songid(playlistid, songid);
+void play_song(int playlistid, int songid) {
+    this.player_thread.play_songid(playlistid, songid);
 }
 
 /**
@@ -198,7 +198,7 @@ void playSong(int playlistid, int songid) {
  */
 void update_top_panel(Song song) {
     if song == null {
-        this.topPanel.display(null, null, null, 0);
+        this.top_panel.display(null, null, null, 0);
         return;
     }
     var artist_name = null;
@@ -209,25 +209,25 @@ void update_top_panel(Song song) {
     if song.albumid > 0 {
         album_name = this.database.album_list[song.albumid].name;
     }
-    this.topPanel.display(song.title, artist_name, album_name, song.duration);
+    this.top_panel.display(song.title, artist_name, album_name, song.duration);
 }
 
 void display_time(int millis) {
-    this.topPanel.display_time(millis);
+    this.top_panel.display_time(millis);
 }
 
 /**
  * Called by top_panel. Update cover_panel.
  */
-void setFilter(String text) {
+void set_filter(String text) {
     var albumList = null;
     if text == null || text == "" {
-        albumList = this.filterWorker.remove_filter(0);
+        albumList = this.filter_worker.remove_filter(0);
     } else {
         var filter = new Filter(){text: text};
-        albumList = this.filterWorker.add_filter(filter);
+        albumList = this.filter_worker.add_filter(filter);
     }
-    this.coverPanel.reset(albumList);
+    this.cover_panel.reset(albumList);
 }
 
 }

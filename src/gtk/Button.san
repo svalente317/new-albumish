@@ -17,7 +17,7 @@ Button(String label) {
     c__stmt "return gtk_button_new_with_label(label)";
 }
 
-static Button newFromIconName(String name, int size) {
+static Button new_from_icon_name(String name, int size) {
     c__stmt "return gtk_button_new_from_icon_name(name, size)";
 }
 

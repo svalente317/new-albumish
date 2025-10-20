@@ -9,11 +9,11 @@ Entry() {
     c__stmt "return gtk_entry_new()";
 }
 
-String getText() {
+String get_text() {
     c__stmt "return gtk_entry_get_text(GTK_ENTRY(this))";
 }
 
-void setText(String text) {
+void set_text(String text) {
     c__stmt "gtk_entry_set_text(GTK_ENTRY(this), text)";
 }
 

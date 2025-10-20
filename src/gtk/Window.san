@@ -9,7 +9,7 @@ Window(Application app) {
     c__stmt "return gtk_application_window_new(app)";
 }
 
-void setTitle(String title) {
+void set_title(String title) {
     c__stmt "return gtk_window_set_title(GTK_WINDOW(this), title)";
 }
 }
