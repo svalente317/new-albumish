@@ -22,4 +22,4 @@ RGBA lookup_color(String key) {
     c__stmt "success = gtk_style_context_lookup_color(this, key, color)";
     return success ? color : null;
 }
-}   
+}
