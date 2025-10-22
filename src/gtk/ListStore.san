@@ -21,6 +21,10 @@ ListStore(int[] types) {
     c__stmt "return gtk_list_store_newv(length, xtypes)";
 }
 
+void clear() {
+    c__stmt "gtk_list_store_clear(GTK_LIST_STORE(this))";
+}
+
 boolean get_iter_first(TreeIter iter) {
     c__stmt "return gtk_tree_model_get_iter_first(GTK_TREE_MODEL(this), iter)";
 }

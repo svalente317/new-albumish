@@ -92,12 +92,11 @@ void reset(int playlistid, int[] songs) {
                new JsonElement(), new JsonElement(), new JsonElement(), new JsonElement(),
                new JsonElement(), new JsonElement()};
     var num_songs = (songs == null ? 0 : songs.length);
+    this.list_store.clear();
     var iter = new TreeIter();
-    var valid = this.list_store.get_iter_first(iter);
+    var valid = false;
     for var idx = 0; idx < num_songs; idx++ {
-        if !valid {
-            this.list_store.append(iter);
-        }
+        this.list_store.append(iter);
         var song = database.song_list[songs[idx]];
         row[0].makeBoolean(check_database.get(song.id));
         row[1].makeInt(song.id);
@@ -116,12 +115,7 @@ void reset(int playlistid, int[] songs) {
         row[8].makeString(song.bitrate);
         row[9].makeString(song.bitrate);
         this.list_store.set(iter, row);
-        valid = this.list_store.iter_next(iter);
     }
-    while valid {
-        valid = this.list_store.remove(iter);
-    }
-    this.tree_view.get_selection().unselect_all();
 }
 
 void update_database() {
