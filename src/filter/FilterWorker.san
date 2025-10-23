@@ -15,41 +15,27 @@ import albumish.database.Song;
 class FilterWorker {
 
     private Database database;
-    private Filter[] filter_list;
+    private String[] filter_list;
 
     FilterWorker(Database database) {
         this.database = database;
-        this.filter_list = new Filter[];
+        this.filter_list = new String[];
     }
 
     /**
-     * Add the given filter and return the displayed albums.
+     * Replace filter(s) with the given filter and return the displayed albums.
      */
-    int[] add_filter(Filter filter) {
-        var found = false;
-        for var idx = 0; idx < this.filter_list.length; idx++ {
-            if this.filter_list[idx].fid == filter.fid {
-                this.filter_list[idx] = filter;
-                found = true;
-                break;
-            }
-        }
-        if !found {
-            this.filter_list.add(filter);
-        }
+    int[] set_filter(String filter) {
+        this.filter_list.setLength(0);
+        this.filter_list.add(filter);
         return generate_album_list();
     }
 
     /**
-     * Remove the given filter and return the displayed albums.
+     * Remove all filters and return the displayed albums.
      */
-    int[] remove_filter(int fid) {
-        for var idx = 0; idx < this.filter_list.length; idx++ {
-            if this.filter_list[idx].fid == fid {
-                this.filter_list.delete(idx, 1);
-                break;
-            }
-        }
+    int[] clear() {
+        this.filter_list.setLength(0);
         return generate_album_list();
     }
 
@@ -79,7 +65,7 @@ class FilterWorker {
         if album.song_list == null {
             return false;
         }
-        var new_filter_list = new Filter[];
+        var new_filter_list = new String[];
         for var filter : this.filter_list {
             if !album_match(album, filter) {
                 // Check the individual songs against this filter.
@@ -101,13 +87,13 @@ class FilterWorker {
     /**
      * @return true if the album matches the filter.
      */
-    private boolean album_match(Album album, Filter filter) {
-        if string_match(album.name, filter.text) {
+    private boolean album_match(Album album, String filter) {
+        if string_match(album.name, filter) {
             return true;
         }
         if album.artistid > 0 {
             var artist = this.database.artist_list[album.artistid];
-            if string_match(artist.name, filter.text) {
+            if string_match(artist.name, filter) {
                 return true;
             }
         }
@@ -117,7 +103,7 @@ class FilterWorker {
     /**
      * @return true if the song matches all filters.
      */
-    private boolean is_song_displayed(Song song, Filter[] new_filter_list) {
+    private boolean is_song_displayed(Song song, String[] new_filter_list) {
         for var filter : new_filter_list {
             if !song_match(song, filter) {
                 return false;
@@ -129,32 +115,32 @@ class FilterWorker {
     /**
      * @return true if the song matches the filter.
      */
-    private boolean song_match(Song song, Filter filter) {
-        if string_match(song.title, filter.text) {
+    private boolean song_match(Song song, String filter) {
+        if string_match(song.title, filter) {
             return true;
         }
-        if string_match(song.tags, filter.text) {
+        if string_match(song.tags, filter) {
             return true;
         }
-        if song.year > 0 && song.year == System.parseInt(filter.text) {
+        if song.year > 0 && song.year == System.parseInt(filter) {
             return true;
         }
         if song.artistid > 0 {
             var artist = this.database.artist_list[song.artistid];
-            if string_match(artist.name, filter.text) {
+            if string_match(artist.name, filter) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean string_match(String song_text, String filter_text) {
-        if song_text == null || filter_text == null {
+    private boolean string_match(String song_text, String filter) {
+        if song_text == null || filter == null {
             return false;
         }
         song_text = StringUtils.toLowerCase(song_text);
-        filter_text = StringUtils.toLowerCase(filter_text);
-        return song_text.find(filter_text) >= 0;
+        filter = StringUtils.toLowerCase(filter);
+        return song_text.find(filter) >= 0;
     }
 
     /**

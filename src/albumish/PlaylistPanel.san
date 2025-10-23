@@ -1,0 +1,63 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish;
+import sanka.json.JsonElement;
+import gtk.CellRenderer;
+import gtk.ListStore;
+import gtk.TreeIter;
+import gtk.TreeView;
+import gtk.TreeSelection;
+import gtk.TreeViewColumn;
+import gtk.Widget;
+
+class PlaylistPanel {
+
+    private Albumish player;
+    private TreeView table;
+    private ListStore list_store;
+
+    PlaylistPanel(Albumish player) {
+        this.player = player;
+        this.table = new TreeView();
+        var renderer = CellRenderer.text();
+        var column = new TreeViewColumn("Playlist", renderer, true, "text", 0);
+        this.table.append_column(column);
+        this.list_store = new ListStore({ListStore.TYPE_STRING, ListStore.TYPE_INT});
+        this.table.set_model(this.list_store);
+        // g_object_unref(list_store);
+        // for (Playlist playlist : collection) {
+        // item.setText(playlist.name);
+        // this.table.select(Albumish.AUTO_PLAYLIST);
+    }
+
+    Widget widget() {
+        return this.table;
+    }
+    /*
+    public int set_auto_playlist(IntList song_list) {
+        int playlistid = this.collection.set_auto_playlist(song_list);
+        this.table.select(PlaylistCollection.AUTO_PLAYLIST);
+        this.player.select_playlist(playlistid);
+        return playlistid;
+    }
+
+    public void new_playlist(String name, IntList song_list) {
+        Playlist playlist = this.collection.new_playlist();
+        playlist.name = name;
+        playlist.reset(song_list);
+        TableItem item = new TableItem(this.table, 0);
+        item.setText(playlist.name);
+        this.table.select(playlist.id);
+        this.player.select_playlist(playlist.id);
+    }
+
+    public int get_selected_playlist() {
+        return this.table.getSelectionIndex();
+    }
+    */
+}

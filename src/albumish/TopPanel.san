@@ -78,6 +78,13 @@ class TopPanel {
         middle.add(vbox);
         this.panel.add(middle);
 
+        var entry_callback = new {
+            top_panel: this;
+            void callback(Entry entry) {
+                this.top_panel.add_filter();
+            }
+        };
+
         var top_right = new Frame(null);
         top_right.set_expand(false, true);
         var grid = new Grid();
@@ -85,6 +92,7 @@ class TopPanel {
         grid.set_column_spacing(5);
         grid.set_row_spacing(5);
         this.filter_entry = new Entry();
+        this.filter_entry.connect("activate", entry_callback);
         grid.attach(this.filter_entry, 0, 0, 1, 1);
         // data.widthHint = 170;
         this.add_filter_button = Button.new_from_icon_name("list-add", Button.SIZE_BUTTON);
@@ -160,13 +168,7 @@ class TopPanel {
             return;
         }
         if button == this.add_filter_button {
-            var text = this.filter_entry.get_text();
-            if text == null || text == "" {
-                return;
-            }
-            this.player.set_filter(text);
-            this.filter_label.set_text(text);
-            this.filter_entry.set_text("");
+            add_filter();
             return;
         }
         if button == this.clear_filter_button {
@@ -175,6 +177,16 @@ class TopPanel {
             // TODO grab_focus();
             return;
         }
+    }
+
+    void add_filter() {
+        var text = this.filter_entry.get_text();
+        if text == null || text == "" {
+            return;
+        }
+        this.player.set_filter(text);
+        this.filter_label.set_text(text);
+        this.filter_entry.set_text("");
     }
 
     void select(int value) {

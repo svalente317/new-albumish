@@ -15,7 +15,6 @@ import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.database.Song;
-import albumish.filter.Filter;
 import albumish.filter.FilterWorker;
 
 class Albumish {
@@ -31,6 +30,7 @@ TopPanel top_panel;
 CoverPanel cover_panel;
 SongPanel playlist_song_panel;
 SongPanel album_song_panel;
+PlaylistPanel playlist_panel;
 
 static void main(String[] argv) {
     new Albumish().run(argv);
@@ -106,10 +106,15 @@ void callback(Application app) {
     scrolledWindow.add(widget);
     grid.attach(scrolledWindow, 2, 2, 1, 2);
 
-    // this.playlist_panel = new PlaylistPanel(this, this.playlists);
-    // data = new GridData(SWT.FILL, SWT.FILL, false, true);
-    // data.heightHint = bounds.height / 5;
-    // this.playlist_panel.getControl().setLayoutData(data);
+    this.playlist_panel = new PlaylistPanel(this);
+    widget = this.playlist_panel.widget();
+    widget.set_expand(false, true);
+    scrolledWindow = new ScrolledWindow();
+    scrolledWindow.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+    scrolledWindow.set_shadow_type(ScrolledWindow.SHADOW_OUT);
+    scrolledWindow.set_size_request(200, 150);
+    scrolledWindow.add(widget);
+    grid.attach(scrolledWindow, 0, 3, 1, 1);
 
     var albumList = this.filter_worker.generate_album_list();
     this.cover_panel.reset(albumList);
@@ -121,7 +126,7 @@ void callback(Application app) {
  * Called by cover_panel. Update song_panel and album_song_panel.
  */
 void select_album(int albumid) {
-    if (albumid >= 0) {
+    if albumid >= 0 {
         this.album_song_panel.update_database();
         var songList = this.filter_worker.generate_song_list(albumid);
         this.album_song_panel.reset(-1, songList);
@@ -220,14 +225,12 @@ void display_time(int millis) {
  * Called by top_panel. Update cover_panel.
  */
 void set_filter(String text) {
-    var albumList = null;
+    var album_list = null;
     if text == null || text == "" {
-        albumList = this.filter_worker.remove_filter(0);
+        album_list = this.filter_worker.clear();
     } else {
-        var filter = new Filter(){text: text};
-        albumList = this.filter_worker.add_filter(filter);
+        album_list = this.filter_worker.set_filter(text);
     }
-    this.cover_panel.reset(albumList);
+    this.cover_panel.reset(album_list);
 }
-
 }

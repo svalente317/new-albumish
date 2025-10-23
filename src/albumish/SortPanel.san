@@ -37,6 +37,7 @@ class SortPanel {
         this.player = player;
         this.frame = new Frame("Sort Order");
         var sort_box = new ComboBoxText();
+        sort_box.set_border_width(8);
         for var idx = 0; idx < typeList.length; idx++ {
             sort_box.append("" + typeList[idx], textList[idx]);
         }

@@ -109,7 +109,7 @@ void get_value(TreeIter iter, int column, JsonElement value) {
 }
 
 boolean remove(TreeIter iter) {
-    c__stmt "gtk_list_store_remove(this, iter)";
+    c__stmt "return gtk_list_store_remove(this, iter)";
 }
 
 boolean get_iter(TreeIter iter, TreePath path) {

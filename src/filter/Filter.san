@@ -1,6 +1,0 @@
-package albumish.filter;
-
-class Filter {
-    int fid;
-    String text;
-}

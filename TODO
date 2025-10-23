@@ -1,13 +1,14 @@
 - TopPanel - buttons should be square
-- TopPanel - vbox with times and slider
-- TopPanel - search panel
-- TopPanel - slider
-- CoverPanel - keep highlighted row through sort
+- TopPanel - change between play button and pause button
+- CoverPanel
+- Menu bar
+- Playlist Panel (w todo in set_autoplaylist)
 - highlight row in playlist when it starts playing
 - SongPanel update check database
 - JsonParser unicode to utf-8
 - Database save
 - CheckDatabase save
 - read playlist files from playlist directory
+- AlbumSorter lowercase
 - ListStore and doubles
 - sanka: add superclass to #includes so Bin does not need to import Container

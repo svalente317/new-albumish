@@ -50,10 +50,12 @@ void reset(int[] albumList) {
         this.list_store.set(iter, row);
         valid = this.list_store.iter_next(iter);
     }
+    while valid {
+        valid = this.list_store.remove(iter);
+    }
 }
 
 void sort(int sort_type) {
-    // TODO var albumid = get_selected_albumid();
     this.sorter.set_sort_type(sort_type);
     var albumList = new int[];
     var iter = new TreeIter();
@@ -63,7 +65,6 @@ void sort(int sort_type) {
         albumList.add(value.getAsInt());
     }
     reset(albumList);
-    // TODO select albumid
 }
 
 void callback(TreeSelection selection) {

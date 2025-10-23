@@ -10,11 +10,22 @@ Entry() {
 }
 
 String get_text() {
-    c__stmt "return gtk_entry_get_text(GTK_ENTRY(this))";
+    c__stmt "const gchar *t = gtk_entry_get_text(GTK_ENTRY(this))";
+    c__stmt "return STRING_SUBSTRING(t, 0, 0, 1)";
 }
 
 void set_text(String text) {
     c__stmt "gtk_entry_set_text(GTK_ENTRY(this), text)";
 }
 
+void connect(String signal, EntryCallback callback) {
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_entry_callback), callback)";
+}
+
+c__stmt "void _entry_callback(GtkWidget* self, gpointer user_data)";
+c__stmt"{ EntryCallback__callback((struct EntryCallback *) user_data, self); }";
+}
+
+interface EntryCallback {
+    void callback(Entry widget);
 }

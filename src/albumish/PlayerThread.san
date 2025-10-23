@@ -57,6 +57,7 @@ class PlayerThread {
                 }
                 if this.is_paused {
                     update_display(false);
+                    command = null;
                     continue;
                 }
             }
