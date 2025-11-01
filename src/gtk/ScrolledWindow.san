@@ -27,4 +27,8 @@ void set_policy(int hpolicy, int vpolicy) {
 void set_shadow_type(int type) {
     c__stmt "gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(this), type)";
 }
+
+ScrollBar get_hscrollbar() {
+    c__stmt "return gtk_scrolled_window_get_hscrollbar(GTK_SCROLLED_WINDOW(this))";
+}
 }

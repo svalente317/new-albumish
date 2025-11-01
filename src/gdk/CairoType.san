@@ -26,4 +26,23 @@ void stroke() {
 void fill() {
     c__stmt "cairo_fill(this)";
 }
+
+void move_to(double x, double y) {
+    c__stmt "cairo_move_to(this, x, y)";
+}
+
+void text_extents(String utf8, TextExtents t) {
+    c__stmt "cairo_text_extents_t ex";
+    c__stmt "cairo_text_extents(this, utf8, &ex)";
+    c__stmt "t->x_bearing = ex.x_bearing";
+    c__stmt "t->y_bearing = ex.y_bearing";
+    c__stmt "t->width = ex.width";
+    c__stmt "t->height = ex.height";
+    c__stmt "t->x_advance = ex.x_advance";
+    c__stmt "t->y_advance = ex.y_advance";
+}
+
+void show_text(String utf8) {
+    c__stmt "cairo_show_text(this, utf8)";
+}
 }

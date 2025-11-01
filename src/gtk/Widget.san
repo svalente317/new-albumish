@@ -11,7 +11,7 @@ const DOUBLE_BUTTON_PRESS = 5;
 const TRIPLE_BUTTON_PRESS = 6;
 const BUTTON_RELEASE = 7;
 
-void showAll() {
+void show_all() {
     c__stmt "gtk_widget_show_all(this)";
 }
 

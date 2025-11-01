@@ -1,0 +1,11 @@
+package gtk;
+
+abstract class Range extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+double get_value() {
+    c__stmt "return gtk_range_get_value(GTK_RANGE(this))";
+}
+}
