@@ -1,0 +1,62 @@
+package audio;
+import sanka.io.FileWriter;
+
+class Id3File {
+    c__include "id3tag.h";
+    c__repr    "struct id3_file *";
+
+    static Id3File open(String filename) {
+        c__stmt "return id3_file_open(filename, ID3_FILE_MODE_READONLY)";
+    }
+
+    Id3Tag tag() {
+        c__stmt "return id3_file_tag(this)";
+    }
+
+    void close() {
+        c__stmt "id3_file_close(this)";
+    }
+}
+
+class Id3Tag {
+    c__include "id3tag.h";
+    c__repr    "struct id3_tag *";
+
+    Id3Frame frame(String name, int num) {
+        c__stmt "return id3_tag_findframe(this, name, num)";
+    }
+}
+
+class Id3Frame {
+    c__include "id3tag.h";
+    c__repr    "struct id3_frame *";
+
+    Id3Field field(int num) {
+        c__stmt "return id3_frame_field(this, num)";
+    }
+}
+
+class Id3Field {
+    c__include "id3tag.h";
+    c__include "stdlib.h";
+    c__repr    "union id3_field *";
+
+    String latin1() {
+        c__stmt "const id3_latin1_t *latin1 = id3_field_getlatin1(this)";
+        c__stmt "return (const char *)latin1";
+    }
+
+    // TODO why doesn't this compile with Writer?
+    boolean binary(FileWriter writer) {
+        c__stmt "id3_length_t data_len = 0";
+        c__stmt "const id3_byte_t *data = id3_field_getbinarydata(this, &data_len)";
+        c__stmt "if (!data) return 0";
+        var bytes = new byte[];
+        c__stmt "bytes->data = data";
+        c__stmt "bytes->length = data_len";
+        c__stmt "bytes->alloced = data_len";
+        writer.write(bytes);
+        c__stmt "bytes->data = NULL";
+        return true;
+    }
+}

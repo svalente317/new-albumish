@@ -7,16 +7,28 @@
  */
 package albumish;
 import sanka.io.File;
+import sanka.io.FileWriter;
+import sanka.lang.Channel;
+import sanka.lang.Thread;
+import gdk.Pixbuf;
+import gtk.Context;
+import audio.Id3File;
+import albumish.database.Album;
+import albumish.database.Artist;
 
 class Gallery {
+
+    const TEMP_FILE = "/tmp/albumishimg";
 
     private Albumish player;
     private File topdir;
     private int small_size;
     private int big_size;
     private boolean[] is_loaded;
-    private map[int]String small_map;
-    private map[int]String big_map;
+    private map[int]Pixbuf small_map;
+    private map[int]Pixbuf big_map;
+    private Channel channel;
+    private Thread thread;
 
     Gallery(Albumish player, File topdir, int small_size, int big_size) {
         this.player = player;
@@ -24,9 +36,10 @@ class Gallery {
         this.small_size = small_size;
         this.big_size = big_size;
         this.is_loaded = new boolean[](player.database.album_list.length);
-        this.small_map = new map[int]String;
-        this.big_map = new map[int]String;
-        // Thread thread = new Thread(this);
+        this.small_map = new map[int]Pixbuf;
+        this.big_map = new map[int]Pixbuf;
+        this.channel = new Channel(5000); // TODO control size better
+        this.thread = new Thread(this);
     }
 
     void get_sizes(int[] sizes) {
@@ -34,129 +47,109 @@ class Gallery {
         sizes[1] = this.big_size;
     }
 
-    /*
-    public Image get(int albumid, boolean is_selected) {
-        while (this.is_loaded.size() <= albumid) {
-            this.is_loaded.add(false);
+    Pixbuf get(int albumid, boolean is_selected) {
+        if this.is_loaded.length <= albumid {
+            this.is_loaded.setLength(albumid+1);
         }
-        if (!this.is_loaded.get(albumid)) {
-            if (!this.workstack.contains(albumid)) {
-                this.workstack.add(albumid);
-            }
+        if !this.is_loaded[albumid] {
+            this.channel.push(new Integer(){value: albumid});
             return null;
         }
-        return (is_selected ?
-                this.big_map.get(albumid) :
-                this.small_map.get(albumid));
+        return is_selected ? this.big_map[albumid] : this.small_map[albumid];
     }
 
-    @Override
-    public void run() {
-        while (true) {
-            try {
-                while (this.workstack.size() > 10) {
-                    this.workstack.removeFirst();
-                }
-                int albumid = this.workstack.takeFirst();
-                if (!this.is_loaded.get(albumid)) {
-                    this.is_loaded.set(albumid, true);
-                    load_image(albumid);
-                }
-            } catch (Exception exception) {
-                System.err.println("load_image: " + exception);
+    void run() {
+        while true {
+            var albumid = ((Integer) this.channel.pop()).value;
+            if !this.is_loaded[albumid] {
+                this.is_loaded[albumid] = true;
+                load_image(albumid);
             }
         }
     }
 
-    private void load_image(final int albumid) {
-        ImageData[] images = null;
-        Album album = this.player.database.album_list.get(albumid);
-        File file = get_image_file(album);
-        if (file != null && file.exists()) {
-            try {
-                images = ImageConverter.getScaledImages(file,
-                        this.small_size, this.big_size);
-            } catch (Exception exception) {
-                System.err.println(file + ": " + exception);
-            }
+    private void load_image(int albumid) {
+        var image = null;
+        var album = this.player.database.album_list[albumid];
+        var file = get_image_file(album);
+        if file != null {
+            image = Pixbuf.new_from_file(file.getPath());
         }
-        if (images == null) {
-            try {
-                Artwork artwork = get_audio_file_artwork(album.song_list[0]);
-                if (artwork != null) {
-                    images = ImageConverter.getScaledImages(artwork,
-                            this.small_size, this.big_size);
-                }
-            } catch (Exception exception) {
-                System.err.println(file + ": " + exception);
-            }
+        if image == null {
+            image = get_audio_file_artwork(album.song_list[0]);
         }
-        if (images == null) {
+        if image == null {
             return;
         }
-        if (images[0] == null || images[1] == null) {
-            System.err.println(album.name + ": failed to scale image");
-            return;
-        }
-        this.small_map.put(albumid, new Image(this.display, images[0]));
-        this.big_map.put(albumid, new Image(this.display, images[1]));
-        this.display.asyncExec(new Runnable() {
-            @Override
-            public void run() {
-                Gallery.this.player.invalidate_album(albumid);
+        var small_image = image.scale_simple(this.small_size, this.small_size,
+            Pixbuf.INTERP_BILINEAR);
+        var big_image = image.scale_simple(this.big_size, this.big_size,
+            Pixbuf.INTERP_BILINEAR);
+        image.unref();
+        this.small_map[albumid] = small_image;
+        this.big_map[albumid] = big_image;
+
+        Context.default_context().invoke(new {
+            player: this.player;
+            albumid: albumid;
+            void callback() {
+                this.player.invalidate_album(this.albumid);
             }
         });
     }
 
-    public File get_image_file(Album album) {
-        if (album.name == null) {
+    File get_image_file(Album album) {
+        if album.name == null {
             return null;
         }
-        int artistid = album.artistid;
-        if (artistid <= 0) {
+        var artistid = album.artistid;
+        if artistid <= 0 {
             return null;
         }
-        String artist_name = this.player.database.artist_list.get(artistid).name;
-        if (artist_name == null) {
+        var artist_name = this.player.database.artist_list[artistid].name;
+        if artist_name == null {
             return null;
         }
-        StringBuilder filename = new StringBuilder();
-        Utils.name_to_filename(filename, artist_name);
-        filename.append(" - ");
-        Utils.name_to_filename(filename, album.name);
-        filename.append(".jpg");
-        return new File(this.topdir, filename.toString());
+        var filename = Utils.name_to_filename(artist_name) + " - " +
+            Utils.name_to_filename(album.name) + ".jpg";
+        return new File(this.topdir, filename);
     }
 
-    private Artwork get_audio_file_artwork(int songid) throws Exception {
-        Song song = this.player.database.song_list.get(songid);
-        AudioFile audio = AudioFileIO.read(this.player.getFile(song));
-        Tag tag = audio.getTag();
-        // List<Artwork> list = tag.getArtworkList();
-        // return list == null || list.isEmpty() ? null : list.get(list.size()-1);
-        return tag.getFirstArtwork();
-    }
-
-    public boolean audio_file_has_artwork(int songid) throws Exception {
-        return get_audio_file_artwork(songid) != null;
-    }
-
-    /**
-     * Copy image file into the album images directory.
-     *
-    public void copy_file(int albumid, String srcfile) {
-        Album album = this.player.database.album_list.get(albumid);
-        File dstfile = get_image_file(album);
-        Utils.copy_file(new File(srcfile), dstfile);
-        if (this.is_loaded.size() > albumid) {
-            this.is_loaded.set(albumid, false);
+    private Pixbuf get_audio_file_artwork(int songid) {
+        var image = null;
+        var song = this.player.database.song_list[songid];
+        var mp3_file = this.player.get_file(song).getPath();
+        var audio = Id3File.open(mp3_file);
+        if audio == null {
+            return null;
         }
+        var tag = audio.tag();
+        var frame = tag.frame("APIC", 0);
+        if frame != null {
+            var data_field = frame.field(4);
+            if data_field != null {
+                // var mime_field = frame.field(1);
+                var writer = new FileWriter();
+                var status = writer.open(TEMP_FILE);
+                if status != 0 {
+                    System.println(TEMP_FILE + ": " + System.strerror(status));
+                } else {
+                    data_field.binary(writer);
+                    writer.close();
+                    image = Pixbuf.new_from_file(TEMP_FILE);
+                    if image == null {
+                        System.println(mp3_file + ": image null");
+                    }
+                }
+            }
+        }
+        audio.close();
+        return image;
     }
 
-    public void invalidate(int albumid) {
-        if (this.is_loaded.size() > albumid) {
-            this.is_loaded.set(albumid, false);
-        }
-    }
-    */
+    // removed: audio_file_has_artwork, copy_file, invalidate
+}
+
+class Integer {
+    int value;
 }

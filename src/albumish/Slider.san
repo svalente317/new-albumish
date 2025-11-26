@@ -74,8 +74,8 @@ class Slider {
         cairo.stroke();
     }
 
-    boolean callback(Widget w, int eventType, double x, double y, int button) {
-        switch eventType {
+    boolean callback(Widget w, int event_type, double x, double y, int button) {
+        switch event_type {
         case Widget.BUTTON_PRESS:
             if this.maximum == 0 {
                 break;

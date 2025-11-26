@@ -1,0 +1,42 @@
+package albumish;
+
+class Utils {
+    const BAD_CHARS = "/:?\"";
+
+    /**
+     * For each bad character --
+     * If it appears with no space on either side of it, then replace it with a space.
+     * If it appears with a space on one side of it, then remove it.
+     * If it appears with a space on both sides of it, then remove it and the next space.
+     */
+    static String name_to_filename(String name) {
+        // TODO array of chars to string?
+        var filename = "";
+        var haveSpace = true;
+        var needSpace = false;
+        var skipSpace = false;
+        var length = name.length();
+        for var idx = 0; idx < length; idx++ {
+            var ch = name[idx];
+            if BAD_CHARS.indexOf(ch) >= 0 {
+                needSpace = !haveSpace;
+                haveSpace = false;
+                skipSpace = true;
+            } else {
+                if needSpace && ch != '.' {
+                    filename = filename + ' ';
+                    needSpace = false;
+                }
+                if skipSpace {
+                    skipSpace = false;
+                    if ch == ' ' {
+                        continue;
+                    }
+                }
+                filename = filename + ch;
+                haveSpace = (ch == ' ');
+            }
+        }
+        return filename;
+    }
+}

@@ -44,6 +44,10 @@ void queue_draw() {
     c__stmt "gtk_widget_queue_draw(this)";
 }
 
+void queue_draw_area (int x, int y, int width, int height) {
+    c__stmt "gtk_widget_queue_draw_area(this, x, y, width, height)";
+}
+
 void connect_mouse_button(MouseCallback callback) {
     c__stmt "gtk_widget_add_events(this, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK)";
     var signal = "button-press-event";
@@ -66,5 +70,5 @@ c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, sel
 }
 
 interface MouseCallback {
-    boolean callback(Widget widget, int eventType, double x, double y, int button);
+    boolean callback(Widget widget, int event_type, double x, double y, int button);
 }

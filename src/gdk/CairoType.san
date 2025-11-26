@@ -45,4 +45,20 @@ void text_extents(String utf8, TextExtents t) {
 void show_text(String utf8) {
     c__stmt "cairo_show_text(this, utf8)";
 }
+
+void set_source_pixbuf(Pixbuf p, double x, double y) {
+    c__stmt "gdk_cairo_set_source_pixbuf(this, p, x, y)";
+}
+
+void paint() {
+    c__stmt "cairo_paint(this)";
+}
+
+void save() {
+    c__stmt "cairo_save(this)";
+}
+
+void restore() {
+    c__stmt "cairo_restore(this)";
+}
 }

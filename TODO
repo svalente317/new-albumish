@@ -1,3 +1,4 @@
+- Utils needs char-array to string
 - TopPanel - buttons should be square
 - TopPanel - change between play button and pause button
 - CoverPanel

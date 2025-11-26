@@ -26,6 +26,7 @@ const SELECTED_COVER_SIZE = 300;
 
 const AUTO_PLAYLIST = 0;
 
+File home_directory;
 Database database;
 CheckDatabase check_database;
 Gallery gallery;
@@ -51,8 +52,8 @@ void run(String[] argv)
 }
 
 void callback(Application app) {
-    var home = new File(System.getenv("HOME"));
-    var directory = new File(home, ".albumish");
+    this.home_directory = new File(System.getenv("HOME"));
+    var directory = new File(this.home_directory, ".albumish");
     this.database = new Database();
     this.database.load(directory, "database.json");
     this.check_database = new CheckDatabase(this.database, directory, "checked_songs.list");
@@ -60,7 +61,7 @@ void callback(Application app) {
     // this.playlists = new PlaylistCollection(this.database, directory);
     this.playlists = {new Playlist()};
     // this.num_random_playlists = this.playlists.get_max_with_prefix(RANDOM_PLAYLIST_PREFIX);
-    // directory = new File(home, "Pictures/covers");
+    directory = new File(this.home_directory, "Pictures/covers");
     this.gallery = new Gallery(this, directory, COVER_SIZE, SELECTED_COVER_SIZE);
     this.filter_worker = new FilterWorker(this.database); // , this.check_database);
     this.player_thread = new PlayerThread(this);
@@ -233,5 +234,16 @@ void set_filter(String text) {
         album_list = this.filter_worker.set_filter(text);
     }
     this.cover_panel.reset(album_list);
+}
+
+/**
+ * Called by gallery. Update cover_panel.
+ */
+void invalidate_album(int albumid) {
+    this.cover_panel.invalidate_album(albumid);
+}
+
+File get_file(Song song) {
+    return new File(this.home_directory, song.filename);
 }
 }

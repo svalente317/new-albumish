@@ -1,0 +1,24 @@
+package gdk;
+
+class Pixbuf {
+
+c__include "gtk/gtk.h";
+c__repr    "GdkPixbuf*";
+
+const INTERP_NEAREST = 0;
+const INTERP_TILES = 1;
+const INTERP_BILINEAR = 2;
+
+static Pixbuf new_from_file(String filename) {
+    // TODO return error
+    c__stmt "return gdk_pixbuf_new_from_file(filename, NULL)";
+}
+
+Pixbuf scale_simple(int width, int height, int interp_type) {
+    c__stmt "return gdk_pixbuf_scale_simple(this, width, height, interp_type)";
+}
+
+void unref() {
+    c__stmt "g_object_unref(this)";
+}
+}

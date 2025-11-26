@@ -30,7 +30,7 @@ private int[] album_list;
 private int panel_height;
 private int panel_width;
 private int mouse_down_idx;
-private int anchor;
+private double anchor;
 
 CoverPanel(Albumish player) {
     this.player = player;
@@ -41,8 +41,8 @@ CoverPanel(Albumish player) {
     this.area.set_size_request(-1, this.panel_height);
     this.area.set_expand(true, false);
     this.area.connect_draw(this);
-    // this.area.connect_mouse_button(this);
-    // this.area.connect_mouse_motion(this);
+    this.area.connect_mouse_button(this);
+    this.area.connect_mouse_motion(this);
     this.album_list = new int[];
     this.mouse_down_idx = -1;
 
@@ -110,57 +110,12 @@ boolean select_next_album(int delta) {
         return false;
     }
     this.selected_idx = new_idx;
-    /*
     if !center_selected_album() {
         redraw_albums(old_idx, new_idx);
     }
-    */
     this.player.select_album(this.album_list[this.selected_idx]);
     return true;
 }
-
-/*
-void controlResized(ControlEvent event) {
-    Rectangle bounds = getClientArea();
-    ScrollBar scrollbar = getHorizontalBar();
-    scrollbar.setMinimum(0);
-    scrollbar.setMaximum(this.panel_width);
-    scrollbar.setIncrement(this.image_width);
-    scrollbar.setPageIncrement(bounds.width);
-    scrollbar.setThumb(bounds.width);
-}
-
-void widgetSelected(SelectionEvent event) {
-    if (event.widget instanceof ScrollBar) {
-        // The scrollbar was moved.
-        redraw();
-        return;
-    }
-    Cmd command = (Cmd) event.widget.getData();
-    if (command == null) {
-        return;
-    }
-    if (this.mouse_down_idx < 0) {
-        return;
-    }
-    int albumid = this.album_list[this.mouse_down_idx];
-    switch (command) {
-    case ADD_ALBUM_TO_PLAYLIST:
-        break;
-    case LOAD_ALBUM_ART:
-        select_nth_album(this.mouse_down_idx);
-        this.player.on_load_album_art();
-        this.mouse_down_idx = 0;
-        break;
-    case EDIT_ALBUM_TAGS:
-        new EditTagsDialog(this.player, albumid);
-        break;
-    case DELETE_ALBUM_FROM_LIBRARY:
-        new DeleteAlbumDialog(this.player, albumid);
-        break;
-    }
-}
-*/
 
 void draw(DrawingArea area, CairoType cairo) {
     var visible_width = this.viewport.get_allocated_width();
@@ -183,12 +138,15 @@ void draw(DrawingArea area, CairoType cairo) {
         // TODO what is the actual start point?
         if xpos + width > base - width {
             var albumid = this.album_list[idx];
-            // TODO var image = this.player.gallery.get(albumid, is_selected);
-            //    Rectangle bounds = image.getBounds();
-            //    event.gc.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height,
-            //            xpos - base, ypos, bounds.width, bounds.height);
+            var image = this.player.gallery.get(albumid, is_selected);
+            if image != null {
+                cairo.save();
+                cairo.set_source_pixbuf(image, xpos, ypos);
+                cairo.paint();
+                cairo.restore();
+            }
             cairo.set_line_width(1);
-            cairo.rectangle(xpos, ypos, width - 1, width - 1);
+            cairo.rectangle(xpos, ypos, width, width);
             cairo.stroke();
             /*
             if idx == this.mouse_down_idx {
@@ -248,131 +206,117 @@ private void paint_line(CairoType cairo, String text, int xpos, int ypos, int wi
     cairo.show_text(text);
 }
 
-/*
-private void redraw_albums(int lo, int hi) {
-    if (lo > hi) {
-        int tmp = lo;
-        lo = hi;
-        hi = tmp;
-    }
-    int base = getHorizontalBar().getSelection();
-    int xpos = this.border_width + lo *
-            (this.border_width + this.image_width);
-    if (lo > this.selected_idx) {
-        xpos += (this.selected_width - this.image_width);
-    }
-    int width = (hi - lo) * (this.border_width + this.image_width);
-    if (lo <= this.selected_idx && this.selected_idx <= hi) {
-        width += this.selected_width;
-    } else {
-        width += this.image_width;
-    }
-    redraw(xpos - base, this.border_width, width, this.selected_width, false);
-}
-
 /**
  * @return true if this issues a redraw request
- *
+ */
 private boolean center_selected_album() {
+    /* TODO implement center_selected_album
     // Get center of selected album.
-    int center = this.selected_idx * (this.border_width + this.image_width) +
+    var center = this.selected_idx * (this.border_width + this.image_width) +
             this.border_width + (this.selected_width / 2);
-    Point size = getSize();
-    int xpos = center - (size.x / 2);
-    int base = getHorizontalBar().getSelection();
+    var xpos = center - (extent_x / 2);
+    var base = getHorizontalBar().getSelection();
     getHorizontalBar().setSelection(xpos);
-    if (base == getHorizontalBar().getSelection()) {
+    if base == getHorizontalBar().getSelection() {
         return false;
     }
-    redraw();
+    redraw();*/
     return true;
 }
 
+private void redraw_albums(int lo, int hi) {
+    if lo > hi {
+        var tmp = lo;
+        lo = hi;
+        hi = tmp;
+    }
+    var xpos = this.border_width + lo *
+            (this.border_width + this.image_width);
+    if lo > this.selected_idx {
+        xpos = xpos + (this.selected_width - this.image_width);
+    }
+    var width = (hi - lo) * (this.border_width + this.image_width);
+    if lo <= this.selected_idx && this.selected_idx <= hi {
+        width = width + this.selected_width;
+    } else {
+        width = width + this.image_width;
+    }
+    this.area.queue_draw_area(xpos-1, this.border_width-1, width+2, this.selected_width+2);
+}
+
 void invalidate_album(int albumid) {
-    int size = this.album_list.length;
-    int idx;
-    for (idx = 0; idx < size; idx++) {
-        if (albumid == this.album_list[idx]) {
+    for var idx = 0; idx < this.album_list.length; idx++ {
+        if albumid == this.album_list[idx] {
             redraw_albums(idx, idx);
             return;
         }
     }
 }
 
-@Override
-void mouseDown(MouseEvent event) {
-    if (event.button == 1) {
-        this.anchor = getHorizontalBar().getSelection() + event.x;
-    }
-    int idx = get_clicked_idx(event);
-    if (idx < 0) {
-        return;
-    }
-    this.mouse_down_idx = idx;
-    if (event.button == 3) {
-        popup_menu(event);
-        return;
-    }
-    redraw_albums(idx, idx);
-}
-
-@Override
-void mouseUp(MouseEvent event) {
-    this.anchor = 0;
-    int selected = this.mouse_down_idx;
-    if (selected < 0) {
-        return;
-    }
-    this.mouse_down_idx = -1;
-    int idx = get_clicked_idx(event);
-    if (idx == selected && this.selected_idx != selected) {
-        select_nth_album(idx);
-    } else {
-        redraw_albums(selected, selected);
-    }
-}
-
-@Override
-void mouseDoubleClick(MouseEvent event) {
-    int albumid = get_selected_albumid();
-    if (albumid < 0) {
-        return;
-    }
-    // TODO update checked database
-    Album album = this.player.database.album_list.get(albumid);
-    IntList song_list = new IntList();
-    for (int songid : album.song_list) {
-        if (this.player.check_database.get(songid)) {
-            song_list.add(songid);
+boolean callback(Widget w, int event_type, double x, double y, int button) {
+    var idx = 0;
+    switch event_type {
+    case Widget.BUTTON_PRESS:
+        if button == 1 {
+            this.anchor = x;
         }
-    }
-    int listid = this.player.set_auto_playlist(song_list);
-    this.player.play_song(listid, 0);
-}
-
-private int get_clicked_idx(MouseEvent event) {
-    int base = getHorizontalBar().getSelection();
-    int xpos = base + event.x;
-    int size = this.album_list.length;
-    for (int idx = 0; idx < size; idx++) {
-        if (xpos < this.border_width) {
+        idx = get_clicked_idx(x, y);
+        if idx < 0 {
             break;
         }
-        xpos -= this.border_width;
-        int width = (idx == this.selected_idx ?
+        this.mouse_down_idx = idx;
+        if button == 3 {
+            // TODO popup_menu(event);
+            break;
+        }
+        redraw_albums(idx, idx);
+        break;
+    case Widget.BUTTON_RELEASE:
+        this.anchor = 0;
+        var selected = this.mouse_down_idx;
+        if selected < 0 {
+            break;
+        }
+        this.mouse_down_idx = -1;
+        idx = get_clicked_idx(x, y);
+        if idx == selected && this.selected_idx != selected {
+            select_nth_album(idx);
+        } else {
+            redraw_albums(selected, selected);
+        }
+        break;
+    case Widget.MOTION_NOTIFY:
+        if this.anchor <= 0 {
+            break;
+        }
+        var delta = x - this.anchor;
+        var selection = this.viewport.get_hscrollbar().get_value() - delta;
+        this.viewport.get_hscrollbar().set_value(selection);
+        break;
+    }
+    return false;
+}
+
+private int get_clicked_idx(double xpos, double ypos) {
+    for var idx = 0; idx < this.album_list.length; idx++ {
+        if xpos < this.border_width {
+            break;
+        }
+        xpos = xpos - this.border_width;
+        var width = (idx == this.selected_idx ?
                 this.selected_width : this.image_width);
-        if (xpos >= width) {
-            xpos -= width;
+        if xpos >= width {
+            xpos = xpos - width;
             continue;
         }
         // Found the x coordinate.
-        int top = this.border_width;
-        int bottom = top + this.selected_width;
-        if (idx != this.selected_idx) {
-            top += (this.selected_width - this.image_width) / 2;
+        var top = this.border_width;
+        var bottom = top + this.selected_width;
+        if idx != this.selected_idx {
+            top = top + (this.selected_width - this.image_width) / 2;
             bottom = top + this.image_width;
         }
-        if (event.y < top || event.y >= bottom) {
+        if ypos < top || ypos >= bottom {
             break;
         }
         return idx;
@@ -381,11 +325,12 @@ private int get_clicked_idx(MouseEvent event) {
 }
 
 private void select_nth_album(int idx) {
-    if (this.selected_idx == idx) {
+    if this.selected_idx == idx {
         return;
     }
-    int lo = idx, hi = idx;
-    if (this.selected_idx < idx) {
+    var lo = idx;
+    var hi = idx;
+    if this.selected_idx < idx {
         lo = this.selected_idx;
     } else {
         hi = this.selected_idx;
@@ -395,17 +340,7 @@ private void select_nth_album(int idx) {
     this.player.select_album(this.album_list[this.selected_idx]);
 }
 
-void select_album(int albumid) {
-    for (int idx = 0; idx < this.album_list.length; idx++) {
-        if (albumid == this.album_list[idx]) {
-            select_nth_album(idx);
-            center_selected_album();
-            return;
-        }
-    }
-}
-
-private void popup_menu(MouseEvent event) {
+/* private void popup_menu(MouseEvent event) {
     Menu popupMenu = new Menu(this);
     MenuItem item;
     item = new MenuItem(popupMenu, SWT.NONE);
@@ -425,20 +360,7 @@ private void popup_menu(MouseEvent event) {
     item.setData(Cmd.DELETE_ALBUM_FROM_LIBRARY);
     item.addSelectionListener(this);
     popupMenu.setVisible(true);
+}*/
 }
 
-@Override
-void mouseMove(MouseEvent event) {
-    if (this.anchor <= 0) {
-        return;
-    }
-    ScrollBar scrollbar = getHorizontalBar();
-    int selection = this.anchor - event.x;
-    if (selection < 0 || selection > scrollbar.getMaximum()) {
-        return;
-    }
-    scrollbar.setSelection(selection);
-    redraw();
-}
-*/
-}
+// removed: controlResized, widgetSelected, mouseDoubleClick, select_album
