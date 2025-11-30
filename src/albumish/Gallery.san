@@ -17,8 +17,8 @@ import albumish.database.Album;
 import albumish.database.Artist;
 
 class Gallery {
-
     const TEMP_FILE = "/tmp/albumishimg";
+    const CHANNEL_SIZE = 12;
 
     private Albumish player;
     private File topdir;
@@ -38,7 +38,7 @@ class Gallery {
         this.is_loaded = new boolean[](player.database.album_list.length);
         this.small_map = new map[int]Pixbuf;
         this.big_map = new map[int]Pixbuf;
-        this.channel = new Channel(5000); // TODO control size better
+        this.channel = new Channel(CHANNEL_SIZE);
         this.thread = new Thread(this);
     }
 
@@ -52,6 +52,9 @@ class Gallery {
             this.is_loaded.setLength(albumid+1);
         }
         if !this.is_loaded[albumid] {
+            while this.channel.getQueueSize() >= CHANNEL_SIZE {
+                this.channel.pop();
+            }
             this.channel.push(new Integer(){value: albumid});
             return null;
         }

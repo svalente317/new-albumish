@@ -1,0 +1,59 @@
+package gtk;
+
+class MenuBar {
+    c__include "gtk/gtk.h";
+    c__field "GMenu *menubar";
+
+    private Application app;
+    private MenuCallback callback;
+
+    MenuBar(Application app, MenuCallback callback) {
+        c__stmt "this->menubar = g_menu_new()";
+        this.app = app;
+        this.callback = callback;
+    }
+
+    void add_menu(String label, MenuItem[] items) {
+        c__stmt "GMenu *menu = g_menu_new()";
+        for var item : items {
+            var action_name = "menuitem" + item.item_id;
+            var full_action_name = "app." + action_name;
+            c__stmt "GMenuItem *gi = g_menu_item_new(item->label, full_action_name)";
+            if item.accel != null {
+                var key = "accel";
+                var s = "s";
+                c__stmt "g_menu_item_set_attribute(gi, key, s, item->accel)";
+            }
+            c__stmt "g_menu_append_item(menu, gi)";
+            c__stmt "g_object_unref(gi)";
+            var activate = "activate";
+            c__stmt "GSimpleAction *action = g_simple_action_new(action_name, NULL)";
+            c__stmt "g_signal_connect(action, activate, G_CALLBACK(_menu_callback), this->callback)";
+            c__stmt "g_action_map_add_action(G_ACTION_MAP(this->app), G_ACTION(action))";
+        }
+        c__stmt "g_menu_append_submenu(this->menubar, label, G_MENU_MODEL(menu))";
+        c__stmt "g_object_unref(menu)";
+    }
+
+    /**
+     * Install the application menubar. Call this after all calls to add_menu(),
+     * so that it can install the application key accelerators.
+     */
+     void install() {
+         c__stmt "gtk_application_set_menubar(this->app, G_MENU_MODEL(this->menubar))";
+     }
+
+    c__stmt "void _menu_callback(GSimpleAction *action, GVariant *parameter, gpointer user_data){";
+    c__stmt "const char *name = g_action_get_name(G_ACTION(action)); int item_id = atoi(name+8);";
+    c__stmt "MenuCallback__menu_activated((struct MenuCallback *) user_data, item_id); }";
+}
+
+class MenuItem {
+    String label;
+    String accel;
+    int item_id;
+}
+
+interface MenuCallback {
+    void menu_activated(int item_id);
+}

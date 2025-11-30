@@ -7,6 +7,7 @@
  */
 package albumish;
 import gdk.CairoType;
+import gdk.RGBA;
 import gtk.DrawingArea;
 import gtk.Widget;
 

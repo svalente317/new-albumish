@@ -26,7 +26,7 @@ void connect_row_activated(RowActivatedCallback callback) {
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_row_activated_callback), callback)";
 }
 
-c__stmt "void _row_activated_callback(GtkTreeView* self, GtkTreePath* path, GtkTreeViewColumn* column, gpointer user_data)";
+c__stmt "void _row_activated_callback(GtkWidget* self, GtkTreePath* path, GtkTreeViewColumn* column, gpointer user_data)";
 c__stmt"{ RowActivatedCallback__row_activated((struct RowActivatedCallback *) user_data, self, path, column); }";
 }
 

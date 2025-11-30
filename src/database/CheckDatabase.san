@@ -8,6 +8,7 @@
 package albumish.database;
 import sanka.io.File;
 import sanka.io.FileReader;
+import sanka.io.FileWriter;
 import sanka.io.LineReader;
 
 class CheckDatabase {
@@ -31,7 +32,7 @@ class CheckDatabase {
         var file_reader = new FileReader();
         var err = file_reader.open(this.file.getPath());
         if err != 0 {
-            System.println(this.file.getPath() + ": " + err);
+            System.println(this.file.getPath() + ": " + System.strerror(err));
             return;
         }
         var reader = new LineReader(file_reader);
@@ -61,7 +62,25 @@ class CheckDatabase {
      * Write the list of checked files.
      */
     void save() {
-        // TODO
+        if !this.is_changed {
+            return;
+        }
+        var writer = new FileWriter();
+        var err = writer.open(this.file.getPath());
+        if err != 0 {
+            System.println(this.file.getPath() + ": " + System.strerror(err));
+            return;
+        }
+        writer.print("" + (this.default_value ? "1" : "0") + "\n");
+        for var songid : this.songids {
+            var song = this.database.song_list[songid];
+            if song != null && song.filename != null {
+                writer.print(song.filename);
+                writer.print("\n");
+            }
+        }
+        writer.close();
+        this.is_changed = false;
     }
 
     boolean get(int songid) {

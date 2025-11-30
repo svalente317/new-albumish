@@ -149,7 +149,7 @@ class FilterWorker {
     int[] generate_song_list(int albumid) {
         var album = this.database.album_list[albumid];
         var song_list = new int[];
-        if album.song_list != null {
+        if album != null && album.song_list != null {
             process_album(album, song_list, true);
         }
         return song_list;

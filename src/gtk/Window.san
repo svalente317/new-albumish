@@ -12,4 +12,8 @@ Window(Application app) {
 void set_title(String title) {
     c__stmt "return gtk_window_set_title(GTK_WINDOW(this), title)";
 }
+
+void close() {
+    c__stmt "gtk_window_close(GTK_WINDOW(this))";
+}
 }

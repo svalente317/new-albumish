@@ -28,7 +28,6 @@ private int selected_width;
 private int selected_idx;
 private int[] album_list;
 private int panel_height;
-private int panel_width;
 private int mouse_down_idx;
 private double anchor;
 
@@ -87,10 +86,10 @@ private void do_sort_and_reset(int albumid) {
     this.selected_idx = 0;
     this.sorter.sort(this.album_list);
 
-    this.panel_width = (this.border_width + this.image_width) *
+    var width = (this.border_width + this.image_width) *
             this.album_list.length + this.border_width +
             (this.selected_width - this.image_width);
-    this.area.set_size_request(this.panel_width, this.panel_height);
+    this.area.set_size_request(width, this.panel_height);
 
     this.selected_idx = 0;
     for var idx = 0; idx < this.album_list.length; idx++ {
@@ -103,18 +102,14 @@ private void do_sort_and_reset(int albumid) {
     this.area.queue_draw();
 }
 
-boolean select_next_album(int delta) {
-    var old_idx = this.selected_idx;
+void select_next_album(int delta) {
     var new_idx = this.selected_idx + delta;
     if new_idx < 0 || new_idx >= this.album_list.length {
-        return false;
+        return;
     }
     this.selected_idx = new_idx;
-    if !center_selected_album() {
-        redraw_albums(old_idx, new_idx);
-    }
+    center_selected_album();
     this.player.select_album(this.album_list[this.selected_idx]);
-    return true;
 }
 
 void draw(DrawingArea area, CairoType cairo) {
@@ -206,22 +201,14 @@ private void paint_line(CairoType cairo, String text, int xpos, int ypos, int wi
     cairo.show_text(text);
 }
 
-/**
- * @return true if this issues a redraw request
- */
-private boolean center_selected_album() {
-    /* TODO implement center_selected_album
+private void center_selected_album() {
     // Get center of selected album.
     var center = this.selected_idx * (this.border_width + this.image_width) +
             this.border_width + (this.selected_width / 2);
-    var xpos = center - (extent_x / 2);
-    var base = getHorizontalBar().getSelection();
-    getHorizontalBar().setSelection(xpos);
-    if base == getHorizontalBar().getSelection() {
-        return false;
-    }
-    redraw();*/
-    return true;
+    var visible_width = this.viewport.get_allocated_width();
+    var xpos = center - (visible_width / 2);
+    this.viewport.get_hscrollbar().set_value(xpos);
+    this.area.queue_draw();
 }
 
 private void redraw_albums(int lo, int hi) {

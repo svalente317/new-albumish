@@ -119,7 +119,19 @@ void reset(int playlistid, int[] songs) {
 }
 
 void update_database() {
-    // TODO
+    var check_database = this.player.check_database;
+    var iter = new TreeIter();
+    var value = new JsonElement();
+    for var ok = this.list_store.get_iter_first(iter); ok; ok = this.list_store.iter_next(iter) {
+        this.list_store.get_value(iter, 0, value);
+        var is_checked = value.getAsBoolean();
+        this.list_store.get_value(iter, 1, value);
+        var songid = value.getAsInt();
+        if is_checked != check_database.get(songid) {
+            System.println("toggle " + songid + " to " + is_checked);
+            check_database.set(songid, is_checked);
+        }
+    }
 }
 
 void row_activated(TreeView tree_view, TreePath path, TreeViewColumn column) {

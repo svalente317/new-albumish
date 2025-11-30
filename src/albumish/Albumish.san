@@ -9,6 +9,8 @@ package albumish;
 import sanka.io.File;
 import gtk.Application;
 import gtk.Grid;
+import gtk.MenuBar;
+import gtk.MenuItem;
 import gtk.ScrolledWindow;
 import gtk.Window;
 import albumish.database.CheckDatabase;
@@ -26,6 +28,20 @@ const SELECTED_COVER_SIZE = 300;
 
 const AUTO_PLAYLIST = 0;
 
+const ADD_FOLDER = 1;
+const RIP_CD = 2;
+const SYNC_TO_DEVICE = 3;
+const QUIT = 4;
+const PREV_ALBUM = 5;
+const NEXT_ALBUM = 6;
+const JUMP_ALBUM = 7;
+const LOAD_ALBUM_ART = 8;
+const NEW_PLAYLIST = 9;
+const DELETE_PLAYLIST = 10;
+const ADD_SELECTION = 11;
+const DELETE_SELECTION = 12;
+const RANDOM_PLAYLIST = 13;
+
 File home_directory;
 Database database;
 CheckDatabase check_database;
@@ -33,6 +49,7 @@ Gallery gallery;
 FilterWorker filter_worker;
 Playlist[] playlists;
 PlayerThread player_thread;
+Window window;
 TopPanel top_panel;
 CoverPanel cover_panel;
 SongPanel playlist_song_panel;
@@ -66,16 +83,16 @@ void callback(Application app) {
     this.filter_worker = new FilterWorker(this.database); // , this.check_database);
     this.player_thread = new PlayerThread(this);
 
-    var window = new Window(app);
-    window.set_title("Albumish");
+    this.window = new Window(app);
+    this.window.set_title("Albumish");
     // window.setImage(get_icon("CD.png"));
-    window.set_border_width(10);
     var grid = new Grid();
+    grid.set_border_width(10);
     grid.set_row_spacing(10);
     grid.set_column_spacing(10);
-    window.add(grid);
+    this.window.add(grid);
 
-    // makeMenuBar(this.main_window);
+    makeMenuBar(app);
     this.top_panel = new TopPanel(this);
     grid.attach(this.top_panel.widget(), 0, 0, 3, 1);
     var widget = null;
@@ -120,8 +137,25 @@ void callback(Application app) {
 
     var albumList = this.filter_worker.generate_album_list();
     this.cover_panel.reset(albumList);
-    window.set_size_request(1500, 500);
-    window.show_all();
+    this.window.set_size_request(1500, 500);
+    this.window.show_all();
+}
+
+private void makeMenuBar(Application app) {
+    var menubar = new MenuBar(app, this);
+    menubar.add_menu("Library", {
+        new MenuItem(){label: "_Add Folder to Library...", accel: "<Primary>a", item_id: ADD_FOLDER},
+        new MenuItem(){label: "_Rip CD to Library...", accel: null, item_id: RIP_CD},
+        new MenuItem(){label: "_Sync to Device...", accel: null, item_id: SYNC_TO_DEVICE},
+        new MenuItem(){label: "_Quit", accel: null, item_id: QUIT}
+    });
+    menubar.add_menu("Albums", {
+        new MenuItem(){label: "_Previous Album", accel: "Page_Up", item_id: PREV_ALBUM},
+        new MenuItem(){label: "_Next Album", accel: "Page_Down", item_id: NEXT_ALBUM},
+        new MenuItem(){label: "_Jump to Playing Album", accel: "<Primary>j", item_id: JUMP_ALBUM},
+        new MenuItem(){label: "Load Album Art...", accel: null, item_id: LOAD_ALBUM_ART}
+    });
+    menubar.install();
 }
 
 /**
@@ -245,5 +279,30 @@ void invalidate_album(int albumid) {
 
 File get_file(Song song) {
     return new File(this.home_directory, song.filename);
+}
+
+void menu_activated(int item_id) {
+    switch item_id {
+    case ADD_FOLDER:
+        break;
+    case RIP_CD:
+        break;
+    case SYNC_TO_DEVICE:
+        break;
+    case QUIT:
+        this.check_database.save();
+        this.window.close();
+        break;
+    case PREV_ALBUM:
+        this.cover_panel.select_next_album(-1);
+        break;
+    case NEXT_ALBUM:
+        this.cover_panel.select_next_album(1);
+        break;
+    case JUMP_ALBUM:
+        break;
+    case LOAD_ALBUM_ART:
+        break;
+    }
 }
 }
