@@ -7,6 +7,9 @@
  */
 package albumish.database;
 import sanka.io.File;
+import sanka.io.FileWriter;
+import sanka.json.JsonElement;
+import sanka.json.JsonFormatter;
 import sanka.json.JsonParser;
 
 class Database {
@@ -141,7 +144,43 @@ class Database {
      * Overwrite the database file with the current contents of the database.
      */
     void save() {
-        // TODO
+        if !this.is_changed {
+            return;
+        }
+        var songArray = new JsonElement[];
+        for var song : this.song_list {
+            if song == null || song.filename == null {
+                continue;
+            }
+            var info = new SongInfo();
+            info.artist = this.artist_list[song.artistid].name;
+            info.album = this.album_list[song.albumid].name;
+            var artistid = this.album_list[song.albumid].artistid;
+            if artistid > 0 && artistid != song.artistid {
+                info.album_artist = this.artist_list[artistid].name;
+            }
+            var obj1 = info.toJsonObject();
+            var obj2 = song.toJsonObject();
+            for var entry : obj2.getMembers() {
+                if !entry.key.endsWith("id") {
+                    obj1.set(entry.key, entry.value);
+                }
+            }
+            songArray.add(new JsonElement().makeObject(obj1));
+        }
+        var writer = new FileWriter();
+        var filename = new File(this.directory, this.filename).getPath();
+        var status = writer.open(filename);
+        if status != 0 {
+            System.println(filename + ": " + System.strerror(status));
+            return;
+        }
+        var formatter = new JsonFormatter(writer);
+        formatter.level = "  ";
+        formatter.omitNulls = true;
+        formatter.format(new JsonElement().makeArray(songArray));
+        writer.close();
+        this.is_changed = false;
     }
 
     void delete_album(int albumid) {

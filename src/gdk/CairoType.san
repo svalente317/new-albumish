@@ -5,6 +5,10 @@ class CairoType {
 c__include "gtk/gtk.h";
 c__repr    "cairo_t*";
 
+void set_source_rgba(double red, double green, double blue, double alpha) {
+    c__stmt "cairo_set_source_rgba(this, red, green, blue, alpha)";
+}
+
 void set_source_rgba(RGBA color) {
     c__stmt "gdk_cairo_set_source_rgba(this, color)";
 }
@@ -44,6 +48,10 @@ void text_extents(String utf8, TextExtents t) {
 
 void show_text(String utf8) {
     c__stmt "cairo_show_text(this, utf8)";
+}
+
+void show_layout(PangoLayout layout) {
+    c__stmt "pango_cairo_show_layout(this, layout)";
 }
 
 void set_source_pixbuf(Pixbuf p, double x, double y) {

@@ -7,8 +7,12 @@
  */
 package albumish;
 import gdk.CairoType;
-import gdk.TextExtents;
+import gdk.FontDescription;
+import gdk.PangoContext;
+import gdk.PangoLayout;
+import gdk.Rectangle;
 import gtk.DrawingArea;
+import gtk.Label;
 import gtk.ScrolledWindow;
 import gtk.Widget;
 import albumish.filter.AlbumSorter;
@@ -30,6 +34,7 @@ private int[] album_list;
 private int panel_height;
 private int mouse_down_idx;
 private double anchor;
+private FontDescription font_description;
 
 CoverPanel(Albumish player) {
     this.player = player;
@@ -113,6 +118,10 @@ void select_next_album(int delta) {
 }
 
 void draw(DrawingArea area, CairoType cairo) {
+    get_this_font_description();
+    var context = area.get_pango_context();
+    var layout = new PangoLayout(context, cairo);
+    layout.set_font_description(this.font_description);
     var visible_width = this.viewport.get_allocated_width();
     var base = this.viewport.get_hscrollbar().get_value();
     var xpos = 0;
@@ -140,65 +149,66 @@ void draw(DrawingArea area, CairoType cairo) {
                 cairo.paint();
                 cairo.restore();
             }
+            cairo.save();
+            cairo.set_source_rgba(0, 0, 0, 1);
             cairo.set_line_width(1);
             cairo.rectangle(xpos, ypos, width, width);
             cairo.stroke();
-            /*
             if idx == this.mouse_down_idx {
-                GC gc = event.gc;
-                Color default_color = gc.getForeground();
-                gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
-                gc.drawRectangle(xpos - base, ypos, width - 1, width - 1);
-                int np = select_box_thickness;
-                int minus = 1 + np + np;
-                gc.drawRectangle(xpos - base + np, ypos + np, width - minus, width - minus);
-                gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_WHITE));
-                for (int n = 1; n < select_box_thickness; n++) {
-                    minus = 1 + n + n;
-                    gc.drawRectangle(xpos - base + n, ypos + n, width - minus, width - minus);
+                var np = select_box_thickness;
+                var minus = np + np;
+                cairo.rectangle(xpos + np, ypos + np, width - minus, width - minus);
+                cairo.stroke();
+                cairo.set_source_rgba(1, 1, 1, 1);
+                for var n = 1; n < select_box_thickness; n++ {
+                    minus = n + n;
+                    cairo.rectangle(xpos + n, ypos + n, width - minus, width - minus);
+                    cairo.stroke();
                 }
-                gc.setForeground(default_color);
             }
-            */
+            cairo.restore();
             if !is_selected {
                 var album = this.player.database.album_list[albumid];
                 var artist = this.player.database.artist_list[album.artistid];
                 if artist.name != null {
                     ypos = default_ypos - text_spacing;
-                    paint_line(cairo, artist.name, xpos, ypos, width, true);
+                    paint_line(cairo, layout, artist.name, xpos, ypos, width, true);
                 }
                 if album.name != null {
                     ypos = default_ypos + width + text_spacing;
-                    paint_line(cairo, album.name, xpos, ypos, width, false);
+                    paint_line(cairo, layout, album.name, xpos, ypos, width, false);
                 }
             }
         }
         xpos = xpos + width;
     }
+    layout.unref();
 }
 
 /**
  * Paint a single line of text centered in a box.
  */
-private void paint_line(CairoType cairo, String text, int xpos, int ypos, int width, boolean above) {
-    var extents = new TextExtents();
-    cairo.text_extents(text, extents);
-    if extents.width > width {
+private void paint_line(CairoType cairo, PangoLayout layout, String text, int xpos, int ypos,
+    int width, boolean above) {
+
+    var ink = new Rectangle();
+    var rect = new Rectangle();
+    layout.set_text(text, -1);
+    layout.pixel_extents(ink, rect);
+    if rect.width > width {
         var length = text.length();
-        while (length > 0) && (extents.width > width) {
+        while (length > 0) && (rect.width > width) {
             length = length - 1;
-            text = text.substring(0, length) + "...";
-            cairo.text_extents(text, extents);
+            layout.set_text(text.substring(0, length) + "...", -1);
+            layout.pixel_extents(ink, rect);
         }
     }
-    xpos = xpos + (width - extents.width) / 2;
+    xpos = xpos + (width - rect.width) / 2;
     if above {
-        ypos = ypos - extents.height;
+        ypos = ypos - rect.height;
     }
-    // System.println("xpos=" + xpos + " ypos=" + ypos + " width=" + extents.width +
-    // " height=" + extents.height + " text=" + text);
     cairo.move_to(xpos, ypos);
-    cairo.show_text(text);
+    cairo.show_layout(layout);
 }
 
 private void center_selected_album() {
@@ -280,6 +290,24 @@ boolean callback(Widget w, int event_type, double x, double y, int button) {
         var selection = this.viewport.get_hscrollbar().get_value() - delta;
         this.viewport.get_hscrollbar().set_value(selection);
         break;
+    case Widget.DOUBLE_BUTTON_PRESS:
+        var albumid = get_selected_albumid();
+        if albumid < 0 {
+            break;
+        }
+        // TODO update checked database
+        var album = this.player.database.album_list[albumid];
+        var song_list = new int[];
+        for var songid : album.song_list {
+            if this.player.check_database.get(songid) {
+                song_list.add(songid);
+            }
+       }
+       var listid = this.player.set_auto_playlist(song_list);
+       if song_list.length > 0 {
+           this.player.play_song(listid, song_list[0]);
+       }
+       break;
     }
     return false;
 }
@@ -348,6 +376,15 @@ private void select_nth_album(int idx) {
     item.addSelectionListener(this);
     popupMenu.setVisible(true);
 }*/
+
+private void get_this_font_description() {
+    if this.font_description != null {
+        return;
+    }
+    var label = new Label("");
+    var ctx = label.get_style_context();
+    this.font_description = ctx.get_font();
+}
 }
 
 // removed: controlResized, widgetSelected, mouseDoubleClick, select_album

@@ -1,0 +1,7 @@
+package gdk;
+
+class PangoContext {
+
+c__include "gtk/gtk.h";
+c__repr    "PangoContext*";
+}

@@ -164,7 +164,7 @@ void row_activated(TreeView tree_view, TreePath path, TreeViewColumn column) {
         }
         currentRow = currentRow + 1;
     }
-    var listid = this.player.set_autoplaylist(songList);
+    var listid = this.player.set_auto_playlist(songList);
     this.player.play_song(listid, songid);
 }
 

@@ -1,4 +1,5 @@
 package gtk;
+import gdk.FontDescription;
 import gdk.RGBA;
 
 class StyleContext {
@@ -21,5 +22,10 @@ RGBA lookup_color(String key) {
     var success = false;
     c__stmt "success = gtk_style_context_lookup_color(this, key, color)";
     return success ? color : null;
+}
+
+FontDescription get_font() {
+    // TODO deprecated: Use 'gtk_style_context_get' instead
+    c__stmt "return gtk_style_context_get_font(this, GTK_STATE_NORMAL)";
 }
 }

@@ -179,7 +179,7 @@ void sort_albums(int sort_type) {
 /**
  * Called by song_panel. Update playlist panels.
  */
-int set_autoplaylist(int[] songList) {
+int set_auto_playlist(int[] songList) {
     var playlistid = AUTO_PLAYLIST;
     this.playlists[playlistid].reset(songList);
     // TODO this.playlistPanel.set...
@@ -290,6 +290,7 @@ void menu_activated(int item_id) {
     case SYNC_TO_DEVICE:
         break;
     case QUIT:
+        this.database.save();
         this.check_database.save();
         this.window.close();
         break;

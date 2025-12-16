@@ -1,19 +1,18 @@
-- CoverPanel - font is too small and not centered
-- playlists: add Playlist menu, etc.
+- implement Sync To Device
+- SongPanel - narrow columns after album swap
 - problem reading cover images from some files
-- CoverPanel draw box around selected panel
 - is it possible to turn GC back on?
-- need IntChannel
 - Utils needs char-array to string
 - TopPanel - buttons should be square
 - TopPanel - change between play button and pause button
-- Playlist Panel (w todo in set_autoplaylist)
 - highlight row in playlist when it starts playing
 - implement Jump To Playing Song
-- JsonParser unicode to utf-8
-- implement Sync To Device
-- Database save
+
+- playlists: add Playlist menu, etc.
+- Playlist Panel (w todo in set_autoplaylist)
 - read playlist files from playlist directory
+
+- JsonParser unicode to utf-8
 - AlbumSorter lowercase
 - ListStore and doubles
 - sanka: add superclass to #includes so Bin does not need to import Container

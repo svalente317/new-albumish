@@ -1,0 +1,34 @@
+package gdk;
+
+class PangoLayout {
+
+c__include "gtk/gtk.h";
+c__repr    "PangoLayout*";
+
+PangoLayout(PangoContext context, CairoType cairo) {
+    if context == null {
+        c__stmt "return pango_cairo_create_layout(cairo)";
+    }
+    c__stmt "PangoLayout *layout = pango_layout_new(context)";
+    if cairo != null {
+        c__stmt "pango_cairo_update_layout(cairo, layout)";
+    }
+    c__stmt "return layout";
+}
+
+void set_font_description(FontDescription font) {
+    c__stmt "pango_layout_set_font_description(this, font)";
+}
+
+void set_text(String text, int length) {
+    c__stmt "pango_layout_set_text(this, text, length)";
+}
+
+void pixel_extents(Rectangle ink_rect, Rectangle logical_rect) {
+    c__stmt "pango_layout_get_pixel_extents(this, (PangoRectangle*) ink_rect, (PangoRectangle*) logical_rect)";
+}
+
+void unref() {
+     c__stmt "g_object_unref(this)";
+}
+}

@@ -1,0 +1,7 @@
+package gdk;
+
+class FontDescription {
+
+c__include "gtk/gtk.h";
+c__repr    "PangoFontDescription*";
+}

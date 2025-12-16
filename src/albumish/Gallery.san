@@ -8,7 +8,7 @@
 package albumish;
 import sanka.io.File;
 import sanka.io.FileWriter;
-import sanka.lang.Channel;
+import sanka.lang.IntChannel;
 import sanka.lang.Thread;
 import gdk.Pixbuf;
 import gtk.Context;
@@ -27,7 +27,7 @@ class Gallery {
     private boolean[] is_loaded;
     private map[int]Pixbuf small_map;
     private map[int]Pixbuf big_map;
-    private Channel channel;
+    private IntChannel channel;
     private Thread thread;
 
     Gallery(Albumish player, File topdir, int small_size, int big_size) {
@@ -38,7 +38,7 @@ class Gallery {
         this.is_loaded = new boolean[](player.database.album_list.length);
         this.small_map = new map[int]Pixbuf;
         this.big_map = new map[int]Pixbuf;
-        this.channel = new Channel(CHANNEL_SIZE);
+        this.channel = new IntChannel(CHANNEL_SIZE);
         this.thread = new Thread(this);
     }
 
@@ -55,7 +55,7 @@ class Gallery {
             while this.channel.getQueueSize() >= CHANNEL_SIZE {
                 this.channel.pop();
             }
-            this.channel.push(new Integer(){value: albumid});
+            this.channel.push(albumid);
             return null;
         }
         return is_selected ? this.big_map[albumid] : this.small_map[albumid];
@@ -63,7 +63,7 @@ class Gallery {
 
     void run() {
         while true {
-            var albumid = ((Integer) this.channel.pop()).value;
+            var albumid = this.channel.pop();
             if !this.is_loaded[albumid] {
                 this.is_loaded[albumid] = true;
                 load_image(albumid);
@@ -151,8 +151,4 @@ class Gallery {
     }
 
     // removed: audio_file_has_artwork, copy_file, invalidate
-}
-
-class Integer {
-    int value;
 }
