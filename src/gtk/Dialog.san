@@ -1,0 +1,37 @@
+package gtk;
+
+class Dialog extends Bin {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+const REPSONSE_ACCEPT = -3;
+const RESPONSE_OK = -5;
+const RESPONSE_CANCEL = -6;
+
+Dialog(String title, Window parent) {
+    c__stmt "return gtk_dialog_new_with_buttons(title, GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, NULL, NULL)";
+}
+
+static Dialog new_with_ok_and_cancel(String title, Window parent) {
+    var ok = "OK";
+    var cancel = "Cancel";
+    c__stmt "return gtk_dialog_new_with_buttons(title, GTK_WINDOW(parent), GTK_DIALOG_DESTROY_WITH_PARENT, cancel, GTK_RESPONSE_CANCEL, ok, GTK_RESPONSE_OK, NULL)";
+}
+
+Box get_content_area() {
+    c__stmt "return gtk_dialog_get_content_area(GTK_DIALOG(this))";
+}
+
+void connect(DialogCallback callback) {
+    var signal = "response";
+    c__stmt "g_signal_connect(this, signal, G_CALLBACK(_dialog_callback), callback)";
+}
+
+c__stmt "void _dialog_callback(GtkWidget* self, gint id, gpointer user_data)";
+c__stmt"{ DialogCallback__callback((struct DialogCallback *) user_data, id); }";
+}
+
+interface DialogCallback {
+    void callback(int id);
+}

@@ -1,0 +1,68 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.sync;
+
+/**
+ * This class use the "gio" CLI tool to provide a client API to the GIO filesystem.
+ * This is a bit hacky. Ideally, we should use a sanka-to-C library.
+ */
+class GioClient {
+    /**
+     * @return list of URIs for MTP devices
+     */
+    static String[] getMtpDeviceList() {
+        /*
+        var command = new String[] {"gio", "mount", "-l"};
+        ProcessBuilder pb = new ProcessBuilder(command);
+        Process process;
+        try {
+            process = pb.start();
+        } catch (Exception exception) {
+            System.err.println("Failed to start process: " + exception);
+            return null;
+        }
+        InputStream istream = process.getInputStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+        List<String> results = new ArrayList<>();
+        while (true) {
+            String line = null;
+            try {
+                line = reader.readLine();
+            } catch (Exception exception) {
+                System.err.println("Failed reading from process: " + exception);
+            }
+            if (line == null) {
+                break;
+            }
+            if (this.use_gio) {
+                String[] words = line.split(" ");
+                if (words.length == 4 && words[0].startsWith("Mount(") &&
+                        words[1].equals("mtp") && words[2].equals("->")) {
+                    try {
+                        results.add(URLDecoder.decode(words[3], StandardCharsets.UTF_8));
+                    } catch (Exception dummy) {}
+                }
+            } else {
+                results.add(line);
+            }
+        }
+        try {
+            reader.close();
+        } catch (Exception exception) {
+            System.err.println("Failed to close stdout: " + exception);
+        }
+        try {
+            process.waitFor();
+        } catch (Exception exception) {
+            System.err.println("Failed to clean up process: " + exception);
+        }
+        return results.toArray(new String[0]);
+        */
+        return null;
+    }
+}

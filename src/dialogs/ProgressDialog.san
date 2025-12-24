@@ -1,0 +1,67 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.dialogs;
+import gtk.Context;
+import gtk.Dialog;
+import gtk.Label;
+import gtk.ProgressBar;
+import gtk.Window;
+
+class ProgressDialog {
+    Dialog dialog;
+    ProgressBar progress;
+    Label bottom_label;
+
+    ProgressDialog(Window parent, String title, String description) {
+        this.dialog = new Dialog(title, parent);
+
+        var box = this.dialog.get_content_area();
+        box.set_border_width(20);
+        box.set_spacing(20);
+        var label = new Label(description);
+        box.add(label);
+        this.progress = new ProgressBar();
+        box.add(this.progress);
+        this.bottom_label = new Label("");
+        box.add(this.bottom_label);
+        this.dialog.show_all();
+    }
+
+    void set_bottom_label(String text) {
+        Context.default_context().invoke(new {
+            progress_dialog: this;
+            text: text;
+            void callback() {
+                this.progress_dialog.bottom_label.set_text(this.text);
+            }
+        });
+    }
+
+    void set_progress(int current, int total) {
+        Context.default_context().invoke(new {
+            progress_dialog: this;
+            fraction: (double) current / (double) total;
+            void callback() {
+                this.progress_dialog.progress.set_fraction(this.fraction);
+            }
+        });
+    }
+
+    void close_and_run(Runnable runnable) {
+        Context.default_context().invoke(new {
+            progress_dialog: this;
+            runnable: runnable;
+            void callback() {
+                this.progress_dialog.dialog.destroy();
+                if this.runnable != null {
+                    this.runnable.run();
+                }
+            }
+        });
+    }
+}

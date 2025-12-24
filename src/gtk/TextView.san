@@ -1,0 +1,15 @@
+package gtk;
+
+class TextView extends Container {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+TextView() {
+    c__stmt "return gtk_text_view_new()";
+}
+
+TextBuffer get_buffer() {
+    c__stmt "return gtk_text_view_get_buffer(GTK_TEXT_VIEW(this))";
+}
+}

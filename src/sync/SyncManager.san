@@ -1,0 +1,261 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.sync;
+import sanka.io.File;
+import albumish.Albumish;
+import albumish.Utils;
+import albumish.database.Database;
+import albumish.database.Song;
+import albumish.dialogs.InputDialog;
+import albumish.dialogs.ProgressDialog;
+import albumish.dialogs.SyncManagerDialog;
+import albumish.sync.GioClient;
+
+class SyncManager {
+    const MUSIC_URI_KEY = "music_uri";
+    const STORAGE_DIR = "Internal shared storage";
+    const MUSIC_DIR = "Music";
+
+    private Albumish player;
+    private String user_home;
+    private String music_uri;
+    private ProgressDialog dialog;
+
+    private SyncClient sync_client;
+    private map[String]boolean subdir_set;
+    private Filenames[] to_add;
+    private Filenames[] to_update;
+    private String[] to_delete;
+
+    /**
+     * Start the process of syncing checked songs to device.
+     */
+    void sync_to_device(Albumish player) {
+        this.player = player;
+        this.user_home = System.getenv("HOME");
+        var device_uris = GioClient.getMtpDeviceList();
+        if device_uris != null && device_uris.length > 0 {
+            var device_uri = device_uris[0];
+            if device_uris.length > 1 {
+                System.println("Found " + device_uris.length + " MTP devices.");
+                System.println("Using " + device_uri);
+            }
+            this.music_uri = device_uri + STORAGE_DIR + "/" + MUSIC_DIR;
+        }
+        if this.music_uri == null {
+            var mountpoint = get_mounted_device();
+            if mountpoint != null {
+                this.music_uri = mountpoint + "/" + MUSIC_DIR;
+            }
+        }
+        if this.music_uri == null {
+            this.music_uri = player.config[MUSIC_URI_KEY];
+        }
+        new InputDialog(this.player.window, "Sync to Device",
+            "Enter device mount point.", this.music_uri, this);
+    }
+
+    void callback(String text) {
+        this.music_uri = text;
+        this.dialog = new ProgressDialog(this.player.window,
+            "Sync to Device...", "Reading " + this.music_uri + "...");
+        new Thread(this);
+    }
+
+    /**
+     * In a background thread, sync to the device, while updating the view.
+     */
+    void run() {
+        System.println("running thread...");
+        // if scheme == "ftp" ...
+        // if scheme == "mtp" ...
+        this.sync_client = new FileSystemClient(this.music_uri);
+        this.subdir_set = new map[String]boolean;
+        var fileinfo_map = new map[String]FileInfo;
+        var workqueue = new String[];
+        var subdirs = new String[];
+        var fileinfos = new FileInfo[];
+        workqueue.add("");
+        var processed = 0;
+        while workqueue.length > 0 {
+            var directory = workqueue[0];
+            workqueue.delete(0, 1);
+            this.dialog.set_bottom_label(directory);
+            this.sync_client.listDirectory(directory, subdirs, fileinfos);
+            for var subdir : subdirs {
+                this.subdir_set[subdir] = true;
+            }
+            for var fileinfo : fileinfos {
+                fileinfo_map[fileinfo.pathname] = fileinfo;
+            }
+            workqueue.addAll(subdirs);
+            // Collections.sort(workqueue);
+            subdirs.setLength(0);
+            fileinfos.setLength(0);
+            processed = processed + 1;
+            this.dialog.set_progress(processed, processed + workqueue.length);
+        }
+
+        // Compare the local database to the contents of the device.
+        // Build lists of files to add, update, and delete.
+        this.to_add = new Filenames[];
+        this.to_update = new Filenames[];
+        this.to_delete = new String[];
+        for var song : this.player.database.song_list {
+            if song == null || song.filename == null || !this.player.check_database.get(song.id) {
+                continue;
+            }
+            var media_name = generate_media_name(song, this.player.database);
+            var cache_file = get_song_file_with_artwork(song, media_name);
+            var song_file = cache_file != null ? cache_file : this.player.get_file(song);
+            var fileinfo = fileinfo_map[media_name];
+            if fileinfo == null {
+                this.to_add.add(new Filenames(){
+                    filename: song_file.getPath(), media_name: media_name
+                });
+            } else {
+                fileinfo_map.remove(media_name);
+                if is_modified(song_file, fileinfo) {
+                    this.to_update.add(new Filenames(){
+                        filename: song_file.getPath(), media_name: media_name
+                    });
+                }
+            }
+        }
+        for var path, fileinfo : fileinfo_map {
+            this.to_delete.add(fileinfo.pathname);
+        }
+
+        var t1 = "";
+        for var song : this.to_add {
+            t1 = t1 + song.media_name + "\n";
+        }
+        var t2 = "";
+        for var song : this.to_update {
+            t2 = t2 + song.media_name + "\n";
+        }
+        var t3 = "";
+        for var filename : this.to_delete {
+            t3 = t3 + filename + "\n";
+        }
+        var text = "TO ADD:\n" + t1 + "\nTO UPDATE:\n" + t2 + "\nTO DELETE:\n" + t3;
+
+        var header = "Sync to " + this.music_uri + "...";
+        this.dialog.close_and_run(new {
+            window: this.player.window;
+            header: header;
+            text: text;
+            sync_manager: this;
+            void run() {
+                new SyncManagerDialog(this.window, this.header, this.text, this.sync_manager);
+            }
+        });
+    }
+
+    /**
+     * Generate filename [Artist]/[Album]/filename.
+     */
+    private static String generate_media_name(Song song, Database database) {
+        if song.filename == null {
+            return null;
+        }
+        var filename = song.filename;
+        var idx = filename.lastIndexOf('/');
+        if idx >= 0 {
+            filename = filename.substring(idx + 1);
+        }
+        if filename == "" {
+            return null;
+        }
+        var album = database.album_list[song.albumid];
+        var artist = database.artist_list[album.artistid];
+        var n1 = Utils.name_to_dirname(artist.name == null ? "Unknown" : artist.name);
+        var n2 = Utils.name_to_dirname(album.name == null ? "Untitled" : album.name);
+        var n3 = Utils.name_to_filename(filename);
+        return n1 + "/" + n2 + "/" + n3;
+    }
+
+    /**
+     * If this song has artwork in the gallery but not in the mp3 file, then write
+     * a copy of the mp3 file with the artwork embedded, to write to the device.
+     * If we already have a cached copy of the file with the embedded artwork, then
+     * use that.
+     */
+    private File get_song_file_with_artwork(Song song, String media_name) {
+        // TODO get_song_file_with_artwork
+        return null;
+    }
+
+    /**
+     * Compare size and modification time of the file on the device to the file on
+     * the computer.
+     */
+    private static boolean is_modified(File file, FileInfo fileinfo) {
+        // TODO is_modified
+        return false;
+    }
+
+    /**
+     * Try to find the mount point of a mounted device.
+     */
+    private String get_mounted_device() {
+        // TODO get_mounted_device
+        return null;
+    }
+
+    /**
+     * Start the process of applying changes to the device.
+     */
+    void apply_changes_to_device() {
+        this.dialog = new ProgressDialog(this.player.window,
+                "Sync to Device...", "Writing " + this.music_uri + "...");
+        new Thread(new {
+            sync_manager: this;
+            void run() {
+                this.sync_manager.run_apply_changes();
+            }
+        });
+    }
+
+    /**
+     * In a background thread, add, update, and delete files on the device.
+     */
+    void run_apply_changes() {
+        this.to_add.addAll(this.to_update);
+        this.to_update = null;
+
+        var total = this.to_add.length + this.to_delete.length;
+        var current = 0;
+        for var song : this.to_add {
+            this.dialog.set_bottom_label(song.media_name);
+            var directory = get_parent_directory(song.media_name);
+            if !this.subdir_set[directory] {
+                this.sync_client.makeDirectory(directory);
+                this.subdir_set[directory] = true;
+            }
+            this.sync_client.copyFile(song.filename, song.media_name);
+            current = current + 1;
+            this.dialog.set_progress(current, total);
+        }
+        for var pathname : this.to_delete {
+            this.dialog.set_bottom_label(pathname);
+            this.sync_client.removeFile(pathname);
+            current = current + 1;
+            this.dialog.set_progress(current, total);
+        }
+        this.dialog.close_and_run(null);
+    }
+
+    /**
+     * Strip off the filename component.
+     */
+    private static String get_parent_directory(String name) {
+        var idx = name.lastIndexOf('/');
+        return idx < 0 ? name : name.substring(0, idx);
+    }
+}

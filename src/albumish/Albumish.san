@@ -18,6 +18,7 @@ import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.database.Song;
 import albumish.filter.FilterWorker;
+import albumish.sync.SyncManager;
 
 class Albumish {
 
@@ -42,6 +43,7 @@ const ADD_SELECTION = 11;
 const DELETE_SELECTION = 12;
 const RANDOM_PLAYLIST = 13;
 
+map[String]String config;
 File home_directory;
 Database database;
 CheckDatabase check_database;
@@ -69,6 +71,7 @@ void run(String[] argv)
 }
 
 void callback(Application app) {
+    this.config = new map[String]String;
     this.home_directory = new File(System.getenv("HOME"));
     var directory = new File(this.home_directory, ".albumish");
     this.database = new Database();
@@ -288,6 +291,7 @@ void menu_activated(int item_id) {
     case RIP_CD:
         break;
     case SYNC_TO_DEVICE:
+        new SyncManager().sync_to_device(this);
         break;
     case QUIT:
         this.database.save();

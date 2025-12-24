@@ -39,4 +39,16 @@ class Utils {
         }
         return filename;
     }
+
+    /**
+     * In vfat, a directory name can not end with a dot.
+     */
+    static String name_to_dirname(String name) {
+        name = name_to_filename(name);
+        var idx = name.length() - 1;
+        if name[idx] == '.' {
+            name = name.substring(0, idx) + "_";
+        }
+        return name;
+    }
 }

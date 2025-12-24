@@ -1,0 +1,7 @@
+package albumish.sync;
+
+class FileInfo {
+    String pathname;
+    long size;
+    long timeModified;
+}

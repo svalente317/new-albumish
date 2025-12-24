@@ -1,0 +1,57 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.dialogs;
+import gtk.Dialog;
+import gtk.Entry;
+import gtk.Label;
+import gtk.ScrolledWindow;
+import gtk.TextView;
+import gtk.Window;
+import albumish.sync.SyncManager;
+
+class SyncManagerDialog {
+    const TEXTBOX_NUM_COLUMNS = 120;
+    const TEXTBOX_NUM_LINES = 10;
+
+    Dialog dialog;
+    SyncManager sync_manager;
+
+    SyncManagerDialog(Window parent, String header, String description, SyncManager sync_manager) {
+        this.sync_manager = sync_manager;
+        this.dialog = Dialog.new_with_ok_and_cancel("Sync to Device...", parent);
+        var box = this.dialog.get_content_area();
+        box.set_border_width(10);
+        box.set_spacing(10);
+
+        var top_label = new Label(header);
+        box.add(top_label);
+
+        var text_view = new TextView();
+        var buffer = text_view.get_buffer();
+        buffer.set_text(description);
+
+        var viewport = new ScrolledWindow();
+        viewport.set_size_request(400, 400);
+        viewport.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_AUTOMATIC);
+        viewport.set_shadow_type(ScrolledWindow.SHADOW_OUT);
+        viewport.add(text_view);
+        box.add(viewport);
+
+        this.dialog.connect(this);
+        this.dialog.show_all();
+    }
+
+    void callback(int id) {
+        if id == Dialog.RESPONSE_OK || id == Dialog.RESPONSE_CANCEL {
+            this.dialog.destroy();
+        }
+        if id == Dialog.RESPONSE_OK {
+            this.sync_manager.apply_changes_to_device();
+        }
+    }
+}

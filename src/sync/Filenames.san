@@ -1,0 +1,6 @@
+package albumish.sync;
+
+class Filenames {
+    String filename;
+    String media_name;
+}

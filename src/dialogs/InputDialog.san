@@ -1,0 +1,63 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.dialogs;
+import sanka.lang.Runnable;
+import gtk.Dialog;
+import gtk.Entry;
+import gtk.Label;
+import gtk.Window;
+
+class InputDialog {
+    Dialog dialog;
+    Entry entry;
+    InputDialogCallback completer;
+
+    InputDialog(Window parent, String title, String prompt, String defval, InputDialogCallback completer) {
+        this.completer = completer;
+        this.dialog = Dialog.new_with_ok_and_cancel(title, parent);
+        var box = this.dialog.get_content_area();
+        box.set_border_width(20);
+        box.set_spacing(20);
+        var label = new Label(prompt);
+        box.add(label);
+        this.entry = new Entry();
+        if defval != null {
+            this.entry.set_text(defval);
+        }
+        this.entry.set_size_request(250, 0);
+        box.add(this.entry);
+
+        var entry_callback = new {
+            input_dialog: this;
+            void callback(Entry entry) {
+                this.input_dialog.callback(Dialog.RESPONSE_OK);
+            }
+        };
+        this.entry.connect("activate", entry_callback);;
+
+        this.dialog.connect(this);
+        this.dialog.show_all();
+    }
+
+    void callback(int id) {
+        var text = this.entry.get_text();
+        if text == "" {
+            return;
+        }
+        if id == Dialog.RESPONSE_OK || id == Dialog.RESPONSE_CANCEL {
+            this.dialog.destroy();
+        }
+        if id == Dialog.RESPONSE_OK {
+            this.completer.callback(text);
+        }
+    }
+}
+
+interface InputDialogCallback {
+    void callback(String text);
+}

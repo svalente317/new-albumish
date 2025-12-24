@@ -1,0 +1,19 @@
+package gtk;
+
+class ProgressBar extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+ProgressBar() {
+    c__stmt "return gtk_progress_bar_new()";
+}
+
+double get_fraction() {
+    c__stmt "return gtk_progress_bar_get_fraction(GTK_PROGRESS_BAR(this))";
+}
+
+void set_fraction(double fraction) {
+    c__stmt "gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(this), fraction)";
+}
+}

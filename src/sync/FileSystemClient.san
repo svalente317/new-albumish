@@ -1,0 +1,88 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.sync;
+import sanka.io.File;
+import sanka.io.FileStats;
+import sanka.io.FileReader;
+import sanka.io.FileWriter;
+
+class FileSystemClient {
+    private File top;
+
+    FileSystemClient(String top) {
+        this.top = new File(top);
+    }
+
+    void listDirectory(String directory, String[] subdirs, FileInfo[] fileinfos) {
+        var names = new File(this.top, directory).list();
+        if names == null {
+            return;
+        }
+        if directory != "" && !directory.endsWith("/") {
+            directory = directory + "/";
+        }
+        for var name : names {
+            var pathname = directory + name;
+            var file = new File(this.top, pathname);
+            var stats = new FileStats();
+            if file.getStats(stats, true) != 0 {
+                continue;
+            }
+            if stats.isDirectory {
+                subdirs.add(pathname);
+            }
+            else if stats.isFile {
+                var info = new FileInfo();
+                info.pathname = pathname;
+                info.size = stats.length;
+                info.timeModified = stats.lastModified;
+                fileinfos.add(info);
+            }
+        }
+    }
+
+    boolean copyFile(String src, String dst) {
+        var reader = new FileReader();
+        var status = reader.open(src);
+        if status != 0 {
+            System.println(src + ": " + System.strerror(status));
+            return false;
+        }
+        var writer = new FileWriter();
+        status = writer.open(new File(this.top, dst).getPath());
+        if status != 0 {
+            reader.close();
+            System.println(dst + ": " + System.strerror(status));
+            return false;
+        }
+        var data = new byte[](8096);
+        while true {
+            status = reader.read(data);
+            if status <= 0 {
+                break;
+            }
+            data.setLength(status);
+            writer.write(data);
+        }
+        reader.close();
+        status = writer.close();
+        if status != 0 {
+            System.println(dst + ": " + System.strerror(status));
+            return false;
+        }
+        return true;
+    }
+
+    boolean makeDirectory(String directory) {
+        return new File(this.top, directory).mkdirs();
+    }
+
+    boolean removeFile(String pathname) {
+        return new File(this.top, pathname).delete();
+    }
+}

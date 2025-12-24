@@ -1,4 +1,7 @@
-- implement Sync To Device
+- Add to Library
+- Sync to device: get_song_file_with_artwork, is_modified
+- Sync to device: mtp, GioClient
+- Sync to device: FtpClient
 - SongPanel - narrow columns after album swap
 - problem reading cover images from some files
 - is it possible to turn GC back on?

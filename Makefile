@@ -1,6 +1,7 @@
 all: albumish.exe
 
-ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san
+ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san \
+		 src/sync/*.san src/dialogs/*.san
 
 GTK_FILES = src/gtk/*.san src/gdk/*.san
 GTK_CONFIG = --pkg-config gtk+-3.0
