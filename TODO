@@ -1,4 +1,10 @@
-- Add to Library
+- Look for wrong durations in database
+- Look at album_artists in database
+- new database is missing encoder and tags
+- AddToLibrary: reset_albums
+- Gallery: use mpg123 instead of id3tag
+- add to library: get variable bitrate
+- add to library: get tag class, get encoder
 - Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
 - Sync to device: FtpClient
@@ -23,3 +29,4 @@
 - CoverPanel: popup menu
 - grab focus after clear filter
 - Id3File: Writer
+- id3v1 genre

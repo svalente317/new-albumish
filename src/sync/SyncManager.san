@@ -7,6 +7,7 @@
  */
 package albumish.sync;
 import sanka.io.File;
+import sanka.io.FileStats;
 import albumish.Albumish;
 import albumish.Utils;
 import albumish.database.Database;
@@ -71,7 +72,6 @@ class SyncManager {
      * In a background thread, sync to the device, while updating the view.
      */
     void run() {
-        System.println("running thread...");
         // if scheme == "ftp" ...
         // if scheme == "mtp" ...
         this.sync_client = new FileSystemClient(this.music_uri);
@@ -196,8 +196,14 @@ class SyncManager {
      * the computer.
      */
     private static boolean is_modified(File file, FileInfo fileinfo) {
-        // TODO is_modified
-        return false;
+        var stats = new FileStats();
+        if file.getStats(stats, true) != 0 {
+            return false;
+        }
+        if stats.length != fileinfo.length {
+            return true;
+        }
+        return fileinfo.lastModified > 0 && stats.lastModified > fileinfo.lastModified;
     }
 
     /**

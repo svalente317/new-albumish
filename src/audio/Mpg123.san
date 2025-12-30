@@ -6,6 +6,10 @@ class Mpg123 {
 
 const SIGNED_16_ENCODING = 0;
 
+const CBR = 0;
+const VBR = 1;
+const ABR = 2;
+
 /**
  * Perform necessary one-time setup tasks for the mpg123 library's internal state.
  */
@@ -85,6 +89,13 @@ long seek(long samples) {
 }
 
 /**
+ * @return the number of samples in the mp3 file
+ */
+ long length() {
+     c__stmt "return mpg123_length(this)";
+ }
+
+/**
  * Return the string description of this object's last error.
  */
 String strerror() {
@@ -108,4 +119,63 @@ void delete() {
 static void exit() {
     c__stmt "mpg123_exit()";
 }
+
+int scan() {
+    c__stmt "return mpg123_scan(this)";
+}
+
+FrameInfo info() {
+    c__stmt "struct mpg123_frameinfo info";
+    c__stmt "if (mpg123_info(this, &info) != MPG123_OK) return NULL";
+    var fi = new FrameInfo();
+    c__stmt "fi->vbr = info.vbr";
+    c__stmt "fi->bitrate = info.bitrate";
+    c__stmt "fi->abr_rate = info.abr_rate";
+    return fi;
+}
+
+Id3Info id3() {
+    c__stmt "mpg123_id3v1 *v1";
+    c__stmt "mpg123_id3v2 *v2";
+    c__stmt "if (mpg123_id3(this, &v1, &v2) != MPG123_OK) return NULL";
+
+    var id3 = new Id3Info();
+    var v1tag = "ID3v1";
+    var v11tag = "ID3v11";
+    c__stmt "if (v1 != NULL) { id3->version = v1tag";
+    c__stmt "id3->title = _id3_string(v1->title, 30)";
+    c__stmt "id3->artist = _id3_string(v1->artist, 30)";
+    c__stmt "id3->album = _id3_string(v1->album, 30)";
+    c__stmt "id3->year = _id3_string(v1->year, 4)";
+    c__stmt "id3->comment = _id3_string(v1->comment, 30)";
+    c__stmt "if (v1->comment[28] == 0 && v1->comment[29] != 0) { id3->version = v11tag";
+    c__stmt "id3->track_number = v1->comment[29]; }}";
+
+    var v2version = 0;
+    c__stmt "if (v2 != NULL && v2->version > 0) { v2version = v2->version";
+    c__stmt "id3->title = _id3v2_string(v2->title)";
+    c__stmt "id3->artist = _id3v2_string(v2->artist)";
+    c__stmt "id3->album = _id3v2_string(v2->album)";
+    c__stmt "id3->year = _id3v2_string(v2->year)";
+    c__stmt "id3->genre = _id3v2_string(v2->genre)";
+    c__stmt "id3->comment = _id3v2_string(v2->comment)";
+    var trck = "TRCK";
+    var tpe2 = "TPE2";
+    c__stmt "for (int i = 0; i < v2->texts; i++) { mpg123_text *frame = &v2->text[i]";
+    c__stmt "if (strncmp(frame->id, trck, 4) == 0) id3->track_number = atoi(frame->text.p)";
+    c__stmt "if (strncmp(frame->id, tpe2, 4) == 0) id3->album_artist = _id3v2_string(&frame->text)";
+    c__stmt "}}";
+    if v2version > 0 {
+        id3.version = "ID3v2" + v2version;
+    }
+    return id3;
+}
+
+c__stmt "char *_id3_string(const char *src, int len) {";
+c__stmt "if (src[0] == 0) return NULL;";
+c__stmt "char *ret = GC_MALLOC_ATOMIC(len+1); strncpy(ret, src, len); ret[len] = 0; return ret; }";
+
+c__stmt "char *_id3v2_string(mpg123_string *src) {";
+c__stmt "return (src == NULL || src->p == NULL || src->p[0] == 0) ? NULL : STRING_SUBSTRING(src->p, 0, 0, 1); }";
+
 }

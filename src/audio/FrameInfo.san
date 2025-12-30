@@ -1,0 +1,7 @@
+package audio;
+
+class FrameInfo {
+    int vbr;
+    int bitrate;
+    int abr_rate;
+}

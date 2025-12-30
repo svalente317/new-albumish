@@ -1,0 +1,126 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.sync;
+import sanka.io.File;
+import sanka.io.FileStats;
+import albumish.Albumish;
+import albumish.Utils;
+import albumish.database.Song;
+import albumish.database.SongInfo;
+import albumish.dialogs.InputDialog;
+import albumish.dialogs.ProgressDialog;
+import audio.Mpg123;
+
+class AddToLibraryManager {
+
+    Albumish player;
+    private String pathname;
+    private ProgressDialog dialog;
+    private int file_count;
+    private int done_count;
+    private Mpg123 mpg;
+
+    /**
+     * Pop up an input dialog to select a folder to add.
+     */
+    void add_to_library(Albumish player) {
+        this.player = player;
+        var title = "Add Folder to Library";
+        var prompt = "Enter Folder to Add to Library.";
+        new InputDialog(player.window, title, prompt, null, this);
+    }
+
+    /**
+     * Pop up a progress dialog, and start a background thread to add the folder.
+     */
+    void callback(String pathname) {
+        this.pathname = pathname;
+        this.dialog = new ProgressDialog(this.player.window,
+                "Add to Library...", "Processing " + this.pathname + "...");
+        new Thread(this);
+    }
+
+    /**
+     * Find every file in the directory tree rooted at the given pathname. Add each media file to
+     * the database.
+     */
+    void run() {
+        var database = this.player.database;
+        var known_files = new map[String]boolean;
+        for var song : database.song_list {
+            if song != null && song.filename != null {
+                var pathname = this.player.get_file(song).getPath();
+                known_files[pathname] = true;
+            }
+        }
+        var file_list = Utils.read_directory_tree(new File(this.pathname), known_files);
+        this.file_count = file_list.length;
+        this.done_count = 0;
+        this.dialog.set_bottom_label("Done: 0 / " + this.file_count);
+        this.mpg = new Mpg123();
+        for var filename : file_list {
+            if this.pathname == null {
+                break;
+            }
+            var song = new Song();
+            var obj = new SongInfo();
+            read_id3_tags(filename, song, obj);
+            if song.title != null {
+                database.add_song(song, obj);
+            }
+            this.done_count++;
+            this.dialog.set_progress(this.file_count, this.done_count);
+            this.dialog.set_bottom_label("Done: " + this.done_count + " / " + this.file_count);
+        }
+        this.mpg.delete();
+        this.mpg = null;
+        this.dialog.close_and_run(null);
+        // TODO reset_albums();
+    }
+
+    private void read_id3_tags(String filename, Song song, SongInfo obj) {
+        song.filename = this.player.get_relative_filename(filename);
+        song.add_time = (long)(System.currentTimeMillis() / 1000);
+        var stats = new FileStats();
+        if new File(filename).getStats(stats, true) != 0 {
+            return;
+        }
+        song.mtime = (long)(stats.lastModified / 1000);
+
+        var mpg = this.mpg;
+        if mpg.open(filename) != 0 {
+            return;
+        }
+        // TODO. Is mpg.length() documented to work on VBR files without calling scan()?
+        var fmt = mpg.get_format();
+        song.duration = (int)((double) mpg.length() / fmt.rate);
+        var info = mpg.info();
+        if info != null {
+            if info.vbr == Mpg123.CBR {
+                song.bitrate = "" + info.bitrate;
+                // TODO else scan for bitrate
+            }
+        }
+        var id3 = mpg.id3();
+        mpg.close();
+
+        song.title = normalize(id3.title);
+        obj.artist = normalize(id3.artist);
+        obj.album = normalize(id3.album);
+        obj.album_artist = normalize(id3.album_artist);
+        song.track_number = id3.track_number;
+        song.year = id3.year != null ? System.parseInt(id3.year) : 0;
+        // TODO song.bpm = normalize(tag.get_frame_value(Id3File.BPM));
+        song.id3 = id3.version;
+        // TODO song.encoder = getEncoder(song, tag);
+    }
+
+    private static String normalize(String item) {
+        return item;
+    }
+}

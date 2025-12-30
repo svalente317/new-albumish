@@ -39,8 +39,8 @@ class FileSystemClient {
             else if stats.isFile {
                 var info = new FileInfo();
                 info.pathname = pathname;
-                info.size = stats.length;
-                info.timeModified = stats.lastModified;
+                info.length = stats.length;
+                info.lastModified = stats.lastModified;
                 fileinfos.add(info);
             }
         }

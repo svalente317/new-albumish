@@ -5,6 +5,15 @@ class Id3File {
     c__include "id3tag.h";
     c__repr    "struct id3_file *";
 
+    const TITLE = "TIT2";
+    const ARTIST = "TPE1";
+    const ALBUM = "TALB";
+    const ALBUM_ARTIST = "TPE2";
+    const TRACK = "TRCK";
+    const YEAR = "TYER";
+    const DATE = "TDRC";
+    const BPM = "TBPM";
+
     static Id3File open(String filename) {
         c__stmt "return id3_file_open(filename, ID3_FILE_MODE_READONLY)";
     }
@@ -24,6 +33,27 @@ class Id3Tag {
 
     Id3Frame frame(String name, int num) {
         c__stmt "return id3_tag_findframe(this, name, num)";
+    }
+
+    /**
+     * helper function for frames with regular fields with single string values
+     */
+    String get_frame_value(String name) {
+        var frame = frame(name, 0);
+        if frame == null {
+            return null;
+        }
+       // Field 0 is encoding type. Field 1 is string list.
+       var field = frame.field(1);
+       if field == null {
+           return null;
+       }
+       var n = field.get_n_strings();
+       if n == 0 {
+           return null;
+       }
+       // if n > 1 System.println("field " + name + " has " + n + " strings");
+       return field.get_string(0);
     }
 }
 
@@ -58,5 +88,16 @@ class Id3Field {
         writer.write(bytes);
         c__stmt "bytes->data = NULL";
         return true;
+    }
+
+    int get_n_strings() {
+        c__stmt "return (int) id3_field_getnstrings(this)";
+    }
+
+    String get_string(int idx) {
+        c__stmt "id3_ucs4_t const *ucs4 = id3_field_getstrings(this, idx)";
+        c__stmt "if (ucs4 == NULL) return NULL";
+        // TODO use gc_malloc? free-able string?
+        c__stmt "return id3_ucs4_utf8duplicate(ucs4)";
     }
 }

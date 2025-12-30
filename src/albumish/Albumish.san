@@ -18,6 +18,7 @@ import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.database.Song;
 import albumish.filter.FilterWorker;
+import albumish.sync.AddToLibraryManager;
 import albumish.sync.SyncManager;
 
 class Albumish {
@@ -284,9 +285,21 @@ File get_file(Song song) {
     return new File(this.home_directory, song.filename);
 }
 
+String get_relative_filename(String filename) {
+    var home = this.home_directory.getPath();
+    if filename.startsWith(home) {
+        filename = filename.substring(home.length());
+        if filename.startsWith("/") {
+            filename = filename.substring(1);
+        }
+    }
+    return filename;
+}
+
 void menu_activated(int item_id) {
     switch item_id {
     case ADD_FOLDER:
+        new AddToLibraryManager().add_to_library(this);
         break;
     case RIP_CD:
         break;

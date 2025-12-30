@@ -3,7 +3,7 @@ package albumish.database;
 serializable class Song {
     int id;
     String filename;
-    int mtime;
+    long mtime;
     String title;
     int artistid;
     int albumid;
@@ -14,6 +14,6 @@ serializable class Song {
     String bpm;
     String id3;
     String encoder;
-    int add_time;
+    long add_time;
     String tags;
 }

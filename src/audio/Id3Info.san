@@ -1,0 +1,13 @@
+package audio;
+
+class Id3Info {
+    String version;
+    String title;
+    String artist;
+    String album;
+    String year;
+    String genre;
+    String comment;
+    String album_artist;
+    int track_number;
+}
