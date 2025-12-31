@@ -191,4 +191,23 @@ c__stmt "char *ret = GC_MALLOC_ATOMIC(len+1); strncpy(ret, src, len); ret[len] =
 c__stmt "char *_id3v2_string(mpg123_string *src) {";
 c__stmt "return (src == NULL || src->p == NULL || src->p[0] == 0) ? NULL : STRING_SUBSTRING(src->p, 0, 0, 1); }";
 
+/**
+ * Open an MP3 file and return a read-only byte-array with its first id3v2 picture.
+ * The returned array is only valid until the file is closed. The file must be closed.
+ */
+byte[] open_id3v2_picture(String filename) {
+    c__stmt "if (mpg123_param(this, MPG123_FLAGS, MPG123_PICTURE, 0) != MPG123_OK) return NULL";
+    c__stmt "if (mpg123_open(this, filename) != MPG123_OK) return NULL";
+    c__stmt "mpg123_id3v1 *v1";
+    c__stmt "mpg123_id3v2 *v2";
+    c__stmt "if (mpg123_scan(this) != MPG123_OK) return NULL";
+    c__stmt "if (mpg123_id3(this, &v1, &v2) != MPG123_OK) return NULL";
+    c__stmt "if (v2 == NULL || v2->pictures == 0) return NULL";
+    c__stmt "mpg123_picture *pic = &v2->picture[0]";
+    var ret = new byte[];
+    c__stmt "ret->data = pic->data";
+    c__stmt "ret->length = pic->size";
+    c__stmt "ret->alloced = 0";
+    return ret;
+}
 }

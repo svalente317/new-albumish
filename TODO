@@ -1,5 +1,3 @@
-- Gallery: use mpg123 instead of id3tag
-- add to library: get variable bitrate
 - Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
 - Sync to device: FtpClient
@@ -15,6 +13,10 @@
 - playlists: add Playlist menu, etc.
 - Playlist Panel (w todo in set_autoplaylist)
 - read playlist files from playlist directory
+
+- RipManager
+- Delete Album (dialog)
+- Edit Tags dialog
 
 - JsonParser unicode to utf-8
 - AlbumSorter lowercase

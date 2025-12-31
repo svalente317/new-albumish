@@ -21,4 +21,14 @@ Pixbuf scale_simple(int width, int height, int interp_type) {
 void unref() {
     c__stmt "g_object_unref(this)";
 }
+
+static Pixbuf new_from_bytes(byte[] pic) {
+    c__stmt "GdkPixbufLoader *loader = gdk_pixbuf_loader_new()";
+    c__stmt "if (!gdk_pixbuf_loader_write(loader, pic->data, pic->length, NULL)) return NULL";
+    c__stmt "gdk_pixbuf_loader_close(loader, NULL)";
+    c__stmt "GdkPixbuf *pixbuf = gdk_pixbuf_loader_get_pixbuf(loader)";
+    c__stmt "if (pixbuf) g_object_ref(pixbuf)";
+    c__stmt "g_object_unref(loader)";
+    c__stmt "return pixbuf";
+}
 }

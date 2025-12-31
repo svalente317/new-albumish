@@ -7,17 +7,15 @@
  */
 package albumish;
 import sanka.io.File;
-import sanka.io.FileWriter;
 import sanka.lang.IntChannel;
 import sanka.lang.Thread;
+import audio.Mpg123;
 import gdk.Pixbuf;
 import gtk.Context;
-import audio.Id3File;
 import albumish.database.Album;
 import albumish.database.Artist;
 
 class Gallery {
-    const TEMP_FILE = "/tmp/albumishimg";
     const CHANNEL_SIZE = 12;
 
     private Albumish player;
@@ -119,34 +117,14 @@ class Gallery {
     }
 
     private Pixbuf get_audio_file_artwork(int songid) {
-        var image = null;
         var song = this.player.database.song_list[songid];
-        var mp3_file = this.player.get_file(song).getPath();
-        var audio = Id3File.open(mp3_file);
-        if audio == null {
-            return null;
-        }
-        var tag = audio.tag();
-        var frame = tag.frame("APIC", 0);
-        if frame != null {
-            var data_field = frame.field(4);
-            if data_field != null {
-                // var mime_field = frame.field(1);
-                var writer = new FileWriter();
-                var status = writer.open(TEMP_FILE);
-                if status != 0 {
-                    System.println(TEMP_FILE + ": " + System.strerror(status));
-                } else {
-                    data_field.binary(writer);
-                    writer.close();
-                    image = Pixbuf.new_from_file(TEMP_FILE);
-                    if image == null {
-                        System.println(mp3_file + ": image null");
-                    }
-                }
-            }
-        }
-        audio.close();
+        var filename = this.player.get_file(song).getPath();
+        var mpg = new Mpg123();
+        var data = mpg.open_id3v2_picture(filename);
+        var image = data != null ? Pixbuf.new_from_bytes(data) : null;
+        System.println(song.filename + ": " + (image != null));
+        mpg.close();
+        mpg.delete();
         return image;
     }
 
