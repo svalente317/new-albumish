@@ -323,4 +323,12 @@ void menu_activated(int item_id) {
         break;
     }
 }
+
+/**
+ * Called after updating library. Update cover_panel.
+ */
+void reset_albums() {
+    var album_list = this.filter_worker.generate_album_list();
+    this.cover_panel.reset(album_list);
+}
 }

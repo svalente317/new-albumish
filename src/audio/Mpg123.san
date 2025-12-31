@@ -10,6 +10,9 @@ const CBR = 0;
 const VBR = 1;
 const ABR = 2;
 
+const NEW_FORMAT = -11;
+const DONE = -12;
+
 /**
  * Perform necessary one-time setup tasks for the mpg123 library's internal state.
  */
@@ -23,6 +26,7 @@ Mpg123() {
     if err != 0 {
         System.println("mpg123_new failed error " + err);
     }
+    // c__stmt "mpg123_param(t, MPG123_FLAGS, MPG123_GAPLESS, 0)";
     c__stmt "return t";
 }
 
@@ -124,14 +128,21 @@ int scan() {
     c__stmt "return mpg123_scan(this)";
 }
 
-FrameInfo info() {
+int framebyframe_next() {
+    c__stmt "return mpg123_framebyframe_next(this)";
+}
+
+long tell() {
+    c__stmt "return mpg123_tell(this)";
+}
+
+boolean info(FrameInfo fi) {
     c__stmt "struct mpg123_frameinfo info";
-    c__stmt "if (mpg123_info(this, &info) != MPG123_OK) return NULL";
-    var fi = new FrameInfo();
+    c__stmt "if (mpg123_info(this, &info) != MPG123_OK) return 0";
     c__stmt "fi->vbr = info.vbr";
     c__stmt "fi->bitrate = info.bitrate";
     c__stmt "fi->abr_rate = info.abr_rate";
-    return fi;
+    return true;
 }
 
 Id3Info id3() {
@@ -161,9 +172,11 @@ Id3Info id3() {
     c__stmt "id3->comment = _id3v2_string(v2->comment)";
     var trck = "TRCK";
     var tpe2 = "TPE2";
+    var tdrc = "TDRC";
     c__stmt "for (int i = 0; i < v2->texts; i++) { mpg123_text *frame = &v2->text[i]";
     c__stmt "if (strncmp(frame->id, trck, 4) == 0) id3->track_number = atoi(frame->text.p)";
     c__stmt "if (strncmp(frame->id, tpe2, 4) == 0) id3->album_artist = _id3v2_string(&frame->text)";
+    c__stmt "if (strncmp(frame->id, tdrc, 4) == 0) id3->record_date = _id3v2_string(&frame->text)";
     c__stmt "}}";
     if v2version > 0 {
         id3.version = "ID3v2" + v2version;

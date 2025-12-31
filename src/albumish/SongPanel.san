@@ -21,7 +21,6 @@ private Albumish player;
 private TreeView tree_view;
 private ListStore list_store;
 private boolean show_bitrate;
-private boolean show_bpm;
 int playlistid;
 
 SongPanel(Albumish player, boolean with_checks) {
@@ -67,10 +66,6 @@ SongPanel(Albumish player, boolean with_checks) {
         this.tree_view.append_column(column);
     }
     types.add(ListStore.TYPE_STRING);
-    if (this.show_bpm) {
-        column = new TreeViewColumn("BPM", renderer, true, "text", types.length);
-        this.tree_view.append_column(column);
-    }
     types.add(ListStore.TYPE_STRING);
     this.list_store = new ListStore(types);
     this.tree_view.set_model(this.list_store);

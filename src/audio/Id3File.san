@@ -12,7 +12,6 @@ class Id3File {
     const TRACK = "TRCK";
     const YEAR = "TYER";
     const DATE = "TDRC";
-    const BPM = "TBPM";
 
     static Id3File open(String filename) {
         c__stmt "return id3_file_open(filename, ID3_FILE_MODE_READONLY)";

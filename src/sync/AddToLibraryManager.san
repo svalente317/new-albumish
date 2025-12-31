@@ -14,6 +14,7 @@ import albumish.database.Song;
 import albumish.database.SongInfo;
 import albumish.dialogs.InputDialog;
 import albumish.dialogs.ProgressDialog;
+import audio.FrameInfo;
 import audio.Mpg123;
 
 class AddToLibraryManager {
@@ -80,7 +81,7 @@ class AddToLibraryManager {
         this.mpg.delete();
         this.mpg = null;
         this.dialog.close_and_run(null);
-        // TODO reset_albums();
+        this.player.reset_albums();
     }
 
     private void read_id3_tags(String filename, Song song, SongInfo obj) {
@@ -96,31 +97,37 @@ class AddToLibraryManager {
         if mpg.open(filename) != 0 {
             return;
         }
-        // TODO. Is mpg.length() documented to work on VBR files without calling scan()?
+        // Scan the file to calculate duration and bitrate.
         var fmt = mpg.get_format();
-        song.duration = (int)((double) mpg.length() / fmt.rate);
-        var info = mpg.info();
-        if info != null {
-            if info.vbr == Mpg123.CBR {
-                song.bitrate = "" + info.bitrate;
-                // TODO else scan for bitrate
+        var info = new FrameInfo();
+        var total_bitrate = (long) 0;
+        var frame_count = 0;
+        while true {
+            var status = mpg.framebyframe_next();
+            if status != 0 && status != Mpg123.NEW_FORMAT {
+                break;
             }
+            mpg.info(info);
+            total_bitrate = total_bitrate + info.bitrate;
+            frame_count++;
+        }
+        if frame_count > 0 {
+            song.duration = (int)(((double) mpg.tell()) / fmt.rate + 0.5);
+            song.bitrate = info.vbr == Mpg123.CBR ? "" + info.bitrate :
+                "~" + (int)(((double) total_bitrate) / frame_count);
         }
         var id3 = mpg.id3();
         mpg.close();
 
-        song.title = normalize(id3.title);
-        obj.artist = normalize(id3.artist);
-        obj.album = normalize(id3.album);
-        obj.album_artist = normalize(id3.album_artist);
+        song.id3 = id3.version;
+        song.title = id3.title;
+        obj.artist = id3.artist;
+        obj.album = id3.album;
+        obj.album_artist = id3.album_artist;
         song.track_number = id3.track_number;
         song.year = id3.year != null ? System.parseInt(id3.year) : 0;
-        // TODO song.bpm = normalize(tag.get_frame_value(Id3File.BPM));
-        song.id3 = id3.version;
-        // TODO song.encoder = getEncoder(song, tag);
-    }
-
-    private static String normalize(String item) {
-        return item;
+        if id3.record_date != null && id3.record_date != "" {
+            song.year = System.parseInt(id3.record_date);
+        }
     }
 }

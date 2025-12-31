@@ -11,9 +11,7 @@ serializable class Song {
     int year;
     int duration;
     String bitrate;
-    String bpm;
     String id3;
-    String encoder;
     long add_time;
     String tags;
 }
