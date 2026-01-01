@@ -9,9 +9,13 @@ GTK_CONFIG = --pkg-config gtk+-3.0
 AUDIO_FILES = src/audio/*.san
 AUDIO_CONFIG = --pkg-config libmpg123 --pkg-config libpulse-simple
 
-albumish.exe: $(ALBUMISH_FILES) bin/gtk.sanka.tar bin/audio.sanka.tar
+albumish.exe:  $(ALBUMISH_FILES)
 	sanka --top bin $(GTK_CONFIG) $(AUDIO_CONFIG) $(ALBUMISH_FILES) \
-	--lib bin/gtk.sanka.tar --lib bin/audio.sanka.tar --main albumish.Albumish --exe $@
+	$(GTK_FILES) $(AUDIO_FILES) --main albumish.Albumish --exe $@
+
+#albumish.exe: $(ALBUMISH_FILES) bin/gtk.sanka.tar bin/audio.sanka.tar
+#	sanka --top bin $(GTK_CONFIG) $(AUDIO_CONFIG) $(ALBUMISH_FILES) \
+#	--lib bin/gtk.sanka.tar --lib bin/audio.sanka.tar --main albumish.Albumish --exe $@
 
 bin/gtk.sanka.tar: $(GTK_FILES)
 	sanka --top bin $(GTK_CONFIG) $(GTK_FILES) --create-library $@

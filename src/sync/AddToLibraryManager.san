@@ -8,6 +8,7 @@
 package albumish.sync;
 import sanka.io.File;
 import sanka.io.FileStats;
+import sanka.lang.Thread;
 import albumish.Albumish;
 import albumish.Utils;
 import albumish.database.Song;

@@ -6,6 +6,7 @@
  *  See the file "COPYING" for more information.
  */
 package albumish.dialogs;
+import sanka.lang.Runnable;
 import gtk.Context;
 import gtk.Dialog;
 import gtk.Label;
