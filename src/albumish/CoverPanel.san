@@ -7,12 +7,15 @@
  */
 package albumish;
 import gdk.CairoType;
+import gdk.Event;
 import gdk.FontDescription;
 import gdk.PangoContext;
 import gdk.PangoLayout;
 import gdk.Rectangle;
 import gtk.DrawingArea;
 import gtk.Label;
+import gtk.Menu;
+import gtk.MenuItem;
 import gtk.ScrolledWindow;
 import gtk.Widget;
 import albumish.filter.AlbumSorter;
@@ -21,6 +24,11 @@ class CoverPanel {
 
 const text_spacing = 12;
 const select_box_thickness = 5;
+
+const ADD_ALBUM_TO_PLAYLIST = 1;
+const LOAD_ALBUM_ART = 2;
+const EDIT_ALBUM_TAGS = 3;
+const DELETE_ALBUM_FROM_LIBRARY = 4;
 
 private Albumish player;
 private AlbumSorter sorter;
@@ -35,6 +43,7 @@ private int panel_height;
 private int mouse_down_idx;
 private double anchor;
 private FontDescription font_description;
+private Menu menu;
 
 CoverPanel(Albumish player) {
     this.player = player;
@@ -54,6 +63,8 @@ CoverPanel(Albumish player) {
     this.viewport.set_policy(ScrolledWindow.POLICY_AUTOMATIC, ScrolledWindow.POLICY_NEVER);
     this.viewport.set_shadow_type(ScrolledWindow.SHADOW_OUT);
     this.viewport.add(this.area);
+
+    create_menu();
 }
 
 Widget widget() {
@@ -250,7 +261,7 @@ void invalidate_album(int albumid) {
     }
 }
 
-boolean callback(Widget w, int event_type, double x, double y, int button) {
+boolean callback(Widget w, int event_type, double x, double y, int button, Event event) {
     var idx = 0;
     switch event_type {
     case Widget.BUTTON_PRESS:
@@ -263,7 +274,7 @@ boolean callback(Widget w, int event_type, double x, double y, int button) {
         }
         this.mouse_down_idx = idx;
         if button == 3 {
-            // TODO popup_menu(event);
+            this.menu.popup_at_pointer(event);
             break;
         }
         redraw_albums(idx, idx);
@@ -355,28 +366,6 @@ private void select_nth_album(int idx) {
     this.player.select_album(this.album_list[this.selected_idx]);
 }
 
-/* private void popup_menu(MouseEvent event) {
-    Menu popupMenu = new Menu(this);
-    MenuItem item;
-    item = new MenuItem(popupMenu, SWT.NONE);
-    item.setText("Add Album to Playlist");
-    item.setData(Cmd.ADD_ALBUM_TO_PLAYLIST);
-    item.addSelectionListener(this);
-    item = new MenuItem(popupMenu, SWT.NONE);
-    item.setText("Load Album Art...");
-    item.setData(Cmd.LOAD_ALBUM_ART);
-    item.addSelectionListener(this);
-    item = new MenuItem(popupMenu, SWT.NONE);
-    item.setText("Edit Album Tags...");
-    item.setData(Cmd.EDIT_ALBUM_TAGS);
-    item.addSelectionListener(this);
-    item = new MenuItem(popupMenu, SWT.NONE);
-    item.setText("Delete Album From Library...");
-    item.setData(Cmd.DELETE_ALBUM_FROM_LIBRARY);
-    item.addSelectionListener(this);
-    popupMenu.setVisible(true);
-}*/
-
 private void get_this_font_description() {
     if this.font_description != null {
         return;
@@ -384,6 +373,39 @@ private void get_this_font_description() {
     var label = new Label("");
     var ctx = label.get_style_context();
     this.font_description = ctx.get_font();
+}
+
+private void create_menu() {
+    this.menu = new Menu();
+    var items = {
+        new MenuItem(){label: "Add Album to Playlist", item_id: ADD_ALBUM_TO_PLAYLIST},
+        new MenuItem(){label: "Load Album Art...", item_id: LOAD_ALBUM_ART},
+        new MenuItem(){label: "Edit Album Tags...", item_id: EDIT_ALBUM_TAGS},
+        new MenuItem(){label: "Delete Album From Library...", item_id: DELETE_ALBUM_FROM_LIBRARY}
+    };
+    this.menu.add(items, this);
+}
+
+void menu_activated(int item_id) {
+    if (this.mouse_down_idx < 0) {
+        return;
+    }
+    var albumid = this.album_list[this.mouse_down_idx];
+    switch item_id {
+    case ADD_ALBUM_TO_PLAYLIST:
+        break;
+    case LOAD_ALBUM_ART:
+        select_nth_album(this.mouse_down_idx);
+        this.player.on_load_album_art();
+        this.mouse_down_idx = 0;
+        break;
+    case EDIT_ALBUM_TAGS:
+        // TODO new EditTagsDialog(this.player, albumid);
+        break;
+    case DELETE_ALBUM_FROM_LIBRARY:
+        // TODO new DeleteAlbumDialog(this.player, albumid);
+        break;
+    }
 }
 }
 

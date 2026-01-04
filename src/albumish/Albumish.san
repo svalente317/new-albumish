@@ -8,6 +8,7 @@
 package albumish;
 import sanka.io.File;
 import gtk.Application;
+import gtk.FileChooser;
 import gtk.Grid;
 import gtk.MenuBar;
 import gtk.MenuItem;
@@ -318,8 +319,10 @@ void menu_activated(int item_id) {
         this.cover_panel.select_next_album(1);
         break;
     case JUMP_ALBUM:
+        // TODO jump album
         break;
     case LOAD_ALBUM_ART:
+        on_load_album_art();
         break;
     }
 }
@@ -330,5 +333,26 @@ void menu_activated(int item_id) {
 void reset_albums() {
     var album_list = this.filter_worker.generate_album_list();
     this.cover_panel.reset(album_list);
+}
+
+/**
+ * Called from the main menu.
+ */
+void on_load_album_art() {
+    var albumid = this.cover_panel.get_selected_albumid();
+    var album = this.database.album_list[albumid];
+    var artist = this.database.artist_list[album.artistid];
+    var title = "";
+    if artist.name != null {
+        title = artist.name + " / ";
+    }
+    if album.name != null {
+        title = title + album.name;
+    }
+    var filename = FileChooser.open(title, this.window);
+    if filename != null {
+        this.gallery.copy_file(albumid, filename);
+        this.cover_panel.invalidate_album(albumid);
+    }
 }
 }

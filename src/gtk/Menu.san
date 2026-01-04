@@ -1,0 +1,35 @@
+package gtk;
+import gdk.Event;
+
+class Menu extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+const MENU_ITEM_ID_KEY = "menu-item-key-id";
+
+Menu() {
+    c__stmt "return gtk_menu_new()";
+}
+
+void add(MenuItem[] items, MenuCallback mcb) {
+    var activate = "activate";
+    var key = MENU_ITEM_ID_KEY;
+    for var item : items {
+        System.println("add " + item.label);
+        c__stmt "GtkWidget *wid = gtk_menu_item_new_with_label(item->label)";
+        c__stmt "g_object_set_data(G_OBJECT(wid), key, GINT_TO_POINTER(item->item_id))";
+        c__stmt "g_signal_connect(wid, activate, G_CALLBACK(_menu_callback), mcb)";
+        c__stmt "gtk_menu_shell_append(GTK_MENU_SHELL(this), wid)";
+    }
+    c__stmt "gtk_widget_show_all(this)";
+}
+
+void popup_at_pointer(Event event) {
+    c__stmt "gtk_menu_popup_at_pointer(GTK_MENU(this), event)";
+}
+
+c__stmt "void _menu_callback(GtkMenuItem *item, gpointer user_data) {";
+c__stmt "int item_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(item), Menu__MENU_ITEM_ID_KEY));";
+c__stmt "MenuCallback__menu_activated((struct MenuCallback *) user_data, item_id); }";
+}

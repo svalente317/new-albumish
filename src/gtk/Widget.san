@@ -1,4 +1,5 @@
 package gtk;
+import gdk.Event;
 import gdk.PangoContext;
 
 abstract class Widget {
@@ -68,12 +69,12 @@ void connect_mouse_motion(MouseCallback callback) {
 }
 
 c__stmt "gboolean _mouse_button_callback(GtkWidget* self, GdkEventButton *me, gpointer user_data)";
-c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, me->button); }";
+c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, me->button, (GdkEvent*)me); }";
 
 c__stmt "gboolean _mouse_motion_callback(GtkWidget* self, GdkEventMotion *me, gpointer user_data)";
-c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, 0); }";
+c__stmt"{ return MouseCallback__callback((struct MouseCallback *) user_data, self, me->type, me->x, me->y, 0, (GdkEvent*)me); }";
 }
 
 interface MouseCallback {
-    boolean callback(Widget widget, int event_type, double x, double y, int button);
+    boolean callback(Widget widget, int event_type, double x, double y, int button, Event event);
 }

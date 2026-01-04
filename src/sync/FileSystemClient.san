@@ -8,8 +8,7 @@
 package albumish.sync;
 import sanka.io.File;
 import sanka.io.FileStats;
-import sanka.io.FileReader;
-import sanka.io.FileWriter;
+import sanka.io.IOUtils;
 
 class FileSystemClient {
     private File top;
@@ -47,35 +46,7 @@ class FileSystemClient {
     }
 
     boolean copyFile(String src, String dst) {
-        var reader = new FileReader();
-        var status = reader.open(src);
-        if status != 0 {
-            System.println(src + ": " + System.strerror(status));
-            return false;
-        }
-        var writer = new FileWriter();
-        status = writer.open(new File(this.top, dst).getPath());
-        if status != 0 {
-            reader.close();
-            System.println(dst + ": " + System.strerror(status));
-            return false;
-        }
-        var data = new byte[](8096);
-        while true {
-            status = reader.read(data);
-            if status <= 0 {
-                break;
-            }
-            data.setLength(status);
-            writer.write(data);
-        }
-        reader.close();
-        status = writer.close();
-        if status != 0 {
-            System.println(dst + ": " + System.strerror(status));
-            return false;
-        }
-        return true;
+        return IOUtils.copyFile(src, new File(this.top, dst).getPath());
     }
 
     boolean makeDirectory(String directory) {

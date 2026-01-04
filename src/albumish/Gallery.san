@@ -7,6 +7,7 @@
  */
 package albumish;
 import sanka.io.File;
+import sanka.io.IOUtils;
 import sanka.lang.IntChannel;
 import sanka.lang.Thread;
 import audio.Mpg123;
@@ -128,5 +129,17 @@ class Gallery {
         return image;
     }
 
-    // removed: audio_file_has_artwork, copy_file, invalidate
+    /**
+     * Copy image file into the album images directory.
+     */
+    void copy_file(int albumid, String srcfile) {
+        var album = this.player.database.album_list[albumid];
+        var dstfile = get_image_file(album);
+        IOUtils.copyFile(srcfile, dstfile.getPath());
+        if this.is_loaded.length > albumid {
+            this.is_loaded[albumid] = false;
+        }
+    }
+
+    // removed: audio_file_has_artwork, invalidate
 }

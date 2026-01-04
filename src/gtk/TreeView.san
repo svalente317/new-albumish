@@ -21,6 +21,10 @@ void append_column(TreeViewColumn column) {
     c__stmt "gtk_tree_view_append_column(GTK_TREE_VIEW(this), column)";
 }
 
+void columns_autosize() {
+    c__stmt "gtk_tree_view_columns_autosize(GTK_TREE_VIEW(this))";
+}
+
 void connect_row_activated(RowActivatedCallback callback) {
     var signal = "row-activated";
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_row_activated_callback), callback)";

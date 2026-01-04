@@ -1,0 +1,9 @@
+package gdk;
+
+class Event {
+
+c__include "gtk/gtk.h";
+c__repr    "GdkEvent*";
+
+// gdk.Event is opaque.
+}

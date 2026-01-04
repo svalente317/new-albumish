@@ -7,6 +7,7 @@
  */
 package albumish;
 import gdk.CairoType;
+import gdk.Event;
 import gdk.RGBA;
 import gtk.DrawingArea;
 import gtk.Widget;
@@ -75,7 +76,7 @@ class Slider {
         cairo.stroke();
     }
 
-    boolean callback(Widget w, int event_type, double x, double y, int button) {
+    boolean callback(Widget w, int event_type, double x, double y, int button, Event event) {
         switch event_type {
         case Widget.BUTTON_PRESS:
             if this.maximum == 0 {

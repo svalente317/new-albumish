@@ -111,6 +111,7 @@ void reset(int playlistid, int[] songs) {
         row[9].makeString(song.bitrate);
         this.list_store.set(iter, row);
     }
+    this.tree_view.columns_autosize();
 }
 
 void update_database() {

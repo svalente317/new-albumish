@@ -1,0 +1,7 @@
+package gtk;
+
+class MenuItem {
+    String label;
+    String accel;
+    int item_id;
+}
