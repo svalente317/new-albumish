@@ -180,6 +180,7 @@ class PlayerThread {
         if newSong {
             var song = this.player.database.song_list[this.songid];
             this.player.update_top_panel(song);
+            this.player.jump_to_playing_song(false);
         } else {
             this.player.display_time(this.audio_position);
         }
@@ -232,5 +233,13 @@ class PlayerThread {
      */
     int get_audio_position_in_ms() {
         return this.audio_position;
+    }
+
+    int get_playing_listid() {
+        return this.playlistid;
+    }
+
+    int get_playing_songid() {
+        return this.songid;
     }
 }

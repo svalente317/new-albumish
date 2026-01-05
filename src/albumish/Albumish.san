@@ -319,7 +319,7 @@ void menu_activated(int item_id) {
         this.cover_panel.select_next_album(1);
         break;
     case JUMP_ALBUM:
-        // TODO jump album
+        jump_to_playing_song(true);
         break;
     case LOAD_ALBUM_ART:
         on_load_album_art();
@@ -333,6 +333,29 @@ void menu_activated(int item_id) {
 void reset_albums() {
     var album_list = this.filter_worker.generate_album_list();
     this.cover_panel.reset(album_list);
+}
+
+/**
+ * Select the playing album in cover_panel, and select the playing song in
+ * playlist_song_panel.
+ */
+void jump_to_playing_song(boolean update_cover) {
+    var playlistid = this.player_thread.get_playing_listid();
+    var songid = this.player_thread.get_playing_songid();
+    if playlistid < 0 || songid <= 0 {
+        return;
+    }
+    var playlist = this.playlists[playlistid];
+    if playlist == null {
+        return;
+    }
+    if update_cover {
+        var song = this.database.song_list[songid];
+        this.cover_panel.select_album(song.albumid);
+    }
+    if this.playlist_song_panel.playlistid == playlistid {
+        this.playlist_song_panel.select(songid);
+    }
 }
 
 /**

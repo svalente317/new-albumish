@@ -1,17 +1,14 @@
-- implement Jump To Playing Song
+- TopPanel - buttons should be square
+- TopPanel - change between play button and pause button
 - RipManager
 - Edit Tags dialog
-- Delete Album (dialog)
+- Delete Album dialog
 - Utils needs char-array to string
 - Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
 - Sync to device: FtpClient
 - problem reading cover images from some files
 - is it possible to turn GC back on?
-- TopPanel - buttons should be square
-- TopPanel - change between play button and pause button
-- highlight row in playlist when it starts playing
-
 - playlists: add Playlist menu, etc.
 - Playlist Panel (w todo in set_autoplaylist)
 - read playlist files from playlist directory
@@ -22,5 +19,4 @@
 - sanka: add superclass to #includes so Bin does not need to import Container
 - CoverPanel draw: why do I have to expand the rectangle for redraw?
 - grab focus after clear filter
-- Id3File: Writer
 - id3v1 genre

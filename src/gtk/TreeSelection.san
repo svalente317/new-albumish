@@ -26,6 +26,10 @@ boolean get_selected(TreeIter iter) {
 void unselect_all() {
     c__stmt "gtk_tree_selection_unselect_all(this)";
 }
+
+void select(TreeIter iter) {
+    c__stmt "gtk_tree_selection_select_iter(this, iter)";
+}
 }
 
 interface TreeSelectionCallback {

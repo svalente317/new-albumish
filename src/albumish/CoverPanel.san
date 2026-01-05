@@ -407,6 +407,16 @@ void menu_activated(int item_id) {
         break;
     }
 }
+
+void select_album(int albumid) {
+    for var idx = 0; idx < this.album_list.length; idx++ {
+        if albumid == this.album_list[idx] {
+            select_nth_album(idx);
+            center_selected_album();
+            return;
+        }
+    }
+}
 }
 
-// removed: controlResized, widgetSelected, mouseDoubleClick, select_album
+// removed: controlResized, widgetSelected, mouseDoubleClick
