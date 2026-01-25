@@ -4,7 +4,7 @@ class Mpg123 {
     c__include "mpg123.h";
     c__repr    "mpg123_handle*";
 
-const SIGNED_16_ENCODING = 0;
+const FLOAT_32_ENCODING = 0;
 
 const CBR = 0;
 const VBR = 1;
@@ -26,7 +26,6 @@ Mpg123() {
     if err != 0 {
         System.println("mpg123_new failed error " + err);
     }
-    // c__stmt "mpg123_param(t, MPG123_FLAGS, MPG123_GAPLESS, 0)";
     c__stmt "return t";
 }
 
@@ -34,7 +33,9 @@ Mpg123() {
  * Open mp3 file.
  */
 int open(String filename) {
-    c__stmt "return mpg123_open(this, filename)";
+    c__stmt "int status = mpg123_open(this, filename)";
+    c__stmt "mpg123_param(this, MPG123_ADD_FLAGS, MPG123_FORCE_FLOAT, 0.)";
+    c__stmt "return status";
 }
 
 /**
@@ -47,6 +48,13 @@ MpgFormat get_format() {
 }
 
 /**
+ * Clear all default format settings before using set_format to set your custom list.
+ */
+int format_none() {
+    c__stmt "return mpg123_format_none(this)";
+}
+
+/**
  * Set the allowed output audio formats. This does not change the format on the fly.
  * It configures an internal table of supported formats. When libmpg123 encounters a
  * new frame or a change in the stream's properties, it consults this table to
@@ -54,19 +62,17 @@ MpgFormat get_format() {
  *
  * @rate      sample rate specified in hertz
  * @channels  bitwise OR of MONO (1) and STEREO (2)
- * @encodings bitwise OR of SIGNED_16, FLOAT_32, etc.
  */
-int set_format(long rate, int channels, int encoding) {
-    var menc = 0;
-    c__stmt "if (encoding == 0) menc = MPG123_ENC_SIGNED_16";
-    c__stmt "return mpg123_format(this, rate, channels, menc)";
+int set_format(long rate, int channels, boolean use_float32) {
+    c__stmt "int encoding = use_float32 ? MPG123_ENC_FLOAT_32 : MPG123_ENC_SIGNED_16";
+    c__stmt "return mpg123_format(this, rate, channels, encoding)";
 }
 
-/**
- * Clear all default format settings before using set_format to set your custom list.
- */
-int format_none() {
-    c__stmt "return mpg123_format_none(this)";
+boolean is_encoding_float32() {
+    c__stmt "long rate";
+    c__stmt "int channels, encoding";
+    c__stmt "mpg123_getformat2(this, &rate, &channels, &encoding, 0)";
+    c__stmt "return encoding & MPG123_ENC_FLOAT_32";
 }
 
 /**

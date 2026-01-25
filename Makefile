@@ -23,5 +23,8 @@ bin/gtk.sanka.tar: $(GTK_FILES)
 bin/audio.sanka.tar: $(AUDIO_FILES)
 	sanka --top bin $(AUDIO_CONFIG) $(AUDIO_FILES) --create-library $@
 
+src/audio/miniaudio.h:
+	curl https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h -o $@
+
 clean:
 	rm -rf albumish.exe bin

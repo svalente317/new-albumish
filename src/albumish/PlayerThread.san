@@ -9,12 +9,12 @@ package albumish;
 import sanka.lang.Channel;
 import sanka.lang.Thread;
 import audio.Mpg123;
-import audio.PulseAudio;
+import audio.MiniAudio;
 import gtk.Context;
 import albumish.database.Song;
 
 class PlayerThread {
-    const SAMPLE_MILLIS = 250;
+    const UPDATE_MILLIS = 250;
 
     private Albumish player;
     private Channel channel;
@@ -23,10 +23,10 @@ class PlayerThread {
     private Thread thread;
     private PlayerCommand command;
     private Mpg123 mpg;
-    private PulseAudio pulse;
-    private int channels;
+    private MiniAudio audio;
     private int samples_per_second;
     private int audio_position;
+    private int updated_audio_position;
     boolean is_paused;
 
     PlayerThread(Albumish player) {
@@ -37,32 +37,38 @@ class PlayerThread {
     }
 
     void run() {
-        var command = null;
         while true {
-            if command == null {
-                command = (PlayerCommand) this.channel.pop();
-            }
+            var command = (PlayerCommand) this.channel.pop();
             if command.tag == PlayerCommand.PAUSE {
-                update_display(false);
-                this.is_paused = true;
-                command = null;
+                if this.audio != null {
+                    this.audio.stop();
+                    update_display(false);
+                    this.is_paused = true;
+                }
+                continue;
+            }
+            if command.tag == PlayerCommand.UNPAUSE {
+                if this.audio != null && this.is_paused {
+                    this.is_paused = false;
+                    this.audio.play();
+                }
                 continue;
             }
             if command.tag == PlayerCommand.JUMP {
                 if this.mpg != null {
+                    if !this.is_paused {
+                        this.audio.stop();
+                    }
                     var seconds = (double) command.target_ms / 1000;
-                    if this.mpg.seek((long)(seconds * this.samples_per_second)) > 0 {
+                    if this.mpg.seek((long)(seconds * this.samples_per_second)) >= 0 {
                         this.audio_position = command.target_ms;
                     }
-                }
-                if this.is_paused {
                     update_display(false);
-                    command = null;
-                    continue;
+                    if !this.is_paused {
+                        this.audio.play();
+                    }
                 }
-            }
-            if this.is_paused {
-                this.is_paused = false;
+                continue;
             }
             if command.tag == PlayerCommand.PLAY {
                 stop();
@@ -75,16 +81,10 @@ class PlayerThread {
                 }
                 var song = this.player.database.song_list[this.songid];
                 open_file(song);
-            }
-            var complete = play_file();
-            if !complete {
-                command = null;
+                this.is_paused = false;
+                this.audio.play();
                 continue;
             }
-            command.tag = PlayerCommand.PLAY;
-            command.playlistid = this.playlistid;
-            var playlist = this.player.playlists[this.playlistid];
-            command.songid = playlist == null ? 0 : playlist.get_next_id(this.songid, 1);
         }
     }
 
@@ -98,62 +98,48 @@ class PlayerThread {
         // Get this file's default rate and channels.
         var fmt = mpg.get_format();
 
-        // Tell mpg123 to encode samples in signed 16-bit format.
+        // Tell mpg123 to encode samples as 32-bit floats.
         err = mpg.format_none();
         if err != 0 {
             System.println("format_none: " + err);
-            return;
         }
-        err = mpg.set_format(fmt.rate, fmt.channels, Mpg123.SIGNED_16_ENCODING);
+        err = mpg.set_format(fmt.rate, fmt.channels, true);
         if err != 0 {
-            System.println("format_none: " + err);
-            return;
+            System.println("set_format: " + err);
         }
+        var use_float32 = mpg.is_encoding_float32();
+
         // Setup for play_file().
         this.mpg = mpg;
         this.audio_position = 0;
-        this.channels = fmt.channels;
         this.samples_per_second = (int) fmt.rate;
-
-        // Technically, we should select SIGNED_16_LE_FORMAT or SIGNED_16_BE_FORMAT,
-        // depending on the host's endian-ness. But it's fair to assume LE.
-        this.pulse = new PulseAudio("mp3play", "playback",
-            fmt.rate, fmt.channels, PulseAudio.SIGNED_16_LE_FORMAT);
+        this.audio = new MiniAudio(fmt.rate, fmt.channels, use_float32, this);
 
         update_display(true);
     }
 
     /**
-     * Play this.mpg until complete or interrupted.
-     *
-     * @return true if complete
+     * Miniaudio callback to fill the audio buffer.
      */
-    private boolean play_file() {
-        if this.mpg == null {
-            return true;
+    void audio_callback(MiniAudio audio, byte[] output, int frame_count) {
+        var size = this.mpg.read(output);
+        if size < output.length {
+            System.println("done @ " + System.currentTimeMillis());
+            play_next_song(1);
         }
-        // The number of bytes in a 16-bit sample is 2 bytes (16 bits) * the channels.
-        // There are typically 44,100 samples per second.
-        // Read 250 milliseconds at a time.
-        var bytes_per_second = (long) this.samples_per_second * this.channels * 2;
-        var buffer_size = (int)(bytes_per_second * SAMPLE_MILLIS / 1000);
-        var buffer = new byte[](buffer_size);
-        while this.channel.getQueueSize() == 0 {
+        var seconds = ((double) frame_count) / this.samples_per_second;
+        var millis = (int)(seconds * 1000);
+        this.audio_position = this.audio_position + millis;
+        if this.audio_position < this.updated_audio_position ||
+            this.audio_position > this.updated_audio_position + UPDATE_MILLIS {
             update_display(false);
-            var size = this.mpg.read(buffer);
-            if size <= 0 {
-                return true;
-            }
-            this.pulse.write(buffer, size);
-            this.audio_position = this.audio_position + SAMPLE_MILLIS;
         }
-        return false;
     }
 
     private void stop() {
-        if this.pulse != null {
-            this.pulse.free();
-            this.pulse = null;
+        if this.audio != null {
+            this.audio.uninit();
+            this.audio = null;
         }
         if this.mpg != null {
             this.mpg.close();
@@ -183,6 +169,7 @@ class PlayerThread {
             this.player.jump_to_playing_song(false);
         } else {
             this.player.display_time(this.audio_position);
+            this.updated_audio_position = this.audio_position;
         }
     }
 

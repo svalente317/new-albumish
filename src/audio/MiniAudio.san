@@ -1,0 +1,48 @@
+package audio;
+
+class MiniAudio {
+    c__include "miniaudio.h";
+    c__repr "   ma_device*";
+
+MiniAudio(long rate, int channels, boolean use_float32, MiniAudioCallback callback) {
+    c__stmt "ma_device_config config = ma_device_config_init(ma_device_type_playback)";
+    c__stmt "config.playback.format = use_float32? ma_format_f32 : ma_format_s16";
+    c__stmt "config.playback.channels = channels";
+    c__stmt "config.sampleRate = rate";
+    c__stmt "config.dataCallback = _miniaudio_callback";
+    c__stmt "config.pUserData = callback";
+    c__stmt "ma_device *devp = GC_MALLOC(sizeof(ma_device))";
+    c__stmt "ma_device_init(NULL, &config, devp)";
+    c__stmt "return devp";
+}
+
+void play() {
+    c__stmt "ma_device_start(this)";
+}
+
+void stop() {
+    c__stmt "ma_device_stop(this)";
+}
+
+void uninit() {
+    c__stmt "ma_device_uninit(this)";
+}
+
+long get_sample_rate() {
+    c__stmt "return this->sampleRate";
+}
+
+int get_channels() {
+    c__stmt "return this->playback.channels";
+}
+
+c__stmt "void _miniaudio_callback(ma_device* devp, void* output, const void* input, ma_uint32 frame_count)";
+c__stmt "{ struct array buffer; buffer.data = output;";
+c__stmt "ma_uint32 bpf = ma_get_bytes_per_frame(devp->playback.format, devp->playback.channels);";
+c__stmt "buffer.length = frame_count * bpf; buffer.alloced = buffer.length;";
+c__stmt "return MiniAudioCallback__audio_callback((struct MiniAudioCallback *) devp->pUserData, devp, &buffer, frame_count); }";
+}
+
+interface MiniAudioCallback {
+    void audio_callback(MiniAudio audio, byte[] output, int frame_count);
+}

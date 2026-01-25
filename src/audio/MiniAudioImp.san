@@ -1,0 +1,5 @@
+package audio;
+
+class MiniAudioImp {
+    c__include "miniaudio_imp.h";
+}
