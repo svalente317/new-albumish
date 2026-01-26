@@ -196,10 +196,8 @@ class PlayerThread {
 
     /**
      * This is called by the GUI thread to pause and unpause the player.
-     *
-     * @return true if the player is now paused
      */
-    boolean pause(boolean do_pause) {
+    void pause(boolean do_pause) {
         var tag = do_pause ? PlayerCommand.PAUSE : PlayerCommand.UNPAUSE;
         this.channel.push(new PlayerCommand(){tag: tag});
     }

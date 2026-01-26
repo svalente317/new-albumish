@@ -6,16 +6,12 @@ ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san \
 GTK_FILES = src/gtk/*.san src/gdk/*.san
 GTK_CONFIG = --pkg-config gtk+-3.0
 
-AUDIO_FILES = src/audio/*.san
-AUDIO_CONFIG = --pkg-config libmpg123 --pkg-config libpulse-simple
+AUDIO_FILES = src/audio/*.san src/audio/miniaudio.h src/audio/miniaudio.c
+AUDIO_CONFIG = --pkg-config libmpg123
 
-albumish.exe:  $(ALBUMISH_FILES)
+albumish.exe: $(ALBUMISH_FILES) bin/gtk.sanka.tar bin/audio.sanka.tar
 	sanka --top bin $(GTK_CONFIG) $(AUDIO_CONFIG) $(ALBUMISH_FILES) \
-	$(GTK_FILES) $(AUDIO_FILES) --main albumish.Albumish --exe $@
-
-#albumish.exe: $(ALBUMISH_FILES) bin/gtk.sanka.tar bin/audio.sanka.tar
-#	sanka --top bin $(GTK_CONFIG) $(AUDIO_CONFIG) $(ALBUMISH_FILES) \
-#	--lib bin/gtk.sanka.tar --lib bin/audio.sanka.tar --main albumish.Albumish --exe $@
+	--lib bin/gtk.sanka.tar --lib bin/audio.sanka.tar --main albumish.Albumish --exe $@
 
 bin/gtk.sanka.tar: $(GTK_FILES)
 	sanka --top bin $(GTK_CONFIG) $(GTK_FILES) --create-library $@
