@@ -25,7 +25,9 @@ RGBA lookup_color(String key) {
 }
 
 FontDescription get_font() {
-    // TODO deprecated: Use 'gtk_style_context_get' instead
-    c__stmt "return gtk_style_context_get_font(this, GTK_STATE_NORMAL)";
+    var font_property = "font";
+    c__stmt "PangoFontDescription *font_desc";
+    c__stmt "gtk_style_context_get(this, GTK_STATE_NORMAL, font_property, &font_desc, NULL)";
+    c__stmt "return font_desc";
 }
 }

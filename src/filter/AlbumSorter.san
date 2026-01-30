@@ -6,6 +6,7 @@
  *  See the file "COPYING" for more information.
  */
 package albumish.filter;
+import sanka.util.StringUtils;
 import albumish.database.Database;
 
 class AlbumSorter {
@@ -87,7 +88,8 @@ class AlbumSorter {
         } else if s2 == null {
             return -1;
         }
-        // TODO return s1.toLowerCase().compareTo(s2.toLowerCase());
+        s1 = StringUtils.toLowerCase(s1);
+        s2 = StringUtils.toLowerCase(s2);
         return s1 < s2 ? -1 : (s1 > s2 ? 1 : 0);
     }
 }

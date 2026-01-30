@@ -306,7 +306,7 @@ boolean callback(Widget w, int event_type, double x, double y, int button, Event
         if albumid < 0 {
             break;
         }
-        // TODO update checked database
+        this.player.select_album(-1);
         var album = this.player.database.album_list[albumid];
         var song_list = new int[];
         for var songid : album.song_list {

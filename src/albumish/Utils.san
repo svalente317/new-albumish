@@ -8,6 +8,7 @@
 package albumish;
 import sanka.io.File;
 import sanka.io.FileStats;
+import sanka.util.StringBuilder;
 
 class Utils {
     const BAD_CHARS = "/:?\"";
@@ -19,8 +20,7 @@ class Utils {
      * If it appears with a space on both sides of it, then remove it and the next space.
      */
     static String name_to_filename(String name) {
-        // TODO array of chars to string?
-        var filename = "";
+        var filename = new StringBuilder(name.length());
         var haveSpace = true;
         var needSpace = false;
         var skipSpace = false;
@@ -33,7 +33,7 @@ class Utils {
                 skipSpace = true;
             } else {
                 if needSpace && ch != '.' {
-                    filename = filename + ' ';
+                    filename.add(' ');
                     needSpace = false;
                 }
                 if skipSpace {
@@ -42,11 +42,11 @@ class Utils {
                         continue;
                     }
                 }
-                filename = filename + ch;
+                filename.add(ch);
                 haveSpace = (ch == ' ');
             }
         }
-        return filename;
+        return filename.done();
     }
 
     /**

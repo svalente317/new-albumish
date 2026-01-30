@@ -167,8 +167,8 @@ private void makeMenuBar(Application app) {
  * Called by cover_panel. Update song_panel and album_song_panel.
  */
 void select_album(int albumid) {
+    this.album_song_panel.update_database();
     if albumid >= 0 {
-        this.album_song_panel.update_database();
         var songList = this.filter_worker.generate_song_list(albumid);
         this.album_song_panel.reset(-1, songList);
     }

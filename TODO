@@ -3,7 +3,6 @@
 - RipManager
 - Edit Tags dialog
 - Delete Album dialog
-- Utils needs char-array to string
 - Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
 - Sync to device: FtpClient

@@ -4,4 +4,8 @@ class FontDescription {
 
 c__include "gtk/gtk.h";
 c__repr    "PangoFontDescription*";
+
+void free() {
+    c__stmt "pango_font_description_free(this)";
+}
 }

@@ -10,7 +10,8 @@ const INTERP_TILES = 1;
 const INTERP_BILINEAR = 2;
 
 static Pixbuf new_from_file(String filename) {
-    // TODO return error
+    // If the given file is not a valid pixbuf, then gdk returns an error through
+    // the second argument. we discard the error because we don't care.
     c__stmt "return gdk_pixbuf_new_from_file(filename, NULL)";
 }
 
