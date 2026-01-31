@@ -1,0 +1,11 @@
+package gtk;
+
+class Image extends Widget {
+
+c__include "gtk/gtk.h";
+c__repr    "GtkWidget*";
+
+void set_from_icon_name(String icon_name, int size) {
+    c__stmt "gtk_image_set_from_icon_name(GTK_IMAGE(this), icon_name, size)";
+}
+}

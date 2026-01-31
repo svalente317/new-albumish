@@ -54,6 +54,10 @@ void queue_draw_area (int x, int y, int width, int height) {
     c__stmt "gtk_widget_queue_draw_area(this, x, y, width, height)";
 }
 
+void grab_focus() {
+    c__stmt "gtk_widget_grab_focus(GTK_WIDGET(this))";
+}
+
 void connect_mouse_button(MouseCallback callback) {
     c__stmt "gtk_widget_add_events(this, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK)";
     var signal = "button-press-event";

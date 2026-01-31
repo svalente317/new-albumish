@@ -213,14 +213,8 @@ void do_next() {
  * Called by top_panel.
  */
 void play_or_pause() {
-    if this.player_thread.is_paused {
-        this.player_thread.pause(false);
-        this.top_panel.display_pause_button();
-        return;
-    }
-    if this.player_thread.is_playing() {
-        this.player_thread.pause(true);
-        this.top_panel.display_play_button();
+    if this.player_thread.get_playing_songid() > 0 {
+        this.player_thread.toggle_pause();
         return;
     }
     var playlistid = this.playlist_song_panel.playlistid;
@@ -261,6 +255,14 @@ void update_top_panel(Song song) {
 void display_time(int millis) {
     this.top_panel.display_time(millis);
 }
+
+/**
+ * Called by player thread.
+ */
+ void display_can_pause(boolean can_pause) {
+     // If true, then we have an active song and we are playing it.
+     this.top_panel.display_pause_button(can_pause);
+ }
 
 /**
  * Called by top_panel. Update cover_panel.

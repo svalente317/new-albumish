@@ -1,5 +1,4 @@
 - TopPanel - buttons should be square
-- TopPanel - change between play button and pause button
 - RipManager
 - Edit Tags dialog
 - Delete Album dialog
@@ -13,9 +12,7 @@
 - read playlist files from playlist directory
 
 - JsonParser unicode to utf-8
-- AlbumSorter lowercase
 - ListStore and doubles
 - sanka: add superclass to #includes so Bin does not need to import Container
 - CoverPanel draw: why do I have to expand the rectangle for redraw?
-- grab focus after clear filter
 - id3v1 genre

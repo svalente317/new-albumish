@@ -137,12 +137,9 @@ class TopPanel {
         this.time_scale.widget().queue_draw();
     }
 
-    void display_play_button() {
-        // TODO this.play_button.setImage(this.play_icon);
-    }
-
-    void display_pause_button() {
-        // TODO this.play_button.setImage(this.pause_icon);
+    void display_pause_button(boolean can_pause) {
+        var new_name = can_pause ? "media-playback-pause" : "media-playback-start";
+        this.play_button.get_image().set_from_icon_name(new_name, Button.SIZE_BUTTON);
     }
 
     void display_time(int millis) {
@@ -169,12 +166,13 @@ class TopPanel {
         }
         if button == this.add_filter_button {
             add_filter();
+            this.filter_entry.grab_focus();
             return;
         }
         if button == this.clear_filter_button {
             this.player.set_filter(null);
             this.filter_label.set_text("");
-            // TODO grab_focus();
+            this.filter_entry.grab_focus();
             return;
         }
     }

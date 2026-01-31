@@ -27,7 +27,7 @@ class PlayerThread {
     private int samples_per_second;
     private int audio_position;
     private int updated_audio_position;
-    boolean is_paused;
+    private boolean is_paused;
 
     PlayerThread(Albumish player) {
         Mpg123.init();
@@ -42,8 +42,8 @@ class PlayerThread {
             if command.tag == PlayerCommand.PAUSE {
                 if this.audio != null {
                     this.audio.stop();
-                    update_display(false);
                     this.is_paused = true;
+                    update_display(false, true);
                 }
                 continue;
             }
@@ -51,6 +51,7 @@ class PlayerThread {
                 if this.audio != null && this.is_paused {
                     this.is_paused = false;
                     this.audio.play();
+                    update_display(false, true);
                 }
                 continue;
             }
@@ -63,7 +64,7 @@ class PlayerThread {
                     if this.mpg.seek((long)(seconds * this.samples_per_second)) >= 0 {
                         this.audio_position = command.target_ms;
                     }
-                    update_display(false);
+                    update_display(false, false);
                     if !this.is_paused {
                         this.audio.play();
                     }
@@ -73,16 +74,14 @@ class PlayerThread {
             if command.tag == PlayerCommand.PLAY {
                 stop();
                 this.playlistid = command.playlistid;
-                this.songid = command.songid;
-                if this.songid <= 0 {
-                    update_display(true);
-                    command = null;
-                    continue;
+                if command.songid > 0 {
+                    open_file(this.player.database.song_list[command.songid]);
                 }
-                var song = this.player.database.song_list[this.songid];
-                open_file(song);
-                this.is_paused = false;
-                this.audio.play();
+                if this.audio != null {
+                    this.is_paused = false;
+                    this.audio.play();
+                }
+                update_display(true, true);
                 continue;
             }
         }
@@ -114,8 +113,7 @@ class PlayerThread {
         this.audio_position = 0;
         this.samples_per_second = (int) fmt.rate;
         this.audio = new MiniAudio(fmt.rate, fmt.channels, use_float32, this);
-
-        update_display(true);
+        this.songid = song.id;
     }
 
     /**
@@ -132,7 +130,7 @@ class PlayerThread {
         this.audio_position = this.audio_position + millis;
         if this.audio_position < this.updated_audio_position ||
             this.audio_position > this.updated_audio_position + UPDATE_MILLIS {
-            update_display(false);
+            update_display(false, false);
         }
     }
 
@@ -146,30 +144,35 @@ class PlayerThread {
             this.mpg.delete();
             this.mpg = null;
         }
+        this.songid = 0;
     }
 
     /**
      * This is called by the audio thread when it starts playing a new song, and
      * when it reaches the end of the playlist.
      */
-    private void update_display(boolean newSong) {
+    private void update_display(boolean new_song, boolean new_pause) {
         Context.default_context().invoke(new {
             player_thread: this;
-            newSong: newSong;
+            new_song: new_song;
+            new_pause: new_pause;
             void callback() {
-                this.player_thread.update_display_in_main_thread(this.newSong);
+                this.player_thread.update_display_in_main_thread(this.new_song, this.new_pause);
             }
         });
     }
 
-    void update_display_in_main_thread(boolean newSong) {
-        if newSong {
+    void update_display_in_main_thread(boolean new_song, boolean new_pause) {
+        if new_song {
             var song = this.player.database.song_list[this.songid];
             this.player.update_top_panel(song);
             this.player.jump_to_playing_song(false);
         } else {
             this.player.display_time(this.audio_position);
             this.updated_audio_position = this.audio_position;
+        }
+        if new_pause {
+            this.player.display_can_pause(this.audio != null && !this.is_paused);
         }
     }
 
@@ -197,8 +200,8 @@ class PlayerThread {
     /**
      * This is called by the GUI thread to pause and unpause the player.
      */
-    void pause(boolean do_pause) {
-        var tag = do_pause ? PlayerCommand.PAUSE : PlayerCommand.UNPAUSE;
+    void toggle_pause() {
+        var tag = this.is_paused ? PlayerCommand.UNPAUSE : PlayerCommand.PAUSE;
         this.channel.push(new PlayerCommand(){tag: tag});
     }
 

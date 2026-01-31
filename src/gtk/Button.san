@@ -21,6 +21,10 @@ static Button new_from_icon_name(String name, int size) {
     c__stmt "return gtk_button_new_from_icon_name(name, size)";
 }
 
+Image get_image() {
+    c__stmt "return gtk_button_get_image(GTK_BUTTON(this))";
+}
+
 void connect(String signal, ButtonCallback callback) {
     c__stmt "g_signal_connect(this, signal, G_CALLBACK(_button_callback), callback)";
 }
