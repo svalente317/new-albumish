@@ -18,25 +18,33 @@ import gtk.Widget;
 class PlaylistPanel {
 
     private Albumish player;
-    private TreeView table;
+    private TreeView tree_view;
     private ListStore list_store;
 
     PlaylistPanel(Albumish player) {
         this.player = player;
-        this.table = new TreeView();
+        this.tree_view = new TreeView();
         var renderer = CellRenderer.text();
         var column = new TreeViewColumn("Playlist", renderer, true, "text", 0);
-        this.table.append_column(column);
+        this.tree_view.append_column(column);
         this.list_store = new ListStore({ListStore.TYPE_STRING, ListStore.TYPE_INT});
-        this.table.set_model(this.list_store);
+        this.tree_view.set_model(this.list_store);
         // g_object_unref(list_store);
-        // for (Playlist playlist : collection) {
-        // item.setText(playlist.name);
-        // this.table.select(Albumish.AUTO_PLAYLIST);
+
+        var row = {new JsonElement(), new JsonElement()};
+        var iter = new TreeIter();
+        for var playlist : player.playlists {
+            this.list_store.append(iter);
+            row[0].makeString(playlist.name);
+            row[1].makeInt(playlist.id);
+            this.list_store.set(iter, row);
+        }
+        // TODO select Auto-Playlist
+        // TODO this.tree_view.connect_row_activated(this);
     }
 
     Widget widget() {
-        return this.table;
+        return this.tree_view;
     }
     /*
     public int set_auto_playlist(IntList song_list) {
@@ -59,5 +67,41 @@ class PlaylistPanel {
     public int get_selected_playlist() {
         return this.table.getSelectionIndex();
     }
-    */
+
+    void row_activated(TreeView tree_view, TreePath path, TreeViewColumn column) {
+        var activeRow = path.get_first_index();
+        if activeRow < 0 {
+            return;
+        }
+        if this.playlistid >= 0 {
+            // Start playing the displayed playlist at the selected song.
+            var iter = new TreeIter();
+            if this.list_store.get_iter(iter, path) {
+                var value = new JsonElement();
+                this.list_store.get_value(iter, 1, value);
+                this.player.play_song(this.playlistid, value.getAsInt());
+            }
+            return;
+        }
+        // Create a new auto-playlist with the checked and selected rows,
+        // and then start playing the selected one.
+        var songList = new int[];
+        var currentRow = 0;
+        var songid = 0;
+        var iter = new TreeIter();
+        var value = new JsonElement();
+        for var ok = this.list_store.get_iter_first(iter); ok; ok = this.list_store.iter_next(iter) {
+            this.list_store.get_value(iter, 0, value);
+            if value.getAsBoolean() || currentRow == activeRow {
+                this.list_store.get_value(iter, 1, value);
+                songList.add(value.getAsInt());
+                if currentRow == activeRow {
+                    songid = value.getAsInt();
+                }
+            }
+            currentRow++;
+        }
+        var listid = this.player.set_auto_playlist(songList);
+        this.player.play_song(listid, songid);
+    }*/
 }

@@ -1,0 +1,103 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.database;
+import sanka.io.File;
+import sanka.json.JsonParser;
+import sanka.util.Sort;
+import albumish.database.Database;
+
+class PlaylistCollection {
+    const AUTO_PLAYLIST = 0;
+
+    /**
+     * Find each .jspf file in the given directory. Parse each jspf file into a playlist, and add
+     * the playlist to the collection.
+     */
+    static Playlist[] from_directory(Database database, File directory) {
+        var collection = new Playlist[];
+        var files = directory.list();
+        for var file : files {
+            if file.endsWith(".jspf") {
+                var element = JsonParser.parseFile(new File(directory, file).getPath());
+                if element == null {
+                    continue;
+                }
+                var object = element.getAsObject();
+                if object == null {
+                    continue;
+                }
+                var root = new JsonPlaylistFile();
+                root.fromJsonObject(object);
+                add_loaded_playlist(database, root, collection);
+            }
+        }
+        var swapper = new {
+            collection: collection;
+            int compare(int x, int y) {
+                return this.collection[x].name < this.collection[y].name ? -1 :
+                       (this.collection[x].name > this.collection[y].name ? 1 : 0);
+            }
+
+            void swap(int x, int y) {
+                var tmp = this.collection[x];
+                this.collection[x] = this.collection[y];
+                this.collection[y] = tmp;
+            }
+        };
+        Sort.quicksort(collection.length, swapper);
+        // Create auto playlist.
+        var playlist = new Playlist();
+        playlist.name = "Auto-Playlist";
+        playlist.id = AUTO_PLAYLIST;
+        collection.insert(0, playlist);
+        for var i = 0; i < collection.length; i++ {
+            collection[i].id = i;
+        }
+        return collection;
+    }
+
+    /**
+     * Convert jspf playlist to Albumish internal playlist.
+     */
+    private static void add_loaded_playlist(Database database, JsonPlaylistFile root, Playlist[] collection) {
+        if root == null || root.playlist == null || root.playlist.title == null {
+            return;
+        }
+        var playlist = new Playlist();
+        playlist.name = root.playlist.title;
+        if root.playlist.track != null {
+            for var track : root.playlist.track {
+                var songid = get_track_songid(database, track);
+                if songid > 0 {
+                    playlist.add(songid);
+                }
+            }
+        }
+        collection.add(playlist);
+    }
+
+    /**
+     * Find the song in the database that best matches the given track description.
+     *
+     * Lazy implementation: Look for exact match in pathname. We could use fuzzy matching,
+     * including filename matches that ignore prefixes, matches by exact song title and artist,
+     * etc.
+     */
+    private static int get_track_songid(Database database, Track track) {
+        if track.location == null {
+            return 0;
+        }
+        for var song : database.song_list {
+            if song != null && song.filename != null &&
+                track.location.toString() == "file://" + song.filename {
+                return song.id;
+            }
+        }
+        return 0;
+    }
+}

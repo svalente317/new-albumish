@@ -97,7 +97,7 @@ class SyncManager {
             // Collections.sort(workqueue);
             subdirs.setLength(0);
             fileinfos.setLength(0);
-            processed = processed + 1;
+            processed++;
             this.dialog.set_progress(processed, processed + workqueue.length);
         }
 
@@ -245,13 +245,13 @@ class SyncManager {
                 this.subdir_set[directory] = true;
             }
             this.sync_client.copyFile(song.filename, song.media_name);
-            current = current + 1;
+            current++;
             this.dialog.set_progress(current, total);
         }
         for var pathname : this.to_delete {
             this.dialog.set_bottom_label(pathname);
             this.sync_client.removeFile(pathname);
-            current = current + 1;
+            current++;
             this.dialog.set_progress(current, total);
         }
         this.dialog.close_and_run(null);

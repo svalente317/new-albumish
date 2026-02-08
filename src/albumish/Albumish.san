@@ -17,6 +17,7 @@ import gtk.Window;
 import albumish.database.CheckDatabase;
 import albumish.database.Database;
 import albumish.database.Playlist;
+import albumish.database.PlaylistCollection;
 import albumish.database.Song;
 import albumish.filter.FilterWorker;
 import albumish.sync.AddToLibraryManager;
@@ -80,8 +81,7 @@ void callback(Application app) {
     this.database.load(directory, "database.json");
     this.check_database = new CheckDatabase(this.database, directory, "checked_songs.list");
     // this.config = new Configuration(directory, "config.json");
-    // this.playlists = new PlaylistCollection(this.database, directory);
-    this.playlists = {new Playlist()};
+    this.playlists = PlaylistCollection.from_directory(this.database, directory);
     // this.num_random_playlists = this.playlists.get_max_with_prefix(RANDOM_PLAYLIST_PREFIX);
     directory = new File(this.home_directory, "Pictures/covers");
     this.gallery = new Gallery(this, directory, COVER_SIZE, SELECTED_COVER_SIZE);

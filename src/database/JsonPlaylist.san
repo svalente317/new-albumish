@@ -1,0 +1,35 @@
+package albumish.database;
+import sanka.net.URL;
+
+/**
+ * JSPF file format: http://wiki.xiph.org/JSPF_Draft
+ */
+serializable class JsonPlaylistFile {
+    JsonPlaylist playlist;
+}
+
+serializable class JsonPlaylist {
+    String title;
+    String creator;
+    String annotation;
+    URL info;
+    URL location;
+    URL identifier;
+    URL image;
+    String date;
+    URL license;
+    Track[] track;
+}
+
+serializable class Track {
+    URL location;
+    URL identifier;
+    String title;
+    String creator;
+    String annotation;
+    URL info;
+    URL image;
+    String album;
+    int trackNum;
+    int duration;
+}

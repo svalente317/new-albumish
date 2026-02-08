@@ -41,7 +41,7 @@ void set(TreeIter iter, JsonElement[] values) {
     var count = 0;
     for var value : values {
         if value != null {
-            count = count + 1;
+            count++;
         }
     }
     var columns = new int[](count);
@@ -60,20 +60,20 @@ void set(TreeIter iter, JsonElement[] values) {
             var bv = value.getAsBoolean();
             c__stmt "g_value_init(gvalues+count, G_TYPE_BOOLEAN)";
             c__stmt "g_value_set_boolean(gvalues+count, bv)";
-            count = count + 1;
+            count++;
             break;
         case JsonElement.INT_TYPE:
             var iv = value.getAsInt();
             c__stmt "g_value_init(gvalues+count, G_TYPE_INT)";
             c__stmt "g_value_set_int(gvalues+count, iv)";
-            count = count + 1;
+            count++;
             break;
         case JsonElement.STRING_TYPE:
             var sv = value.getAsString();
             if sv != null {
                 c__stmt "g_value_init(gvalues+count, G_TYPE_STRING)";
                 c__stmt "g_value_set_static_string(gvalues+count, sv)";
-                count = count + 1;
+                count++;
             }
             break;
         }
