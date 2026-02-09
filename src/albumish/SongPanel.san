@@ -112,6 +112,9 @@ void reset(int playlistid, int[] songs) {
         this.list_store.set(iter, row);
     }
     this.tree_view.columns_autosize();
+
+    // If this is the PlaylistSongPanel and it displays the playing playlist,
+    // then this would be a good time to select the playing song.
 }
 
 void update_database() {

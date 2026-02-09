@@ -30,8 +30,6 @@ class Albumish {
 const COVER_SIZE = 225;
 const SELECTED_COVER_SIZE = 300;
 
-const AUTO_PLAYLIST = 0;
-
 const ADD_FOLDER = 1;
 const RIP_CD = 2;
 const SYNC_TO_DEVICE = 3;
@@ -169,8 +167,8 @@ private void makeMenuBar(Application app) {
 void select_album(int albumid) {
     this.album_song_panel.update_database();
     if albumid >= 0 {
-        var songList = this.filter_worker.generate_song_list(albumid);
-        this.album_song_panel.reset(-1, songList);
+        var song_list = this.filter_worker.generate_song_list(albumid);
+        this.album_song_panel.reset(-1, song_list);
     }
 }
 
@@ -182,12 +180,23 @@ void sort_albums(int sort_type) {
 }
 
 /**
+ * Called by playlist_panel. Update playlist_song_panel.
+ */
+void select_playlist(int playlistid) {
+    var playlist = this.playlists[playlistid];
+    if playlist == null {
+        return;
+    }
+    this.playlist_song_panel.reset(playlistid, playlist.get_song_list());
+}
+
+/**
  * Called by song_panel. Update playlist panels.
  */
 int set_auto_playlist(int[] songList) {
-    var playlistid = AUTO_PLAYLIST;
+    var playlistid = PlaylistCollection.AUTO_PLAYLIST;
     this.playlists[playlistid].reset(songList);
-    // TODO this.playlistPanel.set...
+    this.playlist_panel.select(playlistid);
     this.playlist_song_panel.reset(playlistid, songList);
     return playlistid;
 }

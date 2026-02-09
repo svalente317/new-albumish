@@ -8,8 +8,6 @@
 - problem reading cover images from some files
 - is it possible to turn GC back on?
 - playlists: add Playlist menu, etc.
-- Playlist Panel (w todo in set_autoplaylist)
-- read playlist files from playlist directory
 
 - JsonParser unicode to utf-8
 - ListStore and doubles
