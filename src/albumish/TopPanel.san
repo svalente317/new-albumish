@@ -79,9 +79,8 @@ class TopPanel {
         this.panel.add(middle);
 
         var entry_callback = new {
-            top_panel: this;
             void callback(Entry entry) {
-                this.top_panel.add_filter();
+                @this.add_filter();
             }
         };
 

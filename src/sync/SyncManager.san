@@ -146,13 +146,10 @@ class SyncManager {
         var text = "TO ADD:\n" + t1 + "\nTO UPDATE:\n" + t2 + "\nTO DELETE:\n" + t3;
 
         var header = "Sync to " + this.music_uri + "...";
-        this.dialog.close_and_run(new {
-            window: this.player.window;
-            header: header;
-            text: text;
-            sync_manager: this;
+        var window = this.player.window;
+        this.dialog.close_and_run(new with window, header, text {
             void run() {
-                new SyncManagerDialog(this.window, this.header, this.text, this.sync_manager);
+                new SyncManagerDialog(this.window, this.header, this.text, @this);
             }
         });
     }
@@ -221,9 +218,8 @@ class SyncManager {
         this.dialog = new ProgressDialog(this.player.window,
                 "Sync to Device...", "Writing " + this.music_uri + "...");
         new Thread(new {
-            sync_manager: this;
             void run() {
-                this.sync_manager.run_apply_changes();
+                @this.run_apply_changes();
             }
         });
     }

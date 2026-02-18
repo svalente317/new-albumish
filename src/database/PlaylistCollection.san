@@ -36,8 +36,7 @@ class PlaylistCollection {
                 add_loaded_playlist(database, root, collection);
             }
         }
-        var swapper = new {
-            collection: collection;
+        var swapper = new with collection {
             int compare(int x, int y) {
                 return this.collection[x].name < this.collection[y].name ? -1 :
                        (this.collection[x].name > this.collection[y].name ? 1 : 0);

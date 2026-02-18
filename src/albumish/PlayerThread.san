@@ -152,12 +152,9 @@ class PlayerThread {
      * when it reaches the end of the playlist.
      */
     private void update_display(boolean new_song, boolean new_pause) {
-        Context.default_context().invoke(new {
-            player_thread: this;
-            new_song: new_song;
-            new_pause: new_pause;
+        Context.default_context().invoke(new with new_song, new_pause {
             void callback() {
-                this.player_thread.update_display_in_main_thread(this.new_song, this.new_pause);
+                @this.update_display_in_main_thread(this.new_song, this.new_pause);
             }
         });
     }

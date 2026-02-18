@@ -34,31 +34,26 @@ class ProgressDialog {
     }
 
     void set_bottom_label(String text) {
-        Context.default_context().invoke(new {
-            progress_dialog: this;
-            text: text;
+        Context.default_context().invoke(new with text {
             void callback() {
-                this.progress_dialog.bottom_label.set_text(this.text);
+                @this.bottom_label.set_text(this.text);
             }
         });
     }
 
     void set_progress(int current, int total) {
-        Context.default_context().invoke(new {
-            progress_dialog: this;
-            fraction: (double) current / (double) total;
+        var fraction = (double) current / (double) total;
+        Context.default_context().invoke(new with fraction {
             void callback() {
-                this.progress_dialog.progress.set_fraction(this.fraction);
+                @this.progress.set_fraction(this.fraction);
             }
         });
     }
 
     void close_and_run(Runnable runnable) {
-        Context.default_context().invoke(new {
-            progress_dialog: this;
-            runnable: runnable;
+        Context.default_context().invoke(new with runnable {
             void callback() {
-                this.progress_dialog.dialog.destroy();
+                @this.dialog.destroy();
                 if this.runnable != null {
                     this.runnable.run();
                 }

@@ -32,9 +32,8 @@ class InputDialog {
         box.add(this.entry);
 
         var entry_callback = new {
-            input_dialog: this;
             void callback(Entry entry) {
-                this.input_dialog.callback(Dialog.RESPONSE_OK);
+                @this.callback(Dialog.RESPONSE_OK);
             }
         };
         this.entry.connect("activate", entry_callback);;

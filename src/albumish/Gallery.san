@@ -91,9 +91,8 @@ class Gallery {
         this.small_map[albumid] = small_image;
         this.big_map[albumid] = big_image;
 
-        Context.default_context().invoke(new {
-            player: this.player;
-            albumid: albumid;
+        var player = this.player;
+        Context.default_context().invoke(new with player, albumid {
             void callback() {
                 this.player.invalidate_album(this.albumid);
             }
