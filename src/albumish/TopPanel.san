@@ -187,6 +187,6 @@ class TopPanel {
     }
 
     void select(int value) {
-        this.player.player_thread.do_audio_jump(value);
+        this.player.audio_controller.jump(value);
     }
 }

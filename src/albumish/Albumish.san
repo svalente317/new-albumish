@@ -51,7 +51,7 @@ CheckDatabase check_database;
 Gallery gallery;
 FilterWorker filter_worker;
 Playlist[] playlists;
-PlayerThread player_thread;
+AudioController audio_controller;
 Window window;
 TopPanel top_panel;
 CoverPanel cover_panel;
@@ -84,7 +84,7 @@ void callback(Application app) {
     directory = new File(this.home_directory, "Pictures/covers");
     this.gallery = new Gallery(this, directory, COVER_SIZE, SELECTED_COVER_SIZE);
     this.filter_worker = new FilterWorker(this.database); // , this.check_database);
-    this.player_thread = new PlayerThread(this);
+    this.audio_controller = new AudioController(this);
 
     this.window = new Window(app);
     this.window.set_title("Albumish");
@@ -207,23 +207,23 @@ int set_auto_playlist(int[] songList) {
 void do_previous() {
     // If you press Previous in the first 3 seconds of a song, then go to the previous song.
     // Otherwise, restart the current song.
-    var delta = this.player_thread.get_audio_position_in_ms() < 3000.0 ? -1 : 0;
-    this.player_thread.play_next_song(delta);
+    var delta = this.audio_controller.get_audio_position_in_ms() < 3000.0 ? -1 : 0;
+    this.audio_controller.play_next_song(delta);
 }
 
 /**
  * Called by top_panel.
  */
 void do_next() {
-    this.player_thread.play_next_song(1);
+    this.audio_controller.play_next_song(1);
 }
 
 /**
  * Called by top_panel.
  */
 void play_or_pause() {
-    if this.player_thread.get_playing_songid() > 0 {
-        this.player_thread.toggle_pause();
+    if this.audio_controller.get_playing_songid() > 0 {
+        this.audio_controller.toggle_pause();
         return;
     }
     var playlistid = this.playlist_song_panel.playlistid;
@@ -239,11 +239,11 @@ void play_or_pause() {
  * Called by playlist_song_panel and album_song_panel.
  */
 void play_song(int playlistid, int songid) {
-    this.player_thread.play_songid(playlistid, songid);
+    this.audio_controller.play(playlistid, songid);
 }
 
 /**
- * Called by player_thread.
+ * Called by audio_controller.
  */
 void update_top_panel(Song song) {
     if song == null {
@@ -351,8 +351,8 @@ void reset_albums() {
  * playlist_song_panel.
  */
 void jump_to_playing_song(boolean update_cover) {
-    var playlistid = this.player_thread.get_playing_listid();
-    var songid = this.player_thread.get_playing_songid();
+    var playlistid = this.audio_controller.get_playing_listid();
+    var songid = this.audio_controller.get_playing_songid();
     if playlistid < 0 || songid <= 0 {
         return;
     }

@@ -1,0 +1,194 @@
+/*
+ *  Copyright (c) 2025  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish;
+import audio.Mpg123;
+import audio.MiniAudio;
+import gtk.Context;
+import albumish.database.Song;
+
+class AudioController {
+    const UPDATE_MILLIS = 250;
+
+    private String topdir;
+    private Albumish player;
+    private int playlistid;
+    private int songid;
+    private PlayerCommand command;
+    private Mpg123 mpg;
+    private MiniAudio audio;
+    private int samples_per_second;
+    private int audio_position;
+    private int updated_audio_position;
+    private boolean is_paused;
+
+    AudioController(Albumish player) {
+        Mpg123.init();
+        this.player = player;
+    }
+
+    void play(int playlistid, int songid) {
+        stop();
+        this.playlistid = playlistid;
+        if songid > 0 {
+            open_file(this.player.database.song_list[songid]);
+        }
+        if this.audio != null {
+            this.is_paused = false;
+            this.audio.play();
+        }
+        update_display(true, true);
+    }
+
+    void toggle_pause() {
+        if this.audio != null {
+            if this.is_paused {
+                this.audio.play();
+                this.is_paused = false;
+            } else {
+                this.audio.stop();
+                this.is_paused = true;
+            }
+            update_display(false, true);
+        }
+    }
+
+    void jump(int target_ms) {
+        if this.mpg != null {
+            if !this.is_paused {
+                this.audio.stop();
+            }
+            var seconds = (double) target_ms / 1000;
+            if this.mpg.seek((long)(seconds * this.samples_per_second)) >= 0 {
+                this.audio_position = target_ms;
+            }
+            update_display(false, false);
+            if !this.is_paused {
+                this.audio.play();
+            }
+        }
+    }
+
+    private void open_file(Song song) {
+        var filename = this.player.get_file(song).getPath();
+        var mpg = new Mpg123();
+        var err = mpg.open(filename);
+        if err != 0 {
+            System.println("open: " + err);
+            return;
+        }
+        // Get this file's default rate and channels.
+        var fmt = mpg.get_format();
+
+        // Tell mpg123 to encode samples as 32-bit floats.
+        err = mpg.format_none();
+        if err != 0 {
+            System.println("format_none: " + err);
+        }
+        err = mpg.set_format(fmt.rate, fmt.channels, true);
+        if err != 0 {
+            System.println("set_format: " + err);
+        }
+        var use_float32 = mpg.is_encoding_float32();
+
+        // Setup for play_file().
+        this.mpg = mpg;
+        this.audio_position = 0;
+        this.samples_per_second = (int) fmt.rate;
+        this.audio = new MiniAudio(fmt.rate, fmt.channels, use_float32, this);
+        this.songid = song.id;
+    }
+
+    /**
+     * Miniaudio callback to fill the audio buffer.
+     */
+    void audio_callback(MiniAudio audio, byte[] output, int frame_count) {
+        var size = this.mpg.read(output);
+        if size < output.length {
+            System.println("done @ " + System.currentTimeMillis());
+            invoke_play_next_song();
+        }
+        var seconds = ((double) frame_count) / this.samples_per_second;
+        var millis = (int)(seconds * 1000);
+        this.audio_position = this.audio_position + millis;
+        if this.audio_position < this.updated_audio_position ||
+            this.audio_position > this.updated_audio_position + UPDATE_MILLIS {
+            invoke_update_display();
+        }
+    }
+
+    private void stop() {
+        if this.audio != null {
+            this.audio.uninit();
+            this.audio = null;
+        }
+        if this.mpg != null {
+            this.mpg.close();
+            this.mpg.delete();
+            this.mpg = null;
+        }
+        this.songid = 0;
+    }
+
+    private void invoke_update_display() {
+        Context.default_context().invoke(new {
+            void callback() {
+                @this.update_display(false, false);
+            }
+        });
+    }
+
+    void update_display(boolean new_song, boolean new_pause) {
+        if new_song {
+            var song = this.player.database.song_list[this.songid];
+            this.player.update_top_panel(song);
+            this.player.jump_to_playing_song(false);
+        } else {
+            this.player.display_time(this.audio_position);
+            this.updated_audio_position = this.audio_position;
+        }
+        if new_pause {
+            this.player.display_can_pause(this.audio != null && !this.is_paused);
+        }
+    }
+
+    private void invoke_play_next_song() {
+        Context.default_context().invoke(new {
+            void callback() {
+                @this.play_next_song(1);
+            }
+        });
+    }
+
+    /**
+     * Start playing the previous or next song in the playlist.
+     */
+    void play_next_song(int delta) {
+        var playlist = this.player.playlists[this.playlistid];
+        var songid = playlist == null ? 0 : playlist.get_next_id(this.songid, delta);
+        play(this.playlistid, songid);
+    }
+
+    /**
+     * @return the length of the audio stream that has been played.
+     */
+    int get_audio_position_in_ms() {
+        return this.audio_position;
+    }
+
+    boolean is_playing() {
+        return this.mpg != null;
+    }
+
+    int get_playing_listid() {
+        return this.playlistid;
+    }
+
+    int get_playing_songid() {
+        return this.songid;
+    }
+}
