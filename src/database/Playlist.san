@@ -13,19 +13,11 @@ package albumish.database;
 class Playlist {
     String name;
     int id;
-
-    private int[] song_list;
-    private boolean is_changed;
+    int[] song_list;
+    boolean is_changed;
 
     Playlist() {
         this.song_list = new int[];
-    }
-
-    /**
-     * Get the list of songids in the playlist for read-only access.
-     */
-    int[] get_song_list() {
-        return this.song_list;
     }
 
     /**
@@ -34,6 +26,18 @@ class Playlist {
     void add(int songid) {
         this.song_list.add(songid);
         this.is_changed = true;
+    }
+
+    void delete(int songid) {
+        // If there are multiple copies of songid in the playlist, then unfortunately,
+        // we don't know which copy the user selected. So we just delete the first copy.
+        for var i = 0; i < this.song_list.length; i++ {
+            if this.song_list[i] == songid {
+                this.song_list.delete(i, 1);
+                this.is_changed = true;
+                return;
+            }
+        }
     }
 
     /**

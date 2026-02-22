@@ -14,11 +14,9 @@ import albumish.database.Song;
 class AudioController {
     const UPDATE_MILLIS = 250;
 
-    private String topdir;
     private Albumish player;
     private int playlistid;
     private int songid;
-    private PlayerCommand command;
     private Mpg123 mpg;
     private MiniAudio audio;
     private int samples_per_second;

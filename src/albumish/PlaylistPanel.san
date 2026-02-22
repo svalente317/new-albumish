@@ -14,6 +14,7 @@ import gtk.TreeView;
 import gtk.TreeSelection;
 import gtk.TreeViewColumn;
 import gtk.Widget;
+import albumish.database.Playlist;
 import albumish.database.PlaylistCollection;
 
 class PlaylistPanel {
@@ -76,5 +77,15 @@ class PlaylistPanel {
                 this.tree_view.get_selection().select(iter);
             }
         }
+    }
+
+    void add_playlist(Playlist playlist) {
+        var iter = new TreeIter();
+        this.list_store.append(iter);
+        var row = {new JsonElement(), new JsonElement()};
+        row[0].makeString(playlist.name);
+        row[1].makeInt(playlist.id);
+        this.list_store.set(iter, row);
+        this.tree_view.get_selection().select(iter);
     }
 }

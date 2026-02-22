@@ -16,7 +16,6 @@ void add(MenuItem[] items, MenuCallback mcb) {
     var activate = "activate";
     var key = MENU_ITEM_ID_KEY;
     for var item : items {
-        System.println("add " + item.label);
         c__stmt "GtkWidget *wid = gtk_menu_item_new_with_label(item->label)";
         c__stmt "g_object_set_data(G_OBJECT(wid), key, GINT_TO_POINTER(item->item_id))";
         c__stmt "g_signal_connect(wid, activate, G_CALLBACK(_menu_callback), mcb)";

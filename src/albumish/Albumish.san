@@ -19,6 +19,7 @@ import albumish.database.Database;
 import albumish.database.Playlist;
 import albumish.database.PlaylistCollection;
 import albumish.database.Song;
+import albumish.dialogs.InputDialog;
 import albumish.filter.FilterWorker;
 import albumish.sync.AddToLibraryManager;
 import albumish.sync.SyncManager;
@@ -158,6 +159,13 @@ private void makeMenuBar(Application app) {
         new MenuItem(){label: "_Jump to Playing Album", accel: "<Primary>j", item_id: JUMP_ALBUM},
         new MenuItem(){label: "Load Album Art...", accel: null, item_id: LOAD_ALBUM_ART}
     });
+    menubar.add_menu("Playlist", {
+        new MenuItem(){label: "_New Playlist...", accel: "<Primary>n", item_id: NEW_PLAYLIST},
+        new MenuItem(){label: "_Delete Playlist...", accel: null, item_id: DELETE_PLAYLIST},
+        new MenuItem(){label: "_Add Selection to Playlist", accel: "<Primary>y", item_id: ADD_SELECTION},
+        new MenuItem(){label: "Delete Selection from Playlist", accel: "<Primary>x", item_id: DELETE_SELECTION},
+        new MenuItem(){label: "New _Random Playlist", accel: null, item_id: RANDOM_PLAYLIST}
+    });
     menubar.install();
 }
 
@@ -168,7 +176,7 @@ void select_album(int albumid) {
     this.album_song_panel.update_database();
     if albumid >= 0 {
         var song_list = this.filter_worker.generate_song_list(albumid);
-        this.album_song_panel.reset(-1, song_list);
+        this.album_song_panel.reset(-1, song_list, -1);
     }
 }
 
@@ -187,7 +195,7 @@ void select_playlist(int playlistid) {
     if playlist == null {
         return;
     }
-    this.playlist_song_panel.reset(playlistid, playlist.get_song_list());
+    this.playlist_song_panel.reset(playlistid, playlist.song_list, -1);
 }
 
 /**
@@ -197,7 +205,7 @@ int set_auto_playlist(int[] songList) {
     var playlistid = PlaylistCollection.AUTO_PLAYLIST;
     this.playlists[playlistid].reset(songList);
     this.playlist_panel.select(playlistid);
-    this.playlist_song_panel.reset(playlistid, songList);
+    this.playlist_song_panel.reset(playlistid, songList, -1);
     return playlistid;
 }
 
@@ -321,6 +329,7 @@ void menu_activated(int item_id) {
     case QUIT:
         this.database.save();
         this.check_database.save();
+        save_changed_playlists();
         this.window.close();
         break;
     case PREV_ALBUM:
@@ -335,7 +344,35 @@ void menu_activated(int item_id) {
     case LOAD_ALBUM_ART:
         on_load_album_art();
         break;
+    case NEW_PLAYLIST:
+        var title = "Create New Playlist";
+        var prompt = "Enter new playlist name.";
+        var callback = new {
+            void callback(String name) {
+                @this.new_playlist(name);
+            }
+        };
+        new InputDialog(this.window, title, prompt, null, callback);
+        break;
+    case DELETE_PLAYLIST:
+        // TODO delete_playlist();
+        break;
+    case ADD_SELECTION:
+        add_selection_to_playlist();
+        break;
+    case DELETE_SELECTION:
+        delete_selection_from_playlist();
+        break;
+    case RANDOM_PLAYLIST:
+        new_random_playlist();
+        break;
     }
+}
+
+void new_playlist(String name) {
+    var playlist = new Playlist(){name: name, id: this.playlists.length};
+    this.playlists.add(playlist);
+    this.playlist_panel.add_playlist(playlist);
 }
 
 /**
@@ -388,5 +425,35 @@ void on_load_album_art() {
         this.gallery.copy_file(albumid, filename);
         this.cover_panel.invalidate_album(albumid);
     }
+}
+
+void add_selection_to_playlist() {
+    var songid = this.album_song_panel.get_selected_id();
+    var playlistid = this.playlist_song_panel.playlistid;
+    if songid <= 0 || playlistid < 0 {
+        return;
+    }
+    var playlist = this.playlists[playlistid];
+    playlist.add(songid);
+    this.playlist_song_panel.reset(playlistid, playlist.song_list, songid);
+}
+
+void delete_selection_from_playlist() {
+    var songid = this.playlist_song_panel.get_selected_id();
+    var playlistid = this.playlist_song_panel.playlistid;
+    if songid <= 0 || playlistid < 0 {
+        return;
+    }
+    var playlist = this.playlists[playlistid];
+    playlist.delete(songid);
+    this.playlist_song_panel.reset(playlistid, playlist.song_list, -1);
+}
+
+void new_random_playlist() {
+    // TODO
+}
+
+void save_changed_playlists() {
+    // TODO
 }
 }

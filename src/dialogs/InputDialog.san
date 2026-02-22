@@ -44,7 +44,7 @@ class InputDialog {
 
     void callback(int id) {
         var text = this.entry.get_text();
-        if text == "" {
+        if id == Dialog.RESPONSE_OK && text == "" {
             return;
         }
         if id == Dialog.RESPONSE_OK || id == Dialog.RESPONSE_CANCEL {
