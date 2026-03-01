@@ -11,6 +11,10 @@ interface SyncClient {
     /**
      * Read a directory on the sync target. Return its lists of files and subdirectories.
      *
+     * The returned results (subdirs and fileinfos) all have the format "directory/name".
+     * They include the given directory so that, by calling this function recursively on the
+     * returned subdirs, you can build the the full pathnames in the directory tree.
+     *
      * @param directory relative path from root of sync target
      * @param subdirs output relative paths of subdirectories
      * @param fileinfos output relative paths and info of files in directory

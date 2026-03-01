@@ -1,0 +1,116 @@
+/*
+ *  Copyright (c) 2026  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.sync;
+import sanka.net.URL;
+import sanka.io.FileReader;
+import sanka.io.LineReader;
+import sanka.util.DateFormat;
+import sanka.util.DateTime;
+import sanka.util.StringUtils;
+import albumish.ftp.Client;
+
+class FtpClient {
+    private Client client;
+    private String top;
+
+    FtpClient(URL url) {
+        this.client = new Client(url.hostname, url.port);
+        var password = url.password == null ? "" : url.password;
+        var status = this.client.Login(url.username, password);
+        if !status {
+            System.println("login " + url.username + ": " + this.client.LastResponse());
+        }
+        this.top = url.path;
+        if !this.top.endsWith("/") {
+            this.top = this.top + "/";
+        }
+    }
+
+    void listDirectory(String directory, String[] subdirs, FileInfo[] fileinfos) {
+        var filename = "/tmp/albumish.mlsd";
+        if !this.client.ListDirectory(filename, this.top + directory) {
+            System.println(directory + ": " + this.client.LastResponse());
+            return;
+        }
+        var reader = new FileReader();
+        var status = reader.open(filename);
+        if status != 0 {
+            System.println(filename + ": " + System.strerror(status));
+            return;
+        }
+        var line_reader = new LineReader(reader);
+        var prefix = directory == "" || directory.endsWith("/") ? directory : directory + "/";
+        var parsed = new DateTime();
+        while true {
+            var line = line_reader.readline();
+            if line == null {
+                break;
+            }
+            // The first space separates facts from the file name.
+            var idx = line.indexOf(' ');
+            if idx < 0 {
+                System.println("bad line: " + line);
+                continue;
+            }
+            var fileinfo = new FileInfo();
+            var facts = line.substring(0, idx);
+            fileinfo.pathname = prefix + line.substring(idx + 1);
+            // Facts are semicolon-separated key-value pairs.
+            var ftype = "";
+            while facts != "" {
+                idx = facts.indexOf('=');
+                if idx < 0 {
+                    break;
+                }
+                // RFC 3659 specifies fact names are case-insensitive.
+                var key = StringUtils.toLowerCase(facts.substring(0, idx));
+                var semi = facts.indexOf(';');
+                if semi < 0 {
+                    break;
+                }
+                var value = facts.substring(idx+1, semi);
+                facts = facts.substring(semi+1);
+                switch key {
+                case "size":
+                    fileinfo.length = System.parseLong(value);
+                    break;
+                case "modify":
+                    if DateFormat.parse(value.substring(0, 14), "%Y%m%d%H%M%S", parsed) {
+                        // TODO fraction of a second
+                        fileinfo.lastModified = parsed.timeMillis;
+                    }
+                    break;
+                case "type":
+                    ftype = value;
+                    break;
+                }
+            }
+            switch ftype {
+            case "file":
+                fileinfos.add(fileinfo);
+                break;
+            case "dir":
+                subdirs.add(fileinfo.pathname);
+                break;
+            }
+        }
+        line_reader.close();
+    }
+
+    boolean copyFile(String src, String dst) {
+        return this.client.Put(src, this.top + dst, false);
+    }
+
+    boolean makeDirectory(String directory) {
+        return this.client.Mkdir(this.top + directory);
+    }
+
+    boolean removeFile(String pathname) {
+        return this.client.Delete(this.top + pathname);
+    }
+}

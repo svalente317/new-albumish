@@ -1,0 +1,48 @@
+/*
+ *  Copyright (c) 2017  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package albumish.ftp;
+
+class Client {
+    c__include "ftplib.h";
+    c__repr    "netbuf *";
+
+    Client(String hostname, int port) {
+        var status = false;
+        c__stmt "netbuf *nthis";
+        c__stmt "status = FtpConnect(hostname, port, &nthis)";
+        if !status {
+            System.println("Connect " + hostname + ":" + port + " failed");
+        }
+        c__stmt "return nthis";
+    }
+
+    boolean Login(String username, String password) {
+        c__stmt "return FtpLogin(username, password, this)";
+    }
+
+    String LastResponse() {
+        c__stmt "return FtpLastResponse(this)";
+    }
+
+    boolean ListDirectory(String filename, String path) {
+        c__stmt "return FtpListDirectory(filename, path, this)";
+    }
+
+    boolean Put(String filename, String path, boolean ascii) {
+        var mode = ascii ? 'A' : 'I';
+        c__stmt "return FtpPut(filename, path, mode, this)";
+    }
+
+    boolean Mkdir(String path) {
+        c__stmt "return FtpMkdir(path, this)";
+    }
+
+    boolean Delete(String path) {
+        c__stmt "return FtpDelete(path, this)";
+    }
+}

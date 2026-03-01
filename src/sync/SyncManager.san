@@ -8,6 +8,7 @@
 package albumish.sync;
 import sanka.io.File;
 import sanka.io.FileStats;
+import sanka.net.URL;
 import albumish.Albumish;
 import albumish.Utils;
 import albumish.database.Database;
@@ -62,19 +63,42 @@ class SyncManager {
     }
 
     void callback(String text) {
+        if !validate_url(text) {
+            return;
+        }
         this.music_uri = text;
         this.dialog = new ProgressDialog(this.player.window,
             "Sync to Device...", "Reading " + this.music_uri + "...");
         new Thread(this);
     }
 
+    boolean validate_url(String text) {
+        var url = new URL(text);
+        if url.scheme == null {
+            return true;
+        }
+        if url.scheme == "ftp" {
+            if url.hostname == null || url.hostname == "" ||
+               url.username == null || url.username == "" || url.path == "" {
+                   System.println("incomplete ftp url: " + url.toString());
+                   return false;
+               }
+            return true;
+        }
+        System.println("bad scheme: " + url.scheme);
+        return false;
+    }
+
     /**
      * In a background thread, sync to the device, while updating the view.
      */
     void run() {
-        // if scheme == "ftp" ...
-        // if scheme == "mtp" ...
-        this.sync_client = new FileSystemClient(this.music_uri);
+        var url = new URL(this.music_uri);
+        if url.scheme == null {
+            this.sync_client = new FileSystemClient(this.music_uri);
+        } else if url.scheme == "ftp" {
+            this.sync_client = new FtpClient(url);
+        }
         this.subdir_set = new map[String]boolean;
         var fileinfo_map = new map[String]FileInfo;
         var workqueue = new String[];
@@ -85,6 +109,9 @@ class SyncManager {
         while workqueue.length > 0 {
             var directory = workqueue[0];
             workqueue.delete(0, 1);
+            if directory == ".thumbnails" {
+                continue;
+            }
             this.dialog.set_bottom_label(directory);
             this.sync_client.listDirectory(directory, subdirs, fileinfos);
             for var subdir : subdirs {
@@ -197,9 +224,9 @@ class SyncManager {
         if file.getStats(stats, true) != 0 {
             return false;
         }
-        if stats.length != fileinfo.length {
-            return true;
-        }
+        //if stats.length != fileinfo.length {
+        //    return true;
+        //}
         return fileinfo.lastModified > 0 && stats.lastModified > fileinfo.lastModified;
     }
 

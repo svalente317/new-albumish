@@ -8,7 +8,6 @@
 - Delete Album dialog
 - Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
-- Sync to device: FtpClient
 - problem reading cover images from some files
 - is it possible to turn GC back on?
 

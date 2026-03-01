@@ -31,20 +31,26 @@ class Utils {
                 needSpace = !haveSpace;
                 haveSpace = false;
                 skipSpace = true;
-            } else {
-                if needSpace && ch != '.' {
-                    filename.add(' ');
-                    needSpace = false;
-                }
-                if skipSpace {
-                    skipSpace = false;
-                    if ch == ' ' {
-                        continue;
-                    }
-                }
-                filename.add(ch);
-                haveSpace = (ch == ' ');
+                continue;
             }
+            if ch == '[' {
+                ch = '(';
+            }
+            if ch == ']' {
+                ch = ')';
+            }
+            if needSpace && ch != '.' {
+                filename.add(' ');
+                needSpace = false;
+            }
+            if skipSpace {
+                skipSpace = false;
+                if ch == ' ' {
+                    continue;
+                }
+            }
+            filename.add(ch);
+            haveSpace = (ch == ' ');
         }
         return filename.done();
     }
