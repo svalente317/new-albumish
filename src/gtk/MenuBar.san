@@ -39,9 +39,9 @@ class MenuBar {
      * Install the application menubar. Call this after all calls to add_menu(),
      * so that it can install the application key accelerators.
      */
-     void install() {
-         c__stmt "gtk_application_set_menubar(this->app, G_MENU_MODEL(this->menubar))";
-     }
+    void install() {
+        c__stmt "gtk_application_set_menubar(this->app, G_MENU_MODEL(this->menubar))";
+    }
 
     c__stmt "void _menubar_callback(GSimpleAction *action, GVariant *parameter, gpointer user_data){";
     c__stmt "const char *name = g_action_get_name(G_ACTION(action)); int item_id = atoi(name+8);";

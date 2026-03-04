@@ -1,0 +1,10 @@
+package gdk;
+
+class Library {
+
+c__include "gtk/gtk.h";
+
+static String get_os_info() {
+    c__stmt "return g_get_os_info(G_OS_INFO_KEY_NAME)";
+}
+}

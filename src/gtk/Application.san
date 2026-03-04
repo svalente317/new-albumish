@@ -1,4 +1,5 @@
 package gtk;
+import sanka.lang.Runnable;
 
 class Application {
 
@@ -21,8 +22,22 @@ void unref() {
     c__stmt "g_object_unref(this)";
 }
 
+/**
+ * Install an handler for a named action that the system can invoke through means other than
+ * the application-defined menubar.
+ */
+void add_action(String action_name, Runnable runnable) {
+    var activate = "activate";
+    c__stmt "GSimpleAction *action = g_simple_action_new(action_name, NULL)";
+    c__stmt "g_signal_connect(action, activate, G_CALLBACK(_runnable_callback), runnable)";
+    c__stmt "g_action_map_add_action(G_ACTION_MAP(this), G_ACTION(action))";
+}
+
 c__stmt "void __application_callback(GtkApplication *app, void *user_data)";
 c__stmt "{ ApplicationCallback__callback((struct ApplicationCallback *) user_data, app); }";
+
+c__stmt "void _runnable_callback(GSimpleAction *action, GVariant *parameter, gpointer user_data)";
+c__stmt "{ Runnable__run((struct Runnable *) user_data); }";
 }
 
 interface ApplicationCallback {

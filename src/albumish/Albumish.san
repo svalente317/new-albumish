@@ -7,6 +7,7 @@
  */
 package albumish;
 import sanka.io.File;
+import gdk.Library;
 import gtk.Application;
 import gtk.FileChooser;
 import gtk.Grid;
@@ -147,12 +148,15 @@ void callback(Application app) {
 
 private void makeMenuBar(Application app) {
     var menubar = new MenuBar(app, this);
-    menubar.add_menu("Library", {
+    var library_menu = {
         new MenuItem(){label: "_Add Folder to Library...", accel: "<Primary>a", item_id: ADD_FOLDER},
         new MenuItem(){label: "_Rip CD to Library...", accel: null, item_id: RIP_CD},
-        new MenuItem(){label: "_Sync to Device...", accel: null, item_id: SYNC_TO_DEVICE},
-        new MenuItem(){label: "_Quit", accel: null, item_id: QUIT}
-    });
+        new MenuItem(){label: "_Sync to Device...", accel: null, item_id: SYNC_TO_DEVICE}
+    };
+    if Library.get_os_info() != "macOS" {
+        library_menu.add(new MenuItem(){label: "_Quit", accel: null, item_id: QUIT});
+    }
+    menubar.add_menu("Library", library_menu);
     menubar.add_menu("Albums", {
         new MenuItem(){label: "_Previous Album", accel: "Page_Up", item_id: PREV_ALBUM},
         new MenuItem(){label: "_Next Album", accel: "Page_Down", item_id: NEXT_ALBUM},
@@ -167,6 +171,12 @@ private void makeMenuBar(Application app) {
         new MenuItem(){label: "New _Random Playlist", accel: null, item_id: RANDOM_PLAYLIST}
     });
     menubar.install();
+
+    app.add_action("quit", new {
+        void run() {
+            @this.quit();
+        }
+    });
 }
 
 /**
@@ -327,10 +337,7 @@ void menu_activated(int item_id) {
         new SyncManager().sync_to_device(this);
         break;
     case QUIT:
-        this.database.save();
-        this.check_database.save();
-        save_changed_playlists();
-        this.window.close();
+        quit();
         break;
     case PREV_ALBUM:
         this.cover_panel.select_next_album(-1);
@@ -455,5 +462,12 @@ void new_random_playlist() {
 
 void save_changed_playlists() {
     // TODO
+}
+
+void quit() {
+    this.database.save();
+    this.check_database.save();
+    save_changed_playlists();
+    this.window.close();
 }
 }
