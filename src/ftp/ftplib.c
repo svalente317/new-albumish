@@ -364,14 +364,10 @@ int FtpConnect(const char *host, int port, netbuf **nControl)
     else
     {
         struct servent *pse;
-        struct servent se;
-        char tmpbuf[TMP_BUFSIZ];
-        int i;
-        if ( ( i = getservbyname_r("ftp","tcp",&se,tmpbuf,TMP_BUFSIZ,&pse) ) != 0 )
+        if ((pse = getservbyname("ftp","tcp") ) == NULL )
         {
-            errno = i;
             if ( ftplib_debug )
-                perror("getservbyname_r");
+                perror("getservbyname");
             return 0;
         }
         sin.sin_port = pse->s_port;
@@ -379,14 +375,10 @@ int FtpConnect(const char *host, int port, netbuf **nControl)
     if ((sin.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
     {
         struct hostent *phe;
-        struct hostent he;
-        char tmpbuf[TMP_BUFSIZ];
-        int i, herr;
-        if ( ( ( i = gethostbyname_r( host, &he, tmpbuf, TMP_BUFSIZ, &phe, &herr ) ) != 0 ) ||
-             ( phe == NULL ) )
+        if ((phe = gethostbyname(host)) == NULL)
         {
             if ( ftplib_debug )
-                fprintf(stderr, "gethostbyname: %s\n", hstrerror(herr));
+                fprintf(stderr, "gethostbyname: %s\n", hstrerror(h_errno));
             return 0;
         }
         memcpy((char *)&sin.sin_addr, phe->h_addr, phe->h_length);

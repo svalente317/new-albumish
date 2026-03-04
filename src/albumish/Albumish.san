@@ -66,7 +66,7 @@ static void main(String[] argv) {
 
 void run(String[] argv)
 {
-    var app = new Application(null, 0);
+    var app = new Application("io.github.svalente317.albumish", 0);
     app.connect("activate", this);
     app.run(argv);
     app.unref();

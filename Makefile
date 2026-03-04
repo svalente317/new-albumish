@@ -29,4 +29,9 @@ src/audio/miniaudio.h:
 	curl https://raw.githubusercontent.com/mackron/miniaudio/master/miniaudio.h -o $@
 
 clean:
-	rm -rf albumish.exe bin
+	rm -rf albumish.exe bin Albumish.app
+
+Albumish.app:	albumish.exe Info.plist
+	mkdir -p Albumish.app/Contents/MacOS
+	cp albumish.exe Albumish.app/Contents/MacOS/
+	cp Info.plist Albumish.app/Contents/Info.plist
