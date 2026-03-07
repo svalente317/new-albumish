@@ -72,5 +72,6 @@ class Playlist {
                 this.song_list[i] = new_song_list[i];
             }
         }
+        this.is_changed = true;
     }
 }

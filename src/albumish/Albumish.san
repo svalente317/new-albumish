@@ -52,6 +52,7 @@ Database database;
 CheckDatabase check_database;
 Gallery gallery;
 FilterWorker filter_worker;
+PlaylistCollection collection;
 Playlist[] playlists;
 AudioController audio_controller;
 Window window;
@@ -81,7 +82,8 @@ void callback(Application app) {
     this.database.load(directory, "database.json");
     this.check_database = new CheckDatabase(this.database, directory, "checked_songs.list");
     // this.config = new Configuration(directory, "config.json");
-    this.playlists = PlaylistCollection.from_directory(this.database, directory);
+    this.collection = new PlaylistCollection(this.database, directory);
+    this.playlists = this.collection.playlists;
     // this.num_random_playlists = this.playlists.get_max_with_prefix(RANDOM_PLAYLIST_PREFIX);
     directory = new File(this.home_directory, "Pictures/covers");
     this.gallery = new Gallery(this, directory, COVER_SIZE, SELECTED_COVER_SIZE);
@@ -467,7 +469,7 @@ void save_changed_playlists() {
 void quit() {
     this.database.save();
     this.check_database.save();
-    save_changed_playlists();
+    this.collection.save();
     this.window.close();
 }
 }

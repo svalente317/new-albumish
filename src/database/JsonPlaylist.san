@@ -30,6 +30,6 @@ serializable class Track {
     URL info;
     URL image;
     String album;
-    int trackNum;
-    int duration;
+    // int trackNum;
+    // int duration;
 }

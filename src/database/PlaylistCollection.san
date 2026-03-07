@@ -7,23 +7,40 @@
  */
 package albumish.database;
 import sanka.io.File;
+import sanka.io.FileWriter;
+import sanka.json.JsonFormatter;
 import sanka.json.JsonParser;
+import sanka.net.URL;
 import sanka.util.Sort;
 import albumish.database.Database;
 
 class PlaylistCollection {
     const AUTO_PLAYLIST = 0;
 
+    Database database;
+    File directory;
+    Playlist[] playlists;
+
+    PlaylistCollection(Database database, File directory) {
+        this.database = database;
+        this.directory = directory;
+        // Create auto playlist. It has id == 0, and is this.playlists[0].
+        var playlist = new Playlist();
+        playlist.name = "Auto-Playlist";
+        this.playlists = new Playlist[]{playlist};
+        load();
+    }
+
     /**
      * Find each .jspf file in the given directory. Parse each jspf file into a playlist, and add
      * the playlist to the collection.
      */
-    static Playlist[] from_directory(Database database, File directory) {
+    void load() {
         var collection = new Playlist[];
-        var files = directory.list();
+        var files = this.directory.list();
         for var file : files {
             if file.endsWith(".jspf") {
-                var element = JsonParser.parseFile(new File(directory, file).getPath());
+                var element = JsonParser.parseFile(new File(this.directory, file).getPath());
                 if element == null {
                     continue;
                 }
@@ -33,7 +50,10 @@ class PlaylistCollection {
                 }
                 var root = new JsonPlaylistFile();
                 root.fromJsonObject(object);
-                add_loaded_playlist(database, root, collection);
+                var playlist = to_playlist(this.database, root);
+                if playlist != null {
+                    collection.add(playlist);
+                }
             }
         }
         var swapper = new with collection {
@@ -49,22 +69,18 @@ class PlaylistCollection {
             }
         };
         Sort.quicksort(collection.length, swapper);
-        // Create auto playlist.
-        var playlist = new Playlist();
-        playlist.name = "Auto-Playlist";
-        collection.insert(AUTO_PLAYLIST, playlist);
-        for var i = 0; i < collection.length; i++ {
-            collection[i].id = i;
+        for var playlist : collection {
+            playlist.id = this.playlists.length;
+            this.playlists.add(playlist);
         }
-        return collection;
     }
 
     /**
      * Convert jspf playlist to Albumish internal playlist.
      */
-    private static void add_loaded_playlist(Database database, JsonPlaylistFile root, Playlist[] collection) {
+    private static Playlist to_playlist(Database database, JsonPlaylistFile root) {
         if root == null || root.playlist == null || root.playlist.title == null {
-            return;
+            return null;
         }
         var playlist = new Playlist();
         playlist.name = root.playlist.title;
@@ -76,7 +92,8 @@ class PlaylistCollection {
                 }
             }
         }
-        collection.add(playlist);
+        playlist.is_changed = false;
+        return playlist;
     }
 
     /**
@@ -97,5 +114,62 @@ class PlaylistCollection {
             }
         }
         return 0;
+    }
+
+    /**
+     * Save each changed playlist as a .jspf file in the playlist directory.
+     */
+    void save() {
+        for var playlist : this.playlists {
+            if playlist == null || playlist.id == AUTO_PLAYLIST || !playlist.is_changed {
+                continue;
+            }
+            var jpf = to_json_playlist(this.database, playlist);
+            save_playlist(this.directory, jpf);
+            playlist.is_changed = false;
+        }
+    }
+
+    /**
+     * Convert Albumish internal playlist to jspf playlist
+     */
+    private static JsonPlaylistFile to_json_playlist(Database database, Playlist playlist) {
+        // SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+        var jplaylist = new JsonPlaylist();
+        jplaylist.title = playlist.name;
+        jplaylist.date = "TODO current time";
+        jplaylist.track = new Track[](playlist.song_list.length);
+        for var idx = 0; idx < playlist.song_list.length; idx++ {
+            var obj = new Track();
+            var songid = playlist.song_list[idx];
+            var song = database.song_list[songid];
+            if song.filename != null {
+                obj.location = new URL("file://" + song.filename);
+            }
+            obj.title = song.title;
+            var artist = database.artist_list[song.artistid];
+            if artist != null && artist.name != null {
+                obj.creator = artist.name;
+            }
+            // If this song title + artist is ambiguous in the current
+            // database, then also record album name?
+            jplaylist.track[idx] = obj;
+        }
+        return new JsonPlaylistFile(){playlist: jplaylist};
+    }
+
+    private static void save_playlist(File directory, JsonPlaylistFile jpf) {
+        var writer = new FileWriter();
+        var filename = new File(directory, jpf.playlist.title + ".jspf").getPath();
+        var status = writer.open(filename);
+        if status != 0 {
+            System.println(filename + ": " + System.strerror(status));
+            return;
+        }
+        var formatter = new JsonFormatter(writer);
+        formatter.level = "  ";
+        formatter.omitNulls = true;
+        formatter.format(jpf.toJson());
+        writer.close();
     }
 }

@@ -44,14 +44,17 @@ class TopPanel {
         hbox.set_spacing(10);
         this.prev_button = Button.new_from_icon_name("media-skip-backward", Button.SIZE_BUTTON);
         this.prev_button.set_size_request(50, 50);
+        this.prev_button.set_valign_center();
         this.prev_button.connect("clicked", this);
         hbox.add(this.prev_button);
         this.play_button = Button.new_from_icon_name("media-playback-start", Button.SIZE_BUTTON);
         this.play_button.set_size_request(50, 50);
+        this.play_button.set_valign_center();
         this.play_button.connect("clicked", this);
         hbox.add(this.play_button);
         this.next_button = Button.new_from_icon_name("media-skip-forward", Button.SIZE_BUTTON);
         this.next_button.set_size_request(50, 50);
+        this.next_button.set_valign_center();
         this.next_button.connect("clicked", this);
         hbox.add(this.next_button);
         top_left.add(hbox);

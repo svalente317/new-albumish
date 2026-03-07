@@ -58,6 +58,10 @@ void grab_focus() {
     c__stmt "gtk_widget_grab_focus(GTK_WIDGET(this))";
 }
 
+void set_valign_center() {
+    c__stmt "gtk_widget_set_valign(GTK_WIDGET(this), GTK_ALIGN_CENTER)";
+}
+
 void connect_mouse_button(MouseCallback callback) {
     c__stmt "gtk_widget_add_events(this, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK)";
     var signal = "button-press-event";
