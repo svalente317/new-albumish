@@ -35,3 +35,5 @@ Albumish.app:	albumish.exe Info.plist
 	mkdir -p Albumish.app/Contents/MacOS
 	cp albumish.exe Albumish.app/Contents/MacOS/
 	cp Info.plist Albumish.app/Contents/Info.plist
+	mkdir -p Albumish.app/Contents/Resources
+	cp Albumish.icns Albumish.app/Contents/Resources/

@@ -14,5 +14,7 @@
     <string>1.0</string>
     <key>LSUIElement</key>
     <string>0</string>
+    <key>CFBundleIconFile</key>
+    <string>Albumish</string>
 </dict>
 </plist>
