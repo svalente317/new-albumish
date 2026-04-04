@@ -1,16 +1,22 @@
+- load library from ~/cache.
+   why null pointer exception?
+   are all id3v24? any missing track numbers?
+   some cache files don't have track number in filename?
+   strip id3v1 tag from end of file?
+
+- sanka bug: consider c__repr in first pass
+- sanka: add superclass to #includes so Bin does not need to import Container
+
 - random playlist
-- Playlist panel
 - delete playlist
+- panel with playlist arrow buttons (add, delete)
 - RipManager
 - Edit Tags dialog
 - Delete Album dialog
-- Sync to device: get_song_file_with_artwork, is_modified
 - Sync to device: mtp, GioClient
 - problem reading cover images from some files
 - is it possible to turn GC back on?
 
 - JsonParser unicode to utf-8
 - ListStore and doubles
-- sanka: add superclass to #includes so Bin does not need to import Container
 - CoverPanel draw: why do I have to expand the rectangle for redraw?
-- id3v1 genre

@@ -1,0 +1,153 @@
+package audio;
+
+class Id3File {
+    c__include "id3tag.h";
+    c__repr    "struct id3_file *";
+
+    const TITLE = "TIT2";
+    const ARTIST = "TPE1";
+    const ALBUM = "TALB";
+    const ALBUM_ARTIST = "TPE2";
+    const TRACK = "TRCK";
+    const YEAR = "TYER";
+    const DATE = "TDRC";
+    const ATTACHED_PIC = "APIC";
+
+    const FRONT_COVER = 3;
+
+    static Id3File open(String filename) {
+        c__stmt "return id3_file_open(filename, ID3_FILE_MODE_READONLY)";
+    }
+
+    static Id3File open_write(String filename) {
+        c__stmt "return id3_file_open(filename, ID3_FILE_MODE_READWRITE)";
+    }
+
+    Id3Tag tag() {
+        c__stmt "return id3_file_tag(this)";
+    }
+
+    void close() {
+        c__stmt "id3_file_close(this)";
+    }
+
+    int update() {
+        c__stmt "return id3_file_update(this)";
+    }
+}
+
+class Id3Tag {
+    c__include "id3tag.h";
+    c__repr    "struct id3_tag *";
+
+    Id3Frame frame(String name, int num) {
+        c__stmt "return id3_tag_findframe(this, name, num)";
+    }
+
+    /**
+     * helper function for frames with regular fields with single string values
+     */
+    String get_frame_value(String name) {
+        var frame = frame(name, 0);
+        if frame == null {
+            return null;
+        }
+       // Field 0 is encoding type. Field 1 is string list.
+       var field = frame.field(1);
+       if field == null {
+           return null;
+       }
+       var n = field.get_n_strings();
+       if n == 0 {
+           return null;
+       }
+       // if n > 1 System.println("field " + name + " has " + n + " strings");
+       return field.get_string(0);
+    }
+
+    int attach_frame(Id3Frame frame) {
+        c__stmt "return id3_tag_attachframe(this, frame)";
+    }
+
+    long get_padded_size() {
+        c__stmt "return this->paddedsize";
+    }
+
+    int get_version_major() {
+        c__stmt "unsigned int version = id3_tag_version(this)";
+        c__stmt "return ID3_TAG_VERSION_MAJOR(version)";
+        // c__stmt "return ID3_TAG_VERSION_MINOR(version)";
+    }
+
+    byte[] render() {
+        c__stmt "id3_tag_options(this, ID3_TAG_OPTION_ID3V1, 0)";
+        c__stmt "id3_tag_options(this, ID3_TAG_OPTION_UNSYNCHRONISATION, 0)";
+        var len = 0;
+        c__stmt "len = id3_tag_render(this, NULL)";
+        var tagbuf = new byte[](4000 + len);
+        c__stmt "len = id3_tag_render(this, tagbuf->data)";
+        c__stmt "tagbuf->length = len";
+        return tagbuf;
+    }
+}
+
+class Id3Frame {
+    c__include "id3tag.h";
+    c__repr    "struct id3_frame *";
+
+    static Id3Frame create(String name) {
+        c__stmt "return id3_frame_new(name)";
+    }
+
+    Id3Field field(int num) {
+        c__stmt "return id3_frame_field(this, num)";
+    }
+
+    void delete() {
+        c__stmt "id3_frame_delete(this)";
+    }
+}
+
+class Id3Field {
+    c__include "id3tag.h";
+    c__include "stdlib.h";
+    c__repr    "union id3_field *";
+
+    String latin1() {
+        c__stmt "const id3_latin1_t *latin1 = id3_field_getlatin1(this)";
+        c__stmt "return (const char *)latin1";
+    }
+
+    int get_n_strings() {
+        c__stmt "return (int) id3_field_getnstrings(this)";
+    }
+
+    String get_string(int idx) {
+        c__stmt "id3_ucs4_t const *ucs4 = id3_field_getstrings(this, idx)";
+        c__stmt "if (ucs4 == NULL) return NULL";
+        // TODO use gc_malloc? free-able string?
+        c__stmt "return (const char *) id3_ucs4_utf8duplicate(ucs4)";
+    }
+
+    void set_text_encoding() {
+        c__stmt "id3_field_settextencoding(this, ID3_FIELD_TEXTENCODING_ISO_8859_1)";
+    }
+
+    void set_latin1(String value) {
+        c__stmt "id3_field_setlatin1(this, (const id3_latin1_t *) value)";
+    }
+
+    void set_int(int value) {
+        c__stmt "id3_field_setint(this, value)";
+    }
+
+    void set_string(String value) {
+        c__stmt "static const id3_ucs4_t empty[] = { 0 }";
+        c__stmt "if (value[0] == 0) { id3_field_setstring(this, empty); return; }";
+        // TODO copy value, set, free
+    }
+
+    void set_binary_data(byte[] data) {
+        c__stmt "id3_field_setbinarydata(this, data->data, data->length)";
+    }
+}

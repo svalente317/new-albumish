@@ -24,7 +24,6 @@ class SyncManager {
     const MUSIC_DIR = "Music";
 
     private Albumish player;
-    private String user_home;
     private String music_uri;
     private ProgressDialog dialog;
 
@@ -39,7 +38,6 @@ class SyncManager {
      */
     void sync_to_device(Albumish player) {
         this.player = player;
-        this.user_home = System.getenv("HOME");
         var device_uris = GioClient.getMtpDeviceList();
         if device_uris != null && device_uris.length > 0 {
             var device_uri = device_uris[0];
@@ -138,7 +136,7 @@ class SyncManager {
                 continue;
             }
             var media_name = generate_media_name(song, this.player.database);
-            var cache_file = get_song_file_with_artwork(song, media_name);
+            var cache_file = SongUpdater.get_song_file_with_artwork(this.player, song, media_name);
             var song_file = cache_file != null ? cache_file : this.player.get_file(song);
             var fileinfo = fileinfo_map[media_name];
             if fileinfo == null {
@@ -205,17 +203,6 @@ class SyncManager {
     }
 
     /**
-     * If this song has artwork in the gallery but not in the mp3 file, then write
-     * a copy of the mp3 file with the artwork embedded, to write to the device.
-     * If we already have a cached copy of the file with the embedded artwork, then
-     * use that.
-     */
-    private File get_song_file_with_artwork(Song song, String media_name) {
-        // TODO get_song_file_with_artwork
-        return null;
-    }
-
-    /**
      * Compare size and modification time of the file on the device to the file on
      * the computer.
      */
@@ -224,9 +211,9 @@ class SyncManager {
         if file.getStats(stats, true) != 0 {
             return false;
         }
-        //if stats.length != fileinfo.length {
-        //    return true;
-        //}
+        if stats.length != fileinfo.length {
+            return true;
+        }
         return fileinfo.lastModified > 0 && stats.lastModified > fileinfo.lastModified;
     }
 
