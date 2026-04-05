@@ -76,12 +76,6 @@ class SongUpdater {
             id3file.close();
             return;
         }
-        var version = tag.get_version_major();
-        if version != 2 {
-            System.println(filename + ": version " + version);
-            // id3file.close();
-            // return;
-        }
         var tag_length = tag.get_padded_size();
         var tagbuf = get_tag_with_pic_frame(tag, jpeg);
         if tagbuf == null {

@@ -38,6 +38,9 @@ class PlaylistCollection {
     void load() {
         var collection = new Playlist[];
         var files = this.directory.list();
+        if files == null {
+            return;
+        }
         for var file : files {
             if file.endsWith(".jspf") {
                 var element = JsonParser.parseFile(new File(this.directory, file).getPath());

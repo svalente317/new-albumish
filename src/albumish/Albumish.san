@@ -78,6 +78,7 @@ void callback(Application app) {
     this.config = new map[String]String;
     this.home_directory = new File(System.getenv("HOME"));
     var directory = new File(this.home_directory, ".albumish");
+    directory.mkdirs();
     this.database = new Database();
     this.database.load(directory, "database.json");
     this.check_database = new CheckDatabase(this.database, directory, "checked_songs.list");

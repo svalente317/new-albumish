@@ -181,11 +181,11 @@ void draw(DrawingArea area, CairoType cairo) {
             if !is_selected {
                 var album = this.player.database.album_list[albumid];
                 var artist = this.player.database.artist_list[album.artistid];
-                if artist.name != null {
+                if artist != null && artist.name != null {
                     ypos = default_ypos - text_spacing;
                     paint_line(cairo, layout, artist.name, xpos, ypos, width, true);
                 }
-                if album.name != null {
+                if album != null && album.name != null {
                     ypos = default_ypos + width + text_spacing;
                     paint_line(cairo, layout, album.name, xpos, ypos, width, false);
                 }

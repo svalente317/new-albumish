@@ -144,6 +144,7 @@ class Database {
      * Overwrite the database file with the current contents of the database.
      */
     void save() {
+        System.println("database.save: " + this.is_changed);
         if !this.is_changed {
             return;
         }
@@ -153,11 +154,17 @@ class Database {
                 continue;
             }
             var info = new SongInfo();
-            info.artist = this.artist_list[song.artistid].name;
-            info.album = this.album_list[song.albumid].name;
-            var artistid = this.album_list[song.albumid].artistid;
-            if artistid > 0 && artistid != song.artistid {
-                info.album_artist = this.artist_list[artistid].name;
+            var artist = this.artist_list[song.artistid];
+            if artist != null {
+                info.artist = artist.name;
+            }
+            var album = this.album_list[song.albumid];
+            if album != null {
+                info.album = album.name;
+                var artistid = album.artistid;
+                if artistid > 0 && artistid != song.artistid {
+                    info.album_artist = this.artist_list[artistid].name;
+                }
             }
             var obj1 = info.toJsonObject();
             var obj2 = song.toJsonObject();

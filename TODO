@@ -1,8 +1,5 @@
-- load library from ~/cache.
-   why null pointer exception?
-   are all id3v24? any missing track numbers?
-   some cache files don't have track number in filename?
-   strip id3v1 tag from end of file?
+- SongUpdater.san - Read tag. some files have info in id3v1 tag.
+- strip id3v1 tag from end of file?
 
 - sanka bug: consider c__repr in first pass
 - sanka: add superclass to #includes so Bin does not need to import Container
