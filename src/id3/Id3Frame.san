@@ -5,4 +5,49 @@ class Id3Frame {
     byte flags_status;
     byte flags_format;
     byte[] raw_data;
+
+    // Encoding values defined in the ID3 spec.
+    const ID3_ENC_LATIN1  = 0;
+    const ID3_ENC_UTF16   = 1;
+    const ID3_ENC_UTF16BE = 2;
+    const ID3_ENC_UTF8    = 3;
+
+    /**
+     * Parse the raw payload of a text field.
+     */
+    String get_text() {
+        var p = this.raw_data;
+        if p.length == 0 {
+            System.println("ID3 zero byte frame: " + this.id);
+            return null;
+        }
+        var enc = p[0];
+        if enc == ID3_ENC_UTF8 && p.length >= 3 && p[1] == -1 && p[2] == -2 {
+            // Encoder bug. The frame is actually UTF-16 encoded.
+            enc = ID3_ENC_UTF16;
+        }
+        // Treat the entire frame as a single string (field).
+        // TODO. Test this with a frame with multiple fields.
+        var data = new byte[](p.length-1);
+        System.byteArrayCopy(p, 1, data, 0, data.length);
+        var src = "";
+        var result = "";
+        if enc != ID3_ENC_UTF8 {
+            switch enc {
+            case ID3_ENC_LATIN1:
+                src = "ISO-8859-1";
+                break;
+            case ID3_ENC_UTF16:
+                src = "UTF-16";
+                break;
+            case ID3_ENC_UTF16BE:
+                src = "UTF-16BE";
+                break;
+            }
+            result = Iconverter.convert("UTF-8", src, data);
+        } else {
+            result = new String(data);
+        }
+        return result;
+    }
 }

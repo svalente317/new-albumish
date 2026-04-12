@@ -17,7 +17,7 @@ import albumish.dialogs.InputDialog;
 import albumish.dialogs.ProgressDialog;
 import audio.FrameInfo;
 import audio.Mpg123;
-import audio.Id3Info;
+import id3.Id3Info;
 
 class AddToLibraryManager {
 

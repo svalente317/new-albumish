@@ -1,4 +1,4 @@
-package audio;
+package id3;
 
 class Id3Info {
     String version;

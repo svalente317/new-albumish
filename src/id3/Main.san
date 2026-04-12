@@ -50,7 +50,10 @@ class Main {
         for var filename : files {
             System.println("*** " + filename);
             var f = new Id3File(filename);
-            f.read_id3tag();
+            var tag = f.read_id3tag();
+            if tag != null {
+                tag.get_id3_info();
+            }
         }
     }
 }

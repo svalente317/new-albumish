@@ -24,4 +24,55 @@ class Id3Tag {
     boolean flag_footer() {
         return ((this.flags >> 4) & 1) != 0;
     }
+
+    const TITLE        = "TIT2";
+    const ARTIST       = "TPE1";
+    const ALBUM        = "TALB";
+    const YEAR         = "TYER";
+    const GENRE        = "TCON";
+    const COMMENT      = "COMM";
+    const ALBUM_ARTIST = "TPE2";
+    const DATE         = "TDRC";
+    const TRACK        = "TRCK";
+    const ATTACHED_PIC = "APIC";
+
+    Id3Info get_id3_info() {
+        var info = new Id3Info();
+        info.version = "ID3v2" + this.major_version;
+        for var frame : this.frames {
+            switch frame.id {
+            case TITLE:
+                info.title = frame.get_text();
+                break;
+            case ARTIST:
+                info.artist = frame.get_text();
+                break;
+            case ALBUM:
+                info.album = frame.get_text();
+                break;
+            case YEAR:
+                info.year = frame.get_text();
+                break;
+            case GENRE:
+                info.genre = frame.get_text();
+                break;
+            case COMMENT:
+                info.comment = frame.get_text();
+                break;
+            case ALBUM_ARTIST:
+                info.album_artist = frame.get_text();
+                break;
+            case DATE:
+                info.record_date = frame.get_text();
+                break;
+            case TRACK:
+                var txt = frame.get_text();
+                if txt != null {
+                    info.track_number = System.parseInt(txt);
+                }
+                break;
+            }
+        }
+        return info;
+    }
 }
