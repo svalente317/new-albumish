@@ -1,0 +1,8 @@
+package id3;
+
+class Id3Frame {
+    String id;
+    byte flags_status;
+    byte flags_format;
+    byte[] raw_data;
+}

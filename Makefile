@@ -6,8 +6,8 @@ ALBUMISH_FILES = src/albumish/*.san src/database/*.san src/filter/*.san \
 GTK_FILES = src/gtk/*.san src/gdk/*.san
 GTK_CONFIG = --pkg-config gtk+-3.0
 
-AUDIO_FILES = src/audio/*.san src/audio/miniaudio.h src/audio/miniaudio.c
-AUDIO_CONFIG = --pkg-config libmpg123 --pkg-config id3tag
+AUDIO_FILES = src/audio/*.san src/audio/miniaudio.h src/audio/miniaudio.c src/id3/*.san
+AUDIO_CONFIG = --pkg-config libmpg123
 
 FTPLIB_FILES = src/ftp/*.san src/ftp/*.c src/ftp/*.h
 

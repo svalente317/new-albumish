@@ -17,6 +17,7 @@ import albumish.dialogs.InputDialog;
 import albumish.dialogs.ProgressDialog;
 import audio.FrameInfo;
 import audio.Mpg123;
+import audio.Id3Info;
 
 class AddToLibraryManager {
 
@@ -117,9 +118,10 @@ class AddToLibraryManager {
             song.bitrate = info.vbr == Mpg123.CBR ? "" + info.bitrate :
                 "~" + (int)(((double) total_bitrate) / frame_count);
         }
-        var id3 = mpg.id3();
         mpg.close();
 
+        // Even though libmpg123 has an id3 reader, we use our internal id3 library.
+        var id3 = new Id3Info(); // TODO
         song.id3 = id3.version;
         song.title = id3.title;
         obj.artist = id3.artist;

@@ -119,13 +119,14 @@ class Gallery {
     private Pixbuf get_audio_file_artwork(int songid) {
         var song = this.player.database.song_list[songid];
         var filename = this.player.get_file(song).getPath();
-        var mpg = new Mpg123();
-        var data = mpg.open_id3v2_picture(filename);
-        var image = data != null ? Pixbuf.new_from_bytes(data) : null;
-        System.println(song.filename + ": " + (image != null));
-        mpg.close();
-        mpg.delete();
-        return image;
+        // TODO var mpg = new Mpg123();
+        // var data = mpg.open_id3v2_picture(filename);
+        // var image = data != null ? Pixbuf.new_from_bytes(data) : null;
+        // System.println(song.filename + ": " + (image != null));
+        // mpg.close();
+        // mpg.delete();
+        // return image;
+        return null;
     }
 
     /**

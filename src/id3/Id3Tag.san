@@ -1,0 +1,27 @@
+package id3;
+import sanka.io.FileReader;
+
+class Id3Tag {
+    byte major_version;
+    byte revision;
+    byte flags;
+    int tag_size;
+    Id3Frame[] frames;
+    int padding_size;
+
+    boolean flag_unsync() {
+        return ((this.flags >> 7) & 1) != 0;
+    }
+
+    boolean flag_ext_header() {
+        return ((this.flags >> 6) & 1) != 0;
+    }
+
+    boolean flag_experimental() {
+        return ((this.flags >> 5) & 1) != 0;
+    }
+
+    boolean flag_footer() {
+        return ((this.flags >> 4) & 1) != 0;
+    }
+}

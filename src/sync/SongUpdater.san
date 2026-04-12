@@ -11,9 +11,6 @@ import sanka.io.FileReader;
 import sanka.io.FileStats;
 import sanka.io.FileWriter;
 import sanka.io.IOUtils;
-import audio.Id3File;
-import audio.Id3Frame;
-import audio.Id3Tag;
 import albumish.database.Song;
 import albumish.Albumish;
 
@@ -60,7 +57,7 @@ class SongUpdater {
             return;
         }
         var filename = mp3_file.getPath();
-        var id3file = Id3File.open(filename);
+        /* TODO var id3file = Id3File.open(filename);
         if id3file == null {
             System.println(filename + ": Id3File failed");
             return;
@@ -86,10 +83,10 @@ class SongUpdater {
         System.println(filename + ": tag from " + tag_length + " -> " + tagbuf.length);
 
         output_file.getParent().mkdirs();
-        create_mp3_file(output_file.getPath(), tagbuf, filename, tag_length);
+        create_mp3_file(output_file.getPath(), tagbuf, filename, tag_length); */
     }
 
-    static byte[] get_tag_with_pic_frame(Id3Tag tag, byte[] jpeg) {
+    /* TODO static byte[] get_tag_with_pic_frame(Id3Tag tag, byte[] jpeg) {
         var apic = Id3Frame.create(Id3File.ATTACHED_PIC);
         apic.field(0).set_text_encoding();
         apic.field(1).set_latin1("image/jpeg");
@@ -102,7 +99,7 @@ class SongUpdater {
             return null;
         }
         return tag.render();
-    }
+    } */
 
     static void create_mp3_file(String mp3_file, byte[] tagbuf, String src_file, long audio_offset) {
         var writer = new FileWriter();

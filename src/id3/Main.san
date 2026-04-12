@@ -1,0 +1,56 @@
+/*
+ *  Copyright (c) 2014  Salvatore Valente <svalente@mit.edu>
+ *
+ *  This program is free software.  You can modify and distribute it under
+ *  the terms of the GNU General Public License.  There is no warranty.
+ *  See the file "COPYING" for more information.
+ */
+package id3;
+import sanka.io.File;
+import sanka.io.FileStats;
+import sanka.util.StringBuilder;
+
+class Main {
+    static String[] read_directory_tree(File topdir, map[String]boolean known_files) {
+        var results = new String[];
+        var workqueue = new File[];
+        workqueue.add(topdir);
+        var stats = new FileStats();
+        while workqueue.length > 0 {
+            var directory = workqueue[0];
+            workqueue.delete(0, 1);
+            var names = directory.list();
+            if names == null {
+                continue;
+            }
+            for var name : names {
+                var file = new File(directory, name);
+                var status = file.getStats(stats, true);
+                if status != 0 {
+                    System.println(file.getPath() + ": " + System.strerror(status));
+                    continue;
+                }
+                if stats.isDirectory {
+                    workqueue.add(file);
+                } else if stats.isFile {
+                    var pathname = file.getPath();
+                    if !known_files[pathname] {
+                        results.add(pathname);
+                    }
+                } else {
+                    System.println(file.getPath() + ": not a file or directory");
+                }
+            }
+        }
+        return results;
+    }
+
+    static void main(String[] argv) {
+        var files = read_directory_tree(new File(argv[1]), new map[String]boolean);
+        for var filename : files {
+            System.println("*** " + filename);
+            var f = new Id3File(filename);
+            f.read_id3tag();
+        }
+    }
+}

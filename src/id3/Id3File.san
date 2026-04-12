@@ -1,0 +1,170 @@
+package id3;
+import sanka.io.FileReader;
+
+class Id3File {
+
+    String filename;
+
+    Id3File(String filename) {
+        this.filename = filename;
+    }
+
+    Id3Tag read_id3tag() {
+        var reader = new FileReader();
+        var status = reader.open(this.filename);
+        if status != 0 {
+            System.println(this.filename + ": " + System.strerror(status));
+            return null;
+        }
+        var tag = read_id3tag_from_reader(reader);
+        reader.close();
+        return tag;
+    }
+
+    static Id3Tag read_id3tag_from_reader(FileReader reader) {
+        var header = new byte[](10);
+        if reader.read(header) != header.length {
+            return null;
+        }
+        if header[0] != 'I' || header[1] != 'D' || header[2] != '3' {
+            return null;
+        }
+        var major_version = header[3];
+        if major_version < 2 || major_version > 4 {
+            return null;
+        }
+        var revision = header[4];
+        var flags = header[5];
+        var tag_size = synchsafe_decode(header, 6);
+        var tag = new Id3Tag() {
+            major_version: major_version,
+            revision: revision,
+            flags: flags,
+            tag_size: tag_size
+        };
+
+        // Read the entire tag body into memory.
+        var body = new byte[](tag_size);
+        if reader.read(body) != body.length {
+            return null;
+        }
+        if tag.flag_unsync() {
+            System.println("Warning: ID3 unsynchronisation unsupported");
+        }
+        var pos = 0;
+        if tag.flag_ext_header() {
+            // Supporting ext_header would move `pos` forward.
+            System.println("Warning: ID3 extended header unsupported");
+        }
+        tag.frames = new Id3Frame[];
+        var frames_end = body.length;
+        if tag.flag_footer() {
+            // Supporting footer would move `frames_end` back.
+            System.println("Warning: ID3 footer unsupported");
+        }
+        while pos < frames_end {
+            if body[pos] == 0 {
+                tag.padding_size = frames_end - pos;
+                break;
+            }
+            pos = read_frame(body, pos, major_version, tag.frames);
+            if pos < 0 {
+               break;
+            }
+        }
+        return tag;
+    }
+
+    /**
+     * Decode a 4-byte synchsafe integer (used in ID3v2.3/2.4 headers & sizes).
+     */
+    static int synchsafe_decode(byte[] b, int pos) {
+        return (b[pos] << 21) | (b[pos+1] << 14) | (b[pos+2] << 7) | b[pos+3];
+    }
+
+    /**
+     * Read one frame from `buf` at offset `pos`. Add the new frame to `frames`.
+     *
+     * @return updated position in `buf`
+     */
+    static int read_frame(byte[] buf, int pos, int major_version, Id3Frame[] frames) {
+        var frame = new Id3Frame();
+        if major_version == 2 {
+            // ID3v2.2: 3-char ID + 3-byte size, no flags
+            if pos + 6 > buf.length || buf[pos] == 0 {
+                return -1;
+            }
+            frame.id = new String({buf[pos], buf[pos+1], buf[pos+2]});
+            pos = pos + 3;
+
+            var frame_size = be24_decode(buf, pos);
+            pos = pos + 3;
+            if frame_size == 0 || pos + frame_size > buf.length {
+                return -1;
+            }
+            frame.raw_data = new byte[](frame_size);
+            System.byteArrayCopy(buf, pos, frame.raw_data, 0, frame_size);
+            pos = pos + frame_size;
+
+        } else {
+            // ID3v2.3 / v2.4: 4-char ID + 4-byte size + 2-byte flags
+            if pos + 10 > buf.length || buf[pos] == 0 {
+                return -1;
+            }
+            frame.id = new String({buf[pos], buf[pos+1], buf[pos+2], buf[pos+3]});
+            pos = pos + 4;
+
+            var frame_size = major_version == 4 ?
+                synchsafe_decode(buf, pos) : be32_decode(buf, pos);
+            pos = pos + 4;
+            frame.flags_status = buf[pos];
+            pos++;
+            frame.flags_format = buf[pos];
+            pos++;
+            if frame_size == 0 || pos + frame_size > buf.length {
+                return -1;
+            }
+            frame.raw_data = new byte[](frame_size);
+            System.byteArrayCopy(buf, pos, frame.raw_data, 0, frame_size);
+            pos = pos + frame_size;
+
+            var group_flag = major_version == 4 ? ((frame.flags_format >> 6) & 1) :
+                ((frame.flags_format >> 5) & 1);
+            var encrypt_flag = major_version == 4 ? ((frame.flags_format >> 2) & 1) :
+                ((frame.flags_format >> 6) & 1);
+            var frame_unsync = major_version == 4 ? ((frame.flags_format >> 1) & 1) : 0;
+
+            if group_flag != 0 {
+                System.println("Warning: grouped frame unsupported");
+            }
+            if encrypt_flag != 0 {
+                System.println("Warning: encrypted frame unsupported");
+            }
+            if frame_unsync != 0 {
+                System.println("Warning: frame usync unsupported");
+            }
+        }
+
+        frames.add(frame);
+        return pos;
+    }
+
+    /**
+     * Decode a plain big-endian 3-byte integer (ID3v2.2 frame sizes).
+     */
+    static int be24_decode(byte[] b, int pos) {
+        return (u(b[pos]) << 16) | (u(b[pos+1]) << 8) | u(b[pos+2]);
+    }
+
+    /**
+     * Decode a plain big-endian 4-byte integer (ID3v2.3 frame sizes).
+     */
+    static int be32_decode(byte[] b, int pos) {
+        return (u(b[pos]) << 24) | (u(b[pos+1]) << 16) | (u(b[pos+2]) <<  8) | u(b[pos+3]);
+    }
+
+    // TODO build into sanka
+    static int u(byte b) {
+        c__stmt "return (int)((unsigned char) b)";
+    }
+}
