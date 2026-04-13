@@ -3,7 +3,10 @@ package id3;
 class Iconverter {
     c__include "iconv.h";
 
-    static String convert(String dst, String src, byte[] data) {
+    static byte[] convert(String dst, String src, byte[] data) {
+        if dst == src || data == null || data.length == 0 {
+            return data;
+        }
         var out = new byte[]((int)(data.length / 2) * 3 + 1);
         var status = 0;
         c__stmt "char *dp = (char *) data->data, *op = (char *) out->data";
@@ -16,6 +19,11 @@ class Iconverter {
             System.println("convert failed: " + src + "/" + dst + "/" + data.length);
             return null;
         }
-        return new String(out);
+        return out;
+    }
+
+    static String to_utf8(String src, byte[] data) {
+        var bytes = convert("UTF-8", src, data);
+        return bytes == null ? null : new String(bytes);
     }
 }

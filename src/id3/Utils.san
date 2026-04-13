@@ -1,0 +1,45 @@
+package id3;
+
+class Utils {
+    /**
+     * Find the length of the encoded string starting at the given offset.
+     *
+     * For latin and utf-8 encoding, the string ends at the first zero.
+     * For utf-16 and utf-16be encoding, the string ends at the first double-zero.
+     *
+     * @return string length including the closing zero(s).
+     */
+    static int encoded_strlen(byte[] p, int off, int enc) {
+        if p == null || p.length <= off {
+            return 0;
+        }
+        var ns = (enc == Id3Frame.ID3_ENC_UTF16 || enc == Id3Frame.ID3_ENC_UTF16BE) ? 2 : 1;
+        if ns == 1 {
+            for var i = off; i < p.length; i++ {
+                if p[i] == 0 {
+                    return i + 1 - off;
+                }
+            }
+        } else {
+            for var i = off; i + 1 < p.length; i = i + 2 {
+                if p[i] == 0 && p[i+1] == 0 {
+                    return i + 2 - off;
+                }
+            }
+        }
+        // no zero found -- consume everything
+        return p.length - off;
+    }
+
+    /**
+     * Find the encoded string starting at the given offset.
+     *
+     * @return the encoded string including the closing zero(s).
+     */
+    static byte[] get_encoded_string(byte[] p, int off, int enc) {
+        var len = encoded_strlen(p, off, enc);
+        var data = new byte[](len);
+        System.byteArrayCopy(p, off, data, 0, data.length);
+        return data;
+    }
+}

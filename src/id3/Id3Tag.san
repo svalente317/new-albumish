@@ -75,4 +75,13 @@ class Id3Tag {
         }
         return info;
     }
+
+    byte[] get_apic_data() {
+        for var frame : this.frames {
+            if frame.id == ATTACHED_PIC {
+                return frame.get_image_data();
+            }
+        }
+        return null;
+    }
 }

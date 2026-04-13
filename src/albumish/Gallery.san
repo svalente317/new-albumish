@@ -13,6 +13,7 @@ import sanka.lang.Thread;
 import audio.Mpg123;
 import gdk.Pixbuf;
 import gtk.Context;
+import id3.Id3File;
 import albumish.database.Album;
 import albumish.database.Artist;
 
@@ -119,14 +120,16 @@ class Gallery {
     private Pixbuf get_audio_file_artwork(int songid) {
         var song = this.player.database.song_list[songid];
         var filename = this.player.get_file(song).getPath();
-        // TODO var mpg = new Mpg123();
-        // var data = mpg.open_id3v2_picture(filename);
-        // var image = data != null ? Pixbuf.new_from_bytes(data) : null;
-        // System.println(song.filename + ": " + (image != null));
-        // mpg.close();
-        // mpg.delete();
-        // return image;
-        return null;
+        var id3file = new Id3File(filename);
+        var tag = id3file.read_id3tag();
+        if tag == null {
+            return null;
+        }
+        var data = tag.get_apic_data();
+        if data == null {
+            return null;
+        }
+        return Pixbuf.new_from_bytes(data);
     }
 
     /**

@@ -13,6 +13,23 @@ class Id3Frame {
     const ID3_ENC_UTF8    = 3;
 
     /**
+     * For use by Iconverter
+     */
+    static String encoding_name(int enc) {
+        switch enc {
+        case ID3_ENC_LATIN1:
+            return "ISO-8859-1";
+        case ID3_ENC_UTF16:
+            return "UTF-16";
+        case ID3_ENC_UTF16BE:
+            return "UTF-16BE";
+        case ID3_ENC_UTF8:
+            return "UTF-8";
+        }
+        return null;
+    }
+
+    /**
      * Parse the raw payload of a text field.
      */
     String get_text() {
@@ -26,28 +43,48 @@ class Id3Frame {
             // Encoder bug. The frame is actually UTF-16 encoded.
             enc = ID3_ENC_UTF16;
         }
-        // Treat the entire frame as a single string (field).
-        // TODO. Test this with a frame with multiple fields.
-        var data = new byte[](p.length-1);
-        System.byteArrayCopy(p, 1, data, 0, data.length);
-        var src = "";
-        var result = "";
-        if enc != ID3_ENC_UTF8 {
-            switch enc {
-            case ID3_ENC_LATIN1:
-                src = "ISO-8859-1";
-                break;
-            case ID3_ENC_UTF16:
-                src = "UTF-16";
-                break;
-            case ID3_ENC_UTF16BE:
-                src = "UTF-16BE";
-                break;
-            }
-            result = Iconverter.convert("UTF-8", src, data);
-        } else {
-            result = new String(data);
+        var off = 1;
+        var data = Utils.get_encoded_string(p, off, enc);
+        var text = Iconverter.to_utf8(encoding_name(enc), data);
+        off = off + data.length;
+        if off < p.length {
+            System.println("Warning: ID3 frame with multiple text fields: " + this.id);
         }
-        return result;
+        return text;
+    }
+
+    /**
+     * For an image frame like APIC, return the raw image data.
+     */
+    byte[] get_image_data() {
+        var p = this.raw_data;
+        if p.length < 4 {
+            System.println("ID3 invalid pic frame");
+            return null;
+        }
+        var enc = p[0];
+
+        // MIME type (Latin-1, NUL terminated)
+        var off = 1;
+        var len = Utils.encoded_strlen(p, off, ID3_ENC_LATIN1);
+        off = off + len;
+
+        // picture type
+        // 1 = file icon, 2 = other icon, 3 = front cover, 4 = back cover, etc.
+        if off + 2 >= p.length {
+            System.println("ID3 incomplete pic frame");
+            return null;
+        }
+        off++;
+
+        // description
+        len = Utils.encoded_strlen(p, off, enc);
+        off = off + len;
+
+        // picture data
+        len = p.length - off;
+        var data = new byte[](len);
+        System.byteArrayCopy(p, off, data, 0, len);
+        return data;
     }
 }
