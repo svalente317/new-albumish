@@ -17,7 +17,7 @@ import albumish.dialogs.InputDialog;
 import albumish.dialogs.ProgressDialog;
 import audio.FrameInfo;
 import audio.Mpg123;
-import id3.Id3Info;
+import id3.Id3File;
 
 class AddToLibraryManager {
 
@@ -87,6 +87,7 @@ class AddToLibraryManager {
     }
 
     private void read_id3_tags(String filename, Song song, SongInfo obj) {
+        System.println("*** " + filename);
         song.filename = this.player.get_relative_filename(filename);
         song.add_time = (long)(System.currentTimeMillis() / 1000);
         var stats = new FileStats();
@@ -121,7 +122,12 @@ class AddToLibraryManager {
         mpg.close();
 
         // Even though libmpg123 has an id3 reader, we use our internal id3 library.
-        var id3 = new Id3Info(); // TODO
+        var id3file = new Id3File(filename);
+        var id3tag = id3file.read_id3tag();
+        var id3 = id3tag == null ? null : id3tag.get_id3_info();
+        if id3 == null {
+            return;
+        }
         song.id3 = id3.version;
         song.title = id3.title;
         obj.artist = id3.artist;

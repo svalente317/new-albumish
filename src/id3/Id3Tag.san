@@ -38,9 +38,17 @@ class Id3Tag {
 
     Id3Info get_id3_info() {
         var info = new Id3Info();
-        info.version = "ID3v2" + this.major_version;
+        info.version = "ID3v2" + (int) this.major_version;
+        var id_map = this.major_version == 2 ? get_v22_id_map() : null;
         for var frame : this.frames {
-            switch frame.id {
+            var id = frame.id;
+            if this.major_version == 2 {
+                id = id_map[id];
+                if id == null {
+                    continue;
+                }
+            }
+            switch id {
             case TITLE:
                 info.title = frame.get_text();
                 break;
@@ -83,5 +91,20 @@ class Id3Tag {
             }
         }
         return null;
+    }
+
+    map[String]String get_v22_id_map() {
+        return new map[String]String{
+            "TT2": TITLE,
+            "TP1": ARTIST,
+            "TAL": ALBUM,
+            "TYE": YEAR,
+            "TCO": GENRE,
+            "COM": COMMENT,
+            "TP2": ALBUM_ARTIST,
+            "TDA": DATE,
+            "TRK": TRACK,
+            "PIC": ATTACHED_PIC
+        };
     }
 }
