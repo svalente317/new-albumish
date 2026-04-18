@@ -1,5 +1,9 @@
-- SongUpdater.san - Read tag. some files have info in id3v1 tag.
-- strip id3v1 tag from end of file?
+- sanka bug: new FOO(){x:y} throws exception
+- sanka: add unsigned type
+- sanka: strings in map and map init
+- sanka: new inline array
+- sanka: add Iconverter to runtime
+- sanka: new String(bytearr, i, j)
 
 - sanka bug: consider c__repr in first pass
 - sanka: add superclass to #includes so Bin does not need to import Container

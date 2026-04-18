@@ -16,7 +16,6 @@ class Iconverter {
         c__stmt "iconv_close(cd)";
         c__stmt "out->length -= olen";
         if status < 0 {
-            System.println("convert failed: " + src + "/" + dst + "/" + data.length);
             return null;
         }
         return out;

@@ -46,14 +46,7 @@ class Main {
     }
 
     static void main(String[] argv) {
-        var files = read_directory_tree(new File(argv[1]), new map[String]boolean);
-        for var filename : files {
-            System.println("*** " + filename);
-            var f = new Id3File(filename);
-            var tag = f.read_id3tag();
-            if tag != null {
-                tag.get_id3_info();
-            }
-        }
+        var f = new Id3File(argv[1]);
+        var tag = f.read_id3tag();
     }
 }

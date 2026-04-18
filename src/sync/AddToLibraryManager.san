@@ -21,6 +21,8 @@ import id3.Id3File;
 
 class AddToLibraryManager {
 
+    const DO_BITRATE = true;
+
     Albumish player;
     private String pathname;
     private ProgressDialog dialog;
@@ -105,7 +107,7 @@ class AddToLibraryManager {
         var info = new FrameInfo();
         var total_bitrate = (long) 0;
         var frame_count = 0;
-        while true {
+        while DO_BITRATE {
             var status = mpg.framebyframe_next();
             if status != 0 && status != Mpg123.NEW_FORMAT {
                 break;

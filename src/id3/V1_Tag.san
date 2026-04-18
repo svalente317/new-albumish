@@ -1,0 +1,49 @@
+package id3;
+
+class V1_Tag {
+    byte[] title;
+    byte[] artist;
+    byte[] album;
+    byte[] year;
+    byte[] comment;
+    byte zero;
+    byte track;
+    byte genre;
+
+    V1_Tag() {
+        this.title = new byte[](30);
+        this.artist = new byte[](30);
+        this.album = new byte[](30);
+        this.year = new byte[](4);
+        this.comment = new byte[](28);
+    }
+
+    Id3Info get_id3_info() {
+        var is_v11 = this.zero == 0 && this.track != 0;
+        var info = new Id3Info();
+        info.version = is_v11 ? "ID3v11" : "ID3v1";
+        info.title = to_string(this.title);
+        info.artist = to_string(this.artist);
+        info.album = to_string(this.album);
+        info.year = to_string(this.year);
+        info.genre = null;
+        info.track_number = this.track;
+        return info;
+    }
+
+    static private String to_string(byte[] field) {
+        var i = field.length;
+        while i > 0 && (field[i-1] == ' ' || field[i-1] == 0) {
+            i--;
+        }
+        if i == 0 {
+            return null;
+        }
+        if i == field.length {
+            return new String(field);
+        }
+        var arr = new byte[](i);
+        System.byteArrayCopy(field, 0, arr, 0, i);
+        return new String(arr);
+    }
+}

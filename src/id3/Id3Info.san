@@ -7,7 +7,6 @@ class Id3Info {
     String album;
     String year;
     String genre;
-    String comment;
     String album_artist;
     String record_date;
     int track_number;

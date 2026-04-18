@@ -1,0 +1,105 @@
+package id3;
+import sanka.io.FileReader;
+
+class V2_Tag {
+    byte major_version;
+    byte revision;
+    byte flags;
+    int tag_size;
+    Id3Frame[] frames;
+    int padding_size;
+
+    boolean flag_unsync() {
+        return ((this.flags >> 7) & 1) != 0;
+    }
+
+    boolean flag_ext_header() {
+        return ((this.flags >> 6) & 1) != 0;
+    }
+
+    boolean flag_experimental() {
+        return ((this.flags >> 5) & 1) != 0;
+    }
+
+    boolean flag_footer() {
+        return ((this.flags >> 4) & 1) != 0;
+    }
+
+    const TITLE        = "TIT2";
+    const ARTIST       = "TPE1";
+    const ALBUM        = "TALB";
+    const YEAR         = "TYER";
+    const GENRE        = "TCON";
+    const ALBUM_ARTIST = "TPE2";
+    const DATE         = "TDRC";
+    const TRACK        = "TRCK";
+    const ATTACHED_PIC = "APIC";
+
+    Id3Info get_id3_info() {
+        var info = new Id3Info();
+        info.version = "ID3v2" + (int) this.major_version;
+        var id_map = this.major_version == 2 ? get_v22_id_map() : null;
+        for var frame : this.frames {
+            var id = frame.id;
+            if this.major_version == 2 {
+                id = id_map[id];
+                if id == null {
+                    continue;
+                }
+            }
+            switch id {
+            case TITLE:
+                info.title = frame.get_text();
+                break;
+            case ARTIST:
+                info.artist = frame.get_text();
+                break;
+            case ALBUM:
+                info.album = frame.get_text();
+                break;
+            case YEAR:
+                info.year = frame.get_text();
+                break;
+            case GENRE:
+                info.genre = frame.get_text();
+                break;
+            case ALBUM_ARTIST:
+                info.album_artist = frame.get_text();
+                break;
+            case DATE:
+                info.record_date = frame.get_text();
+                break;
+            case TRACK:
+                var txt = frame.get_text();
+                if txt != null {
+                    info.track_number = System.parseInt(txt);
+                }
+                break;
+            }
+        }
+        return info;
+    }
+
+    byte[] get_apic_data() {
+        for var frame : this.frames {
+            if frame.id == ATTACHED_PIC {
+                return frame.get_image_data();
+            }
+        }
+        return null;
+    }
+
+    map[String]String get_v22_id_map() {
+        return new map[String]String{
+            "TT2": TITLE,
+            "TP1": ARTIST,
+            "TAL": ALBUM,
+            "TYE": YEAR,
+            "TCO": GENRE,
+            "TP2": ALBUM_ARTIST,
+            "TDA": DATE,
+            "TRK": TRACK,
+            "PIC": ATTACHED_PIC
+        };
+    }
+}

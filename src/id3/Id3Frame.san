@@ -46,6 +46,10 @@ class Id3Frame {
         var off = 1;
         var data = Utils.get_encoded_string(p, off, enc);
         var text = Iconverter.to_utf8(encoding_name(enc), data);
+        if text == null {
+            System.println("Warning: ID3 frame bad text: " + this.id);
+            return null;
+        }
         off = off + data.length;
         if off < p.length {
             System.println("Warning: ID3 frame with multiple text fields: " + this.id);

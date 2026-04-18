@@ -16,12 +16,16 @@ class Id3File {
             System.println(this.filename + ": " + System.strerror(status));
             return null;
         }
-        var tag = read_id3tag_from_reader(reader);
+        var v2tag = read_v2_tag_from_reader(reader);
+        var v1tag = read_v1_tag_from_reader(reader);
         reader.close();
-        return tag;
+        return new Id3Tag(){v1tag: v1tag, v2tag: v2tag};
     }
 
-    static Id3Tag read_id3tag_from_reader(FileReader reader) {
+    // ----- ID3v2 -----
+
+    static V2_Tag read_v2_tag_from_reader(FileReader reader) {
+        reader.seek(0, FileReader.SEEK_SET);
         var header = new byte[](10);
         if reader.read(header) != header.length {
             return null;
@@ -36,7 +40,7 @@ class Id3File {
         var revision = header[4];
         var flags = header[5];
         var tag_size = synchsafe_decode(header, 6);
-        var tag = new Id3Tag() {
+        var tag = new V2_Tag() {
             major_version: major_version,
             revision: revision,
             flags: flags,
@@ -166,5 +170,37 @@ class Id3File {
     // TODO build into sanka
     static int u(byte b) {
         c__stmt "return (int)((unsigned char) b)";
+    }
+
+    // ----- ID3v1 -----
+
+    const ID3V1_SIZE = 128;
+
+    static V1_Tag read_v1_tag_from_reader(FileReader reader) {
+        var status = reader.seek(-ID3V1_SIZE, FileReader.SEEK_END);
+        if status != 0 {
+            System.println("id3v1 seek: " + System.strerror(status));
+            return null;
+        }
+        var buf = new byte[](3);
+        if reader.read(buf) != buf.length {
+            return null;
+        }
+        if buf[0] != 'T' || buf[1] != 'A' || buf[2] != 'G' {
+            return null;
+        }
+        var tag = new V1_Tag();
+        reader.read(tag.title);
+        reader.read(tag.artist);
+        reader.read(tag.album);
+        reader.read(tag.year);
+        reader.read(tag.comment);
+        if reader.read(buf) != 3 {
+            return null;
+        }
+        tag.zero = buf[0];
+        tag.track = buf[1];
+        tag.genre = buf[2];
+        return tag;
     }
 }
