@@ -1,4 +1,5 @@
 package id3;
+import sanka.util.Iconverter;
 
 class Id3Frame {
     String id;
@@ -45,11 +46,12 @@ class Id3Frame {
         }
         var off = 1;
         var data = Utils.get_encoded_string(p, off, enc);
-        var text = Iconverter.to_utf8(encoding_name(enc), data);
-        if text == null {
+        var bytes = Iconverter.convert("UTF-8", encoding_name(enc), data);
+        if bytes == null {
             System.println("Warning: ID3 frame bad text: " + this.id);
             return null;
         }
+        var text = new String(bytes);
         off = off + data.length;
         if off < p.length {
             System.println("Warning: ID3 frame with multiple text fields: " + this.id);
