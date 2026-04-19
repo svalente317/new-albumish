@@ -1,4 +1,5 @@
 package id3;
+import sanka.io.Writer;
 import sanka.util.Iconverter;
 
 class Id3Frame {
@@ -92,5 +93,131 @@ class Id3Frame {
         var data = new byte[](len);
         System.byteArrayCopy(p, off, data, 0, len);
         return data;
+    }
+
+    /**
+     * If this is a 'T'* field, and if it has a single string, and if that string has the
+     * UTF-16 bug, then fix it.
+     */
+    void fix_text() {
+        var p = this.raw_data;
+        if this.id[0] != 'T' || this.id == "TXXX" || p.length == 0 {
+            return;
+        }
+        var enc = p[0];
+        if !(enc == ID3_ENC_UTF8 && p.length >= 3 && p[1] == -1 && p[2] == -2) {
+            return;
+        }
+        // Encoder bug. The frame is actually UTF-16 encoded.
+        enc = ID3_ENC_UTF16;
+        var off = 1;
+        var data = Utils.get_encoded_string(p, off, enc);
+        off = off + data.length;
+        if off < p.length {
+            // Multiple strings. Forget it, I don't want to re-encode multiple strings.
+            return;
+        }
+        var bytes = Iconverter.convert("UTF-8", encoding_name(enc), data);
+        if bytes == null {
+            return;
+        }
+        System.println(this.id + ": from " + p.length + " to " + (1 + bytes.length));
+        this.raw_data.setLength(1 + bytes.length);
+        System.byteArrayCopy(bytes, 0, this.raw_data, 1, bytes.length);
+    }
+
+    int size() {
+        switch this.id.length() {
+        case 3:
+            return 6 + this.raw_data.length;
+        case 4:
+            return 10 + this.raw_data.length;
+        }
+        return 0;
+    }
+
+    /**
+     * Read one frame from `buf` at offset `pos`.
+     *
+     * @return updated position in `buf`
+     */
+    int read(byte[] buf, int pos, int major_version) {
+        if major_version == 2 {
+            // ID3v2.2: 3-char ID + 3-byte size, no flags
+            if pos + 6 > buf.length || buf[pos] == 0 {
+                return -1;
+            }
+            this.id = new String({buf[pos], buf[pos+1], buf[pos+2]});
+            pos = pos + 3;
+
+            var frame_size = Utils.be24_decode(buf, pos);
+            pos = pos + 3;
+            if frame_size == 0 || pos + frame_size > buf.length {
+                return -1;
+            }
+            this.raw_data = new byte[](frame_size);
+            System.byteArrayCopy(buf, pos, this.raw_data, 0, frame_size);
+            pos = pos + frame_size;
+
+        } else {
+            // ID3v2.3 / v2.4: 4-char ID + 4-byte size + 2-byte flags
+            if pos + 10 > buf.length || buf[pos] == 0 {
+                return -1;
+            }
+            this.id = new String({buf[pos], buf[pos+1], buf[pos+2], buf[pos+3]});
+            pos = pos + 4;
+
+            var frame_size = major_version == 4 ?
+                Utils.synchsafe_decode(buf, pos) : Utils.be32_decode(buf, pos);
+            pos = pos + 4;
+            this.flags_status = buf[pos];
+            pos++;
+            this.flags_format = buf[pos];
+            pos++;
+            if frame_size == 0 || pos + frame_size > buf.length {
+                return -1;
+            }
+            this.raw_data = new byte[](frame_size);
+            System.byteArrayCopy(buf, pos, this.raw_data, 0, frame_size);
+            pos = pos + frame_size;
+
+            var group_flag = major_version == 4 ? ((this.flags_format >> 6) & 1) :
+                ((this.flags_format >> 5) & 1);
+            var encrypt_flag = major_version == 4 ? ((this.flags_format >> 2) & 1) :
+                ((this.flags_format >> 6) & 1);
+            var frame_unsync = major_version == 4 ? ((this.flags_format >> 1) & 1) : 0;
+
+            if group_flag != 0 {
+                System.println("Warning: grouped frame unsupported");
+            }
+            if encrypt_flag != 0 {
+                System.println("Warning: encrypted frame unsupported");
+            }
+            if frame_unsync != 0 {
+                System.println("Warning: frame usync unsupported");
+            }
+        }
+        return pos;
+    }
+
+    /**
+     * Write the ID3v2 frame to a file.
+     */
+    void write(Writer writer, int major_version) {
+        writer.write(this.id.toByteArray());
+        switch major_version {
+        case 2:
+            writer.write(Utils.be24_encode(this.raw_data.length));
+            break;
+        case 3:
+            writer.write(Utils.be32_encode(this.raw_data.length));
+            writer.write({this.flags_status, this.flags_format});
+            break;
+        case 4:
+            writer.write(Utils.synchsafe_encode(this.raw_data.length));
+            writer.write({this.flags_status, this.flags_format});
+            break;
+        }
+        writer.write(this.raw_data);
     }
 }

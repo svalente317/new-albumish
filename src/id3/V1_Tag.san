@@ -1,6 +1,9 @@
 package id3;
+import sanka.io.FileReader;
 
 class V1_Tag {
+    const ID3V1_SIZE = 128;
+
     byte[] title;
     byte[] artist;
     byte[] album;
@@ -45,5 +48,39 @@ class V1_Tag {
         var arr = new byte[](i);
         System.byteArrayCopy(field, 0, arr, 0, i);
         return new String(arr);
+    }
+
+    /**
+     * Read the ID3v1 tag from the end of a file.
+     *
+     * @return the file offset where the audio ends and the id3v1 tag starts
+     */
+    long read(FileReader reader) {
+        var status = reader.seek(-ID3V1_SIZE, FileReader.SEEK_END);
+        if status != 0 {
+            System.println("id3v1 seek: " + System.strerror(status));
+            return 0;
+        }
+        var audio_end = reader.tell();
+
+        var buf = new byte[](3);
+        if reader.read(buf) != buf.length {
+            return 0;
+        }
+        if buf[0] != 'T' || buf[1] != 'A' || buf[2] != 'G' {
+            return 0;
+        }
+        reader.read(this.title);
+        reader.read(this.artist);
+        reader.read(this.album);
+        reader.read(this.year);
+        reader.read(this.comment);
+        if reader.read(buf) != 3 {
+            return 0;
+        }
+        this.zero = buf[0];
+        this.track = buf[1];
+        this.genre = buf[2];
+        return audio_end;
     }
 }

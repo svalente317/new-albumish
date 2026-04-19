@@ -3,6 +3,8 @@ package id3;
 class Id3Tag {
     V1_Tag v1tag;
     V2_Tag v2tag;
+    int audio_start;
+    long audio_end;
 
     Id3Info get_id3_info() {
         var info = null;

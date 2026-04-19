@@ -1,11 +1,11 @@
 package id3;
-import sanka.io.FileReader;
+import sanka.io.Reader;
+import sanka.io.Writer;
 
 class V2_Tag {
     byte major_version;
     byte revision;
     byte flags;
-    int tag_size;
     Id3Frame[] frames;
     int padding_size;
 
@@ -101,5 +101,82 @@ class V2_Tag {
             "TRK": TRACK,
             "PIC": ATTACHED_PIC
         };
+    }
+
+    /**
+     * Read the ID3v2 tag from the start of a file.
+     *
+     * @return the file offset where the audio starts
+     */
+    int read(Reader reader) {
+        // reader.seek(0, FileReader.SEEK_SET);
+        var header = new byte[](10);
+        if reader.read(header) != header.length {
+            return 0;
+        }
+        if header[0] != 'I' || header[1] != 'D' || header[2] != '3' {
+            return 0;
+        }
+        var major_version = header[3];
+        if major_version < 2 || major_version > 4 {
+            return 0;
+        }
+        this.major_version = major_version;
+        this.revision = header[4];
+        this.flags = header[5];
+        var tag_size = Utils.synchsafe_decode(header, 6);
+
+        // Read the entire tag body into memory.
+        var body = new byte[](tag_size);
+        if reader.read(body) != body.length {
+            return 0;
+        }
+        if flag_unsync() {
+            System.println("Warning: ID3 unsynchronisation unsupported");
+        }
+        var pos = 0;
+        if flag_ext_header() {
+            // Supporting ext_header would move `pos` forward.
+            System.println("Warning: ID3 extended header unsupported");
+        }
+        this.frames = new Id3Frame[];
+        var frames_end = body.length;
+        if flag_footer() {
+            // Supporting footer would move `frames_end` back.
+            System.println("Warning: ID3 footer unsupported");
+        }
+        while pos < frames_end {
+            if body[pos] == 0 {
+                this.padding_size = frames_end - pos;
+                break;
+            }
+            var frame = new Id3Frame();
+            pos = frame.read(body, pos, major_version);
+            if pos < 0 {
+               break;
+            }
+            this.frames.add(frame);
+        }
+        return 10 + tag_size;
+    }
+
+    /**
+     * Write the ID3v2 tag to a new file. This calculates a new tag size because the tag
+     * may have been modified while in memory.
+     */
+    void write(Writer writer) {
+        writer.write({'I', 'D', '3', this.major_version, this.revision, this.flags});
+        var size = this.padding_size;
+        for var frame : this.frames {
+            frame.fix_text();
+            size = size + frame.size();
+        }
+        writer.write(Utils.synchsafe_encode(size));
+        for var frame : this.frames {
+            frame.write(writer, this.major_version);
+        }
+        if this.padding_size > 0 {
+            writer.write(new byte[](this.padding_size));
+        }
     }
 }

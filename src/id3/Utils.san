@@ -2,6 +2,32 @@ package id3;
 
 class Utils {
     /**
+     * Decode a 4-byte synchsafe integer (used in ID3v2.3/2.4 headers & sizes).
+     */
+    static int synchsafe_decode(byte[] b, int pos) {
+        return (b[pos] << 21) | (b[pos+1] << 14) | (b[pos+2] << 7) | b[pos+3];
+    }
+
+    /**
+     * Decode a plain big-endian 3-byte integer (ID3v2.2 frame sizes).
+     */
+    static int be24_decode(byte[] b, int pos) {
+        return (u(b[pos]) << 16) | (u(b[pos+1]) << 8) | u(b[pos+2]);
+    }
+
+    /**
+     * Decode a plain big-endian 4-byte integer (ID3v2.3 frame sizes).
+     */
+    static int be32_decode(byte[] b, int pos) {
+        return (u(b[pos]) << 24) | (u(b[pos+1]) << 16) | (u(b[pos+2]) <<  8) | u(b[pos+3]);
+    }
+
+    // TODO build into sanka
+    static int u(byte b) {
+        c__stmt "return (int)((unsigned char) b)";
+    }
+
+    /**
      * Find the length of the encoded string starting at the given offset.
      *
      * For latin and utf-8 encoding, the string ends at the first zero.
@@ -41,5 +67,25 @@ class Utils {
         var data = new byte[](len);
         System.byteArrayCopy(p, off, data, 0, data.length);
         return data;
+    }
+
+    /**
+     * Encode a 4-byte synchsafe integer (used in ID3v2.3/2.4 headers & sizes).
+     */
+    static byte[] synchsafe_encode(int v) {
+        return null; // TODO
+    }
+
+    static byte[] be24_encode(int v) {
+        return null; // TODO
+    }
+
+    static byte[] be32_encode(int v) {
+        var out = new byte[](4);
+        out[0] = (byte)((v >> 24) & 0xFF);
+        out[1] = (byte)((v >> 16) & 0xFF);
+        out[2] = (byte)((v >>  8) & 0xFF);
+        out[3] = (byte)(v & 0xFF);
+        return out;
     }
 }
