@@ -45,8 +45,35 @@ class Main {
         return results;
     }
 
+    static void main1(String[] argv) {
+        var files = read_directory_tree(new File(argv[1]), new map[String]boolean);
+        for var filename : files {
+            System.println("--- " + filename);
+            var tag = new Id3File(filename).read_id3tag();
+            if tag != null { tag.get_id3_info(); }
+        }
+    }
+
+    static void main2(String[] argv) {
+        for var i = 0; i <= 32; i++ {
+            var value = 1 << i;
+            if i == 32 { value = 0; }
+            var s = "its " + value;
+            var b = Utils.synchsafe_encode(value);
+            var i0 = (int) b[0];
+            var i1 = (int) b[1];
+            var i2 = (int) b[2];
+            var i3 = (int) b[3];
+            s = s + " and " + i0 + ":" + i1 + ":" + i2 + ":" + i3;
+            var v2 = Utils.synchsafe_decode(b, 0);
+            s = s + " and " + (value == v2);
+            System.println(s);
+        }
+    }
+
     static void main(String[] argv) {
-        var f = new Id3File(argv[1]);
-        var tag = f.read_id3tag();
+        var src = new Id3File(argv[1]);
+        var tag = src.read_id3tag();
+        Id3File.write(src, argv[2], tag);
     }
 }

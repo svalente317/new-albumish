@@ -168,7 +168,7 @@ class V2_Tag {
         writer.write({'I', 'D', '3', this.major_version, this.revision, this.flags});
         var size = this.padding_size;
         for var frame : this.frames {
-            frame.fix_text();
+            frame.prefer_utf8();
             size = size + frame.size();
         }
         writer.write(Utils.synchsafe_encode(size));

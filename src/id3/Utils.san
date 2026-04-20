@@ -73,11 +73,23 @@ class Utils {
      * Encode a 4-byte synchsafe integer (used in ID3v2.3/2.4 headers & sizes).
      */
     static byte[] synchsafe_encode(int v) {
-        return null; // TODO
+        var out = new byte[](4);
+        out[3] = (byte)(v & 0x7F);
+        v = v >> 7;
+        out[2] = (byte)(v & 0x7F);
+        v = v >> 7;
+        out[1] = (byte)(v & 0x7F);
+        v = v >> 7;
+        out[0] = (byte)(v & 0x7F);
+        return out;
     }
 
     static byte[] be24_encode(int v) {
-        return null; // TODO
+        var out = new byte[](3);
+        out[0] = (byte)((v >> 16) & 0xFF);
+        out[1] = (byte)((v >>  8) & 0xFF);
+        out[2] = (byte)(v & 0xFF);
+        return out;
     }
 
     static byte[] be32_encode(int v) {

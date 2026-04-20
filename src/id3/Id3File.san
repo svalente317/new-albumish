@@ -1,5 +1,6 @@
 package id3;
 import sanka.io.FileReader;
+import sanka.io.FileWriter;
 
 class Id3File {
 
@@ -31,5 +32,61 @@ class Id3File {
             tag.v1tag = null;
         }
         return tag;
+    }
+
+    /**
+     * Write a new mp3 file with the given id3v2 tag, and the audio from the given
+     * mp3 file, which was the original source of the id3v2 tag.
+     * Do not write an id3v1 tag at the end of the file.
+     */
+    static void write(Id3File source, String filename, Id3Tag tag) {
+        if tag.v2tag == null {
+            System.println(source.filename + ": no id3v2 tag");
+            return;
+        }
+        var reader = new FileReader();
+        var status = reader.open(source.filename);
+        if status != 0 {
+            System.println(source.filename + ": " + System.strerror(status));
+            return;
+        }
+        var writer = new FileWriter();
+        status = writer.open(filename);
+        if status != 0 {
+            reader.close();
+            System.println(filename + ": " + System.strerror(status));
+            return;
+        }
+        tag.v2tag.write(writer);
+        reader.seek(tag.audio_start, FileReader.SEEK_SET);
+        // By default, read to end-of-file.
+        var remaining = 0L;
+        if tag.audio_end > 0 {
+            // Do not copy ID3v1 tag from end of file.
+            remaining = tag.audio_end - tag.audio_start;
+        }
+        var buf = new byte[](1000000);
+        while true {
+            if remaining > 0 && buf.length > remaining {
+                buf.setLength((int) remaining);
+            }
+            status = reader.read(buf);
+            System.println("read: " + status);
+            if status <= 0 {
+                break;
+            }
+            if status < buf.length {
+                buf.setLength(status);
+            }
+            writer.write(buf);
+            if remaining > 0 {
+                remaining = remaining - status;
+                if remaining <= 0 {
+                    break;
+                }
+            }
+        }
+        writer.close();
+        reader.close();
     }
 }

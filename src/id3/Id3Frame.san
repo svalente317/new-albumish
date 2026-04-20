@@ -41,10 +41,6 @@ class Id3Frame {
             return null;
         }
         var enc = p[0];
-        if enc == ID3_ENC_UTF8 && p.length >= 3 && p[1] == -1 && p[2] == -2 {
-            // Encoder bug. The frame is actually UTF-16 encoded.
-            enc = ID3_ENC_UTF16;
-        }
         var off = 1;
         var data = Utils.get_encoded_string(p, off, enc);
         var bytes = Iconverter.convert("UTF-8", encoding_name(enc), data);
@@ -96,20 +92,18 @@ class Id3Frame {
     }
 
     /**
-     * If this is a 'T'* field, and if it has a single string, and if that string has the
-     * UTF-16 bug, then fix it.
+     * If this is a 'T'* field, and if it has a single string, and if that string is
+     * UTF-16 encoded, then change it to UTF-8.
      */
-    void fix_text() {
+    void prefer_utf8() {
         var p = this.raw_data;
         if this.id[0] != 'T' || this.id == "TXXX" || p.length == 0 {
             return;
         }
         var enc = p[0];
-        if !(enc == ID3_ENC_UTF8 && p.length >= 3 && p[1] == -1 && p[2] == -2) {
+        if !(enc == ID3_ENC_UTF16 || enc == ID3_ENC_UTF16BE) {
             return;
         }
-        // Encoder bug. The frame is actually UTF-16 encoded.
-        enc = ID3_ENC_UTF16;
         var off = 1;
         var data = Utils.get_encoded_string(p, off, enc);
         off = off + data.length;
@@ -123,6 +117,7 @@ class Id3Frame {
         }
         System.println(this.id + ": from " + p.length + " to " + (1 + bytes.length));
         this.raw_data.setLength(1 + bytes.length);
+        this.raw_data[0] = ID3_ENC_UTF8;
         System.byteArrayCopy(bytes, 0, this.raw_data, 1, bytes.length);
     }
 
