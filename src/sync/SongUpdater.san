@@ -13,29 +13,34 @@ import sanka.io.FileWriter;
 import sanka.io.IOUtils;
 import albumish.database.Song;
 import albumish.Albumish;
+import id3.Id3File;
+import id3.V2_Tag;
 
 class SongUpdater {
     /**
+     * If this song has artwork in the mp3 file, then return the mp3 file.
+     *
      * If this song has artwork in the gallery but not in the mp3 file, then write
-     * a copy of the mp3 file with the artwork embedded, to write to the device.
+     * a copy of the mp3 file with the artwork embedded, and return that file.
+     *
      * If we already have a cached copy of the file with the embedded artwork, then
-     * use that.
+     * return that.
      */
     static File get_song_file_with_artwork(Albumish player, Song song, String media_name) {
+        var song_file = player.get_file(song);
+        var song_mod = song_file.lastModified();
+        if song_mod < 0 {
+            return null;
+        }
         var database = player.database;
         var album = database.album_list[song.albumid];
         var gallery = player.gallery;
         var image_file = gallery.get_image_file(album);
         var stats = new inline FileStats();
         if image_file == null || image_file.getStats(stats, true) != 0 {
-            return null;
+            return song_file;
         }
         var image_mod = stats.lastModified;
-        var song_file = player.get_file(song);
-        var song_mod = song_file.lastModified();
-        if song_mod < 0 {
-            return null;
-        }
         var library_timestamp = image_mod > song_mod ? image_mod : song_mod;
         var cache_dir = new File(player.home_directory, "cache");
         var cache_file = new File(cache_dir, media_name);
@@ -43,99 +48,25 @@ class SongUpdater {
         if timestamp >= library_timestamp {
             return cache_file;
         }
-        write_mp3_file_with_image_file(song_file, image_file, cache_file);
-        return cache_file;
+        var cached = write_mp3_file_with_image_file(song_file, image_file, cache_file);
+        return cached ? cache_file : song_file;
     }
 
     /**
      * Read the mp3_file and the image_file, and them as output_file.
      */
-    static void write_mp3_file_with_image_file(File mp3_file, File image_file, File output_file) {
-        var jpeg = IOUtils.readFile(image_file.getPath());
-        if jpeg == null {
-            System.println(image_file.getPath() + ": read failed");
-            return;
+    static boolean write_mp3_file_with_image_file(File mp3_file, File image_file, File output_file) {
+        var src = new Id3File(mp3_file.getPath());
+        var tag = src.read_id3tag();
+        if tag == null || tag.v2tag == null {
+            return false;
         }
-        var filename = mp3_file.getPath();
-        /* TODO var id3file = Id3File.open(filename);
-        if id3file == null {
-            System.println(filename + ": Id3File failed");
-            return;
+        if tag.v2tag.get_frame(V2_Tag.ATTACHED_PIC) != null {
+            return false;
         }
-        var tag = id3file.tag();
-        if tag == null {
-            System.println(filename + ": no tag");
-            id3file.close();
-            return;
-        }
-        if tag.frame(Id3File.ATTACHED_PIC, 0) != null {
-            System.println(filename + ": has artwork");
-            id3file.close();
-            return;
-        }
-        var tag_length = tag.get_padded_size();
-        var tagbuf = get_tag_with_pic_frame(tag, jpeg);
-        if tagbuf == null {
-            id3file.close();
-            return;
-        }
-        id3file.close();
-        System.println(filename + ": tag from " + tag_length + " -> " + tagbuf.length);
-
+        tag.v2tag.attach_picture(image_file.getPath());
         output_file.getParent().mkdirs();
-        create_mp3_file(output_file.getPath(), tagbuf, filename, tag_length); */
-    }
-
-    /* TODO static byte[] get_tag_with_pic_frame(Id3Tag tag, byte[] jpeg) {
-        var apic = Id3Frame.create(Id3File.ATTACHED_PIC);
-        apic.field(0).set_text_encoding();
-        apic.field(1).set_latin1("image/jpeg");
-        apic.field(2).set_int(Id3File.FRONT_COVER);
-        apic.field(3).set_string("");
-        apic.field(4).set_binary_data(jpeg);
-        if tag.attach_frame(apic) != 0 {
-            System.println("tag attach failed");
-            apic.delete();
-            return null;
-        }
-        return tag.render();
-    } */
-
-    static void create_mp3_file(String mp3_file, byte[] tagbuf, String src_file, long audio_offset) {
-        var writer = new FileWriter();
-        var status = writer.open(mp3_file);
-        if status != 0 {
-            System.println(mp3_file + ": " + System.strerror(status));
-            return;
-        }
-        if writer.write(tagbuf) != tagbuf.length {
-            System.println(mp3_file + ": short write");
-        }
-        var reader = new FileReader();
-        status = reader.open(src_file);
-        if status != 0 {
-            System.println(src_file + ": " + System.strerror(status));
-            writer.close();
-            return;
-        }
-        reader.seek(audio_offset, FileReader.SEEK_SET);
-        var data = new byte[](8096);
-        while true {
-            status = reader.read(data);
-            if status <= 0 {
-                break;
-            }
-            data.setLength(status);
-            writer.write(data);
-        }
-        reader.close();
-        status = writer.close();
-        if status != 0 {
-            System.println(mp3_file + ": " + System.strerror(status));
-        }
-    }
-
-    static void main(String[] argv) {
-        write_mp3_file_with_image_file(new File(argv[1]), new File(argv[2]),  new File(argv[3]));
+        Id3File.write(src, output_file.getPath(), tag);
+        return true;
     }
 }

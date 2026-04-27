@@ -136,8 +136,7 @@ class SyncManager {
                 continue;
             }
             var media_name = generate_media_name(song, this.player.database);
-            var cache_file = SongUpdater.get_song_file_with_artwork(this.player, song, media_name);
-            var song_file = cache_file != null ? cache_file : this.player.get_file(song);
+            var song_file = SongUpdater.get_song_file_with_artwork(this.player, song, media_name);
             var fileinfo = fileinfo_map[media_name];
             if fileinfo == null {
                 this.to_add.add(new Filenames(){
@@ -222,7 +221,7 @@ class SyncManager {
      */
     private String get_mounted_device() {
         // TODO get_mounted_device
-        return null;
+        return "/media/sal/84C0-D1CF";
     }
 
     /**

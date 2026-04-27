@@ -71,7 +71,6 @@ class Id3File {
                 buf.setLength((int) remaining);
             }
             status = reader.read(buf);
-            System.println("read: " + status);
             if status <= 0 {
                 break;
             }

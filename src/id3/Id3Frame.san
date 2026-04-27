@@ -1,6 +1,8 @@
 package id3;
+import sanka.io.IOUtils;
 import sanka.io.Writer;
 import sanka.util.Iconverter;
+import sanka.util.StringUtils;
 
 class Id3Frame {
     String id;
@@ -92,6 +94,40 @@ class Id3Frame {
     }
 
     /**
+     * Set this.raw_data to a front-cover attached pic with the given image file.
+     */
+     void set_image_data(String filename) {
+         var itype = "jpeg";
+         var idx = filename.lastIndexOf('.');
+         if idx > 0 {
+             var suffix = StringUtils.toLowerCase(filename.substring(idx+1));
+             if suffix != "" && suffix != "jpg" {
+                 itype = suffix;
+             }
+         }
+         var mime_type = ("image/" + itype).toByteArray();
+         var img_data = IOUtils.readFile(filename);
+         if img_data == null {
+             img_data = new byte[];
+         }
+         var length = 4 + mime_type.length + img_data.length;
+         var p = new byte[](length);
+         var off = 0;
+         p[off] = ID3_ENC_LATIN1;
+         off++;
+         System.byteArrayCopy(mime_type, 0, p, off, mime_type.length);
+         off = off + mime_type.length;
+         p[off] = 0;
+         off++;
+         p[off] = 3; // front cover
+         off++;
+         p[off] = 0; // description
+         off++;
+         System.byteArrayCopy(img_data, 0, p, off, img_data.length);
+         this.raw_data = p;
+     }
+
+    /**
      * If this is a 'T'* field, and if it has a single string, and if that string is
      * UTF-16 encoded, then change it to UTF-8.
      */
@@ -115,7 +151,6 @@ class Id3Frame {
         if bytes == null {
             return;
         }
-        System.println(this.id + ": from " + p.length + " to " + (1 + bytes.length));
         this.raw_data.setLength(1 + bytes.length);
         this.raw_data[0] = ID3_ENC_UTF8;
         System.byteArrayCopy(bytes, 0, this.raw_data, 1, bytes.length);
@@ -169,7 +204,7 @@ class Id3Frame {
             pos++;
             this.flags_format = buf[pos];
             pos++;
-            if frame_size == 0 || pos + frame_size > buf.length {
+            if frame_size < 0 || pos + frame_size > buf.length {
                 return -1;
             }
             this.raw_data = new byte[](frame_size);

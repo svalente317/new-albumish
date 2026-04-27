@@ -80,13 +80,24 @@ class V2_Tag {
         return info;
     }
 
-    byte[] get_apic_data() {
+    Id3Frame get_frame(String fid) {
+        if this.major_version == 2 {
+            fid = get_v22_id(fid);
+        }
         for var frame : this.frames {
-            if frame.id == ATTACHED_PIC {
-                return frame.get_image_data();
+            if frame.id == fid {
+                return frame;
             }
         }
         return null;
+    }
+
+    byte[] get_apic_data() {
+        var frame = get_frame(ATTACHED_PIC);
+        if frame == null {
+            return null;
+        }
+        return frame.get_image_data();
     }
 
     map[String]String get_v22_id_map() {
@@ -101,6 +112,30 @@ class V2_Tag {
             "TRK": TRACK,
             "PIC": ATTACHED_PIC
         };
+    }
+
+    String get_v22_id(String fid) {
+        switch fid {
+        case TITLE:
+            return "TT2";
+        case ARTIST:
+            return "TP1";
+        case ALBUM:
+            return "TAL";
+        case YEAR:
+            return "TYE";
+        case GENRE:
+            return "TCO";
+        case ALBUM_ARTIST:
+            return "TP2";
+        case DATE:
+            return "TDA";
+        case TRACK:
+            return "TRK";
+        case ATTACHED_PIC:
+            return "PIC";
+        };
+        return null;
     }
 
     /**
@@ -179,4 +214,17 @@ class V2_Tag {
             writer.write(new byte[](this.padding_size));
         }
     }
+
+    /**
+     * Add a new frame with the given image file as a front-cover attached pic.
+     */
+     void attach_picture(String img_filename) {
+         var fid = ATTACHED_PIC;
+         if this.major_version == 2 {
+             fid = get_v22_id(fid);
+         }
+         var frame = new Id3Frame(){id: fid};
+         frame.set_image_data(img_filename);
+         this.frames.add(frame);
+     }
 }
