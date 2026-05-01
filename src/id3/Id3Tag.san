@@ -23,4 +23,34 @@ class Id3Tag {
         }
         return null;
     }
+
+    void convert_v1_to_v2() {
+        this.v2tag = new V2_Tag(){major_version: 3};
+        var info = this.v1tag.get_id3_info();
+        if info.title != null {
+            var frame = new Id3Frame();
+            frame.set_text(info.title);
+            this.v2tag.add_frame(V2_Tag.TITLE, frame);
+        }
+        if info.artist != null {
+            var frame = new Id3Frame();
+            frame.set_text(info.artist);
+            this.v2tag.add_frame(V2_Tag.ARTIST, frame);
+        }
+        if info.album != null {
+            var frame = new Id3Frame();
+            frame.set_text(info.album);
+            this.v2tag.add_frame(V2_Tag.ALBUM, frame);
+        }
+        if info.year != null {
+            var frame = new Id3Frame();
+            frame.set_text(info.year);
+            this.v2tag.add_frame(V2_Tag.YEAR, frame);
+        }
+        if info.track_number > 0 {
+            var frame = new Id3Frame();
+            frame.set_text("" + info.track_number);
+            this.v2tag.add_frame(V2_Tag.TRACK, frame);
+        }
+    }
 }

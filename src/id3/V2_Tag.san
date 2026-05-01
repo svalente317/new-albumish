@@ -227,4 +227,19 @@ class V2_Tag {
          frame.set_image_data(img_filename);
          this.frames.add(frame);
      }
+
+     /**
+      * Add a frame. The frame ID should be given as a constant defined in this class.
+      * The frame id is _based on_ the constant, but not necessarily the constant's value.
+      */
+      void add_frame(String fid, Id3Frame frame) {
+          if this.frames == null {
+              this.frames = new Id3Frame[];
+          }
+          if this.major_version == 2 {
+              fid = get_v22_id(fid);
+          }
+          frame.id = fid;
+          this.frames.add(frame);
+      }
 }

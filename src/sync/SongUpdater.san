@@ -58,7 +58,13 @@ class SongUpdater {
     static boolean write_mp3_file_with_image_file(File mp3_file, File image_file, File output_file) {
         var src = new Id3File(mp3_file.getPath());
         var tag = src.read_id3tag();
-        if tag == null || tag.v2tag == null {
+        if tag == null {
+            return false;
+        }
+        if tag.v1tag != null && tag.v2tag == null {
+            tag.convert_v1_to_v2();
+        }
+        if tag.v2tag == null {
             return false;
         }
         if tag.v2tag.get_frame(V2_Tag.ATTACHED_PIC) != null {
