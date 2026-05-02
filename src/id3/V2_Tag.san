@@ -97,7 +97,7 @@ class V2_Tag {
         if frame == null {
             return null;
         }
-        return frame.get_image_data();
+        return frame.get_image_data(this.major_version);
     }
 
     map[String]String get_v22_id_map() {
