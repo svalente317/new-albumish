@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Audio Player</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #eceff1;
+            margin: 0;
+        }
+        .player-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 300px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #6200ee;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+        .time-display {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+<div class="player-container">
+    <audio id="myAudio" src="song.mp3"></audio>
+    
+    <button id="playBtn">Play</button>
+    
+    <input type="range" id="seekBar" value="0" step="0.1">
+    
+    <div class="time-display">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+</div>
+
+<script>
+    const audio = document.getElementById('myAudio');
+    const btn = document.getElementById('playBtn');
+    const seekBar = document.getElementById('seekBar');
+    const currentTimeText = document.getElementById('currentTime');
+    const durationText = document.getElementById('duration');
+
+    // 1. Play/Pause Toggle
+    btn.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            btn.textContent = 'Pause';
+        } else {
+            audio.pause();
+            btn.textContent = 'Play';
+        }
+    });
+
+    // 2. Load Metadata (to get the song duration)
+    audio.onloadedmetadata = () => {
+        seekBar.max = audio.duration;
+        durationText.textContent = formatTime(audio.duration);
+    };
+
+    // 3. Update slider as song plays
+    audio.addEventListener('timeupdate', () => {
+        seekBar.value = audio.currentTime;
+        currentTimeText.textContent = formatTime(audio.currentTime);
+    });
+
+    // 4. Seek functionality (advance/rewind)
+    // We use 'input' for real-time sliding; 'change' only fires when you let go.
+    seekBar.addEventListener('input', () => {
+        audio.currentTime = seekBar.value;
+    });
+
+    // Reset button when finished
+    audio.onended = () => {
+        btn.textContent = 'Play';
+        seekBar.value = 0;
+    };
+
+    // Helper to format seconds into M:SS
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+</script>
+
+</body>
+</html>
