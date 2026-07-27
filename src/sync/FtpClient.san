@@ -82,7 +82,7 @@ class FtpClient {
                 case "modify":
                     if DateFormat.parse(value.substring(0, 14), "%Y%m%d%H%M%S", parsed) {
                         // TODO fraction of a second
-                        fileinfo.lastModified = parsed.timeMillis;
+                        fileinfo.lastModified = parsed.unixTime() * 1000;
                     }
                     break;
                 case "type":
