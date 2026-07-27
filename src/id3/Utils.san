@@ -22,9 +22,8 @@ class Utils {
         return (u(b[pos]) << 24) | (u(b[pos+1]) << 16) | (u(b[pos+2]) <<  8) | u(b[pos+3]);
     }
 
-    // TODO build into sanka
     static int u(byte b) {
-        c__stmt "return (int)((unsigned char) b)";
+        return (int)((unsigned) b);
     }
 
     /**

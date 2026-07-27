@@ -1,4 +1,3 @@
-- sanka: add unsigned type
 - sanka: new inline array
 - sanka: new String(bytearr, i, j)
 
