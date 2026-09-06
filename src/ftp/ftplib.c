@@ -25,11 +25,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sanka_header.h> /* for GC_MALLOC and GC_FREE */
+#include <sanka_header.h>
+#include <sanka_net.h>
 
 #include "ftplib.h"
 
@@ -378,7 +375,7 @@ int FtpConnect(const char *host, int port, netbuf **nControl)
         if ((phe = gethostbyname(host)) == NULL)
         {
             if ( ftplib_debug )
-                fprintf(stderr, "gethostbyname: %s\n", hstrerror(h_errno));
+                fprintf(stderr, "gethostbyname: %d\n", h_errno);
             return 0;
         }
         memcpy((char *)&sin.sin_addr, phe->h_addr, phe->h_length);
@@ -390,7 +387,7 @@ int FtpConnect(const char *host, int port, netbuf **nControl)
             perror("socket");
         return 0;
     }
-    if (setsockopt(sControl,SOL_SOCKET,SO_REUSEADDR, &on, sizeof(on)) == -1)
+    if (setsockopt(sControl,SOL_SOCKET,SO_REUSEADDR,(const char *)&on,sizeof(on)) == -1)
     {
         if (ftplib_debug)
             perror("setsockopt");
@@ -465,7 +462,7 @@ int FtpClearCallback(netbuf *nControl)
  * FtpOptions - change connection options
  *
  * returns 1 if successful, 0 on error
- */
+ *
 int FtpOptions(int opt, long val, netbuf *nControl)
 {
     int v,rv=0;
@@ -499,7 +496,7 @@ int FtpOptions(int opt, long val, netbuf *nControl)
         break;
     }
     return rv;
-}
+}*/
 
 /*
  * FtpSendCmd - send a command and wait for expected response
@@ -615,14 +612,14 @@ static int FtpOpenPort(netbuf *nControl, netbuf **nData, int mode, int dir)
             perror("socket");
         return -1;
     }
-    if (setsockopt(sData,SOL_SOCKET,SO_REUSEADDR, &on,sizeof(on)) == -1)
+    if (setsockopt(sData,SOL_SOCKET,SO_REUSEADDR,(const char *)&on,sizeof(on)) == -1)
     {
         if (ftplib_debug)
             perror("setsockopt");
         net_close(sData);
         return -1;
     }
-    if (setsockopt(sData,SOL_SOCKET,SO_LINGER, &lng,sizeof(lng)) == -1)
+    if (setsockopt(sData,SOL_SOCKET,SO_LINGER,(const char *)&lng,sizeof(lng)) == -1)
     {
         if (ftplib_debug)
             perror("setsockopt");
